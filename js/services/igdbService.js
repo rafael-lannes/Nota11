@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Game Tracker "Nota 11" - IGDB.com (Twitch) API Integration Service
  * Permite buscar capas oficiais em alta definição (t_cover_big, t_720p, t_1080p),
  * gêneros e metadados direto da base oficial do IGDB (Internet Game Database).
@@ -745,6 +745,73 @@
           };
         }
       }
+      return null;
+    }
+
+    /**
+     * Busca um jogo específico no IGDB pelo seu ID numérico oficial, slug ou URL completa
+     * (Ex: 1942, 'the-witcher-3-wild-hunt' ou 'https://www.igdb.com/games/the-witcher-3-wild-hunt')
+     * Puxa automaticamente a capa oficial em alta definição, gêneros, título e metadados.
+     * @param {string|number} idOrUrl - ID numérico, slug ou URL da página do jogo no IGDB
+     * @param {string} [platformName] - Nome da plataforma
+     * @param {Object} [credentials] - Credenciais do Twitch/IGDB
+     * @returns {Promise<{ id: string, title: string, platform: string, genre: string, genres: string[], releaseYear: number|null, coverUrl: string, candidateCovers: Array, source: string }|null>}
+     */
+    static async getGameById(idOrUrl, platformName = '', credentials = {}) {
+      if (!idOrUrl) return null;
+      let raw = String(idOrUrl).trim();
+      if (!raw) return null;
+
+      // 1. Extração inteligente do identificador se for link ou texto formatado
+      // Ex: "https://www.igdb.com/games/the-witcher-3-wild-hunt" -> "the-witcher-3-wild-hunt"
+      // Ex: "https://www.igdb.com/games/1942" -> "1942"
+      if (raw.includes('/games/')) {
+        const parts = raw.split('/games/');
+        raw = parts[1].split('/')[0].split('?')[0].split('#')[0].trim();
+      }
+
+      // Remove prefixos como "id:" ou "#" se o usuário colar algo como "ID: 1942" ou "#1942"
+      raw = raw.replace(/^(id\s*[:=]?\s*|#)/i, '').trim();
+
+      const isNumeric = /^\d+$/.test(raw);
+      const cleanId = raw;
+
+      const clientId = (credentials.clientId || credentials.ssid || '').trim();
+      const clientSecret = (credentials.clientSecret || credentials.sspassword || '').trim();
+      let accessToken = (credentials.accessToken || '').trim();
+      let tokenExpiry = credentials.tokenExpiry || 0;
+
+      if (!clientId || (!clientSecret && !accessToken)) {
+        const authErr = new Error('IGDB: Para buscar dados pelo ID do IGDB, configure seu Client ID e Client Secret nas configurações.');
+        authErr.isAuthError = true;
+        throw authErr;
+      }
+
+      const auth = await this.getAccessToken(clientId, clientSecret, accessToken, tokenExpiry);
+      accessToken = auth.accessToken;
+
+      const fields = 'fields id, name, summary, cover.url, cover.image_id, genres.name, platforms.name, first_release_date, artworks.url, artworks.image_id, screenshots.url, screenshots.image_id;';
+      let query = '';
+      if (isNumeric) {
+        query = `${fields} where id = ${cleanId}; limit 1;`;
+      } else {
+        const escapedSlug = cleanId.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        query = `${fields} where slug = "${escapedSlug}"; limit 1;`;
+      }
+
+      const rawGames = await this.fetchIgdbGames(query, clientId, accessToken, credentials.proxyUrl);
+      if (rawGames && Array.isArray(rawGames) && rawGames.length > 0) {
+        return this.parseIgdbGameItem(rawGames[0], platformName);
+      }
+
+      // Se não encontrou por slug e não é numérico, tenta uma busca pelo nome
+      if (!isNumeric) {
+        const fallbackResults = await this.searchGames(cleanId, platformName, credentials);
+        if (fallbackResults && fallbackResults.length > 0) {
+          return fallbackResults[0];
+        }
+      }
+
       return null;
     }
   }

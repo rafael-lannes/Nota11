@@ -5855,18 +5855,55 @@
             </button>
           </div>
           
-          <!-- Título do Jogo -->
-          <div class="space-y-1.5">
-            <label class="block text-xs font-semibold text-slate-300">
-              Título do Jogo *
-            </label>
-            <input 
-              type="text" 
-              v-model="gameForm.title" 
-              required
-              placeholder="Digite o nome do jogo (ex: Elden Ring, Chrono Trigger)..."
-              class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
-            />
+          <!-- Título do Jogo & ID do IGDB -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="sm:col-span-2 space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-300">
+                Título do Jogo *
+              </label>
+              <input 
+                type="text" 
+                v-model="gameForm.title" 
+                required
+                placeholder="Digite o nome do jogo (ex: Elden Ring, Chrono Trigger)..."
+                class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-semibold text-indigo-300 flex items-center gap-1">
+                  <i data-lucide="hash" class="w-3.5 h-3.5 text-indigo-400"></i>
+                  <span>ID do IGDB</span>
+                </label>
+                <span class="text-[10px] text-slate-500 font-medium">Opcional</span>
+              </div>
+              <div class="relative flex items-center">
+                <input 
+                  type="text" 
+                  v-model="gameForm.igdbId" 
+                  @keydown.enter.prevent="fetchFromIgdbById"
+                  placeholder="Ex: 1942 ou link..."
+                  class="w-full pl-3 pr-10 py-2.5 bg-slate-900 border border-indigo-500/30 hover:border-indigo-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-400 transition-colors font-mono"
+                  title="Insira o ID numérico ou link da página do jogo no IGDB para puxar capa e gênero automaticamente"
+                />
+                <button 
+                  type="button" 
+                  @click="fetchFromIgdbById"
+                  :disabled="isFetchingIgdbId || !gameForm.igdbId"
+                  class="absolute right-1.5 px-2 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-30 disabled:hover:bg-indigo-600 transition-all cursor-pointer shadow-sm flex items-center justify-center"
+                  title="Puxar Capa e Gênero automaticamente pelo ID do IGDB"
+                  aria-label="Puxar dados do IGDB"
+                >
+                  <span v-if="isFetchingIgdbId" key="btn-igdb-id-spin" class="inline-flex items-center">
+                    <svg class="w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                  </span>
+                  <span v-else key="btn-igdb-id-icon" class="inline-flex items-center">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Plataforma e Gênero -->
@@ -6336,11 +6373,11 @@
                 <button 
                   type="button" 
                   @click="searchSingleGameScreenScraper"
-                  :disabled="singleScraperState.isSearching"
+                  :disabled="singleScraperState.isSearching || isFetchingIgdbId"
                   class="flex-1 sm:flex-initial px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 whitespace-nowrap disabled:opacity-50"
-                  title="Pesquisar capas oficiais no IGDB pelo título e plataforma"
+                  title="Pesquisar capas oficiais no IGDB (pelo ID ou título do jogo)"
                 >
-                  <span v-if="singleScraperState.isSearching" key="igdb-spin" class="inline-flex items-center">
+                  <span v-if="singleScraperState.isSearching || isFetchingIgdbId" key="igdb-spin" class="inline-flex items-center">
                     <svg class="w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                   </span>
                   <span v-else key="igdb-icon" class="inline-flex items-center">
@@ -9885,13 +9922,13 @@
   </div>
 
   <!-- Scripts da Aplicação (Compatibilidade Total: Duplo-clique local e Servidores Web) -->
-  <script src="js/services/apiService.js?v=1.2.4"></script>
-  <script src="js/services/imageService.js?v=1.2.4"></script>
-  <script src="js/services/screenScraperService.js?v=1.2.4"></script>
-  <script src="js/services/igdbService.js?v=1.2.4"></script>
-  <script src="js/services/hltbService.js?v=1.2.4"></script>
-  <script src="js/services/supabaseService.js?v=1.2.4"></script>
-  <script src="js/services/storageService.js?v=1.2.4"></script>
-  <script src="js/app.js?v=1.2.4"></script>
+  <script src="js/services/apiService.js?v=1.2.5"></script>
+  <script src="js/services/imageService.js?v=1.2.5"></script>
+  <script src="js/services/screenScraperService.js?v=1.2.5"></script>
+  <script src="js/services/igdbService.js?v=1.2.5"></script>
+  <script src="js/services/hltbService.js?v=1.2.5"></script>
+  <script src="js/services/supabaseService.js?v=1.2.5"></script>
+  <script src="js/services/storageService.js?v=1.2.5"></script>
+  <script src="js/app.js?v=1.2.5"></script>
 </body>
 </html>

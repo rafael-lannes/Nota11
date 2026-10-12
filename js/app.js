@@ -304,7 +304,8 @@ function initApp() {
         isNowPlaying: false,
         priority: '',
         playingCategory: null,
-        coverUrl: ''
+        coverUrl: '',
+        igdbId: ''
       });
 
       const gameToDelete = ref(null);
@@ -1586,7 +1587,8 @@ function initApp() {
           isNowPlaying: false,
           priority: '',
           playingCategory: null,
-          coverUrl: ''
+          coverUrl: '',
+          igdbId: ''
         };
         showToast('Rascunho descartado. Formulário limpo.', 'info');
         refreshLucideIcons();
@@ -1621,7 +1623,8 @@ function initApp() {
             isNowPlaying: Boolean(savedDraft.isNowPlaying),
             priority: savedDraft.priority || '',
             playingCategory: savedDraft.playingCategory || null,
-            coverUrl: savedDraft.coverUrl || ''
+            coverUrl: savedDraft.coverUrl || '',
+            igdbId: savedDraft.igdbId || ''
           };
           hasSavedDraft.value = true;
         } else {
@@ -1644,7 +1647,8 @@ function initApp() {
             isNowPlaying: false,
             priority: '',
             playingCategory: null,
-            coverUrl: ''
+            coverUrl: '',
+            igdbId: ''
           };
           hasSavedDraft.value = false;
         }
@@ -1684,7 +1688,8 @@ function initApp() {
           isNowPlaying: Boolean(game.isNowPlaying),
           priority: game.priority || '',
           playingCategory: game.playingCategory || null,
-          coverUrl: game.coverUrl || ''
+          coverUrl: game.coverUrl || '',
+          igdbId: game.igdbId || ''
         };
         isAddEditOpen.value = true;
         refreshLucideIcons();
@@ -1745,6 +1750,7 @@ function initApp() {
               priority: priorityVal,
               playingCategory: playingCategoryVal,
               coverUrl: cover,
+              igdbId: (gameForm.value.igdbId || '').trim() || null,
               updatedAt: new Date().toISOString()
             };
             showToast(`Jogo "${title}" atualizado com sucesso!`, 'success');
@@ -1773,6 +1779,7 @@ function initApp() {
             priority: priorityVal,
             playingCategory: playingCategoryVal,
             coverUrl: cover,
+            igdbId: (gameForm.value.igdbId || '').trim() || null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           };
@@ -2111,12 +2118,89 @@ function initApp() {
       };
 
       // ----------------------------------------------------------------------
+      // BUSCA DE JOGO POR ID DO IGDB (CAPA E GÊNERO AUTOMÁTICOS)
+      // ----------------------------------------------------------------------
+      const isFetchingIgdbId = ref(false);
+
+      const fetchFromIgdbById = async () => {
+        const idInput = (gameForm.value.igdbId || '').trim();
+        if (!idInput) {
+          showToast('Por favor, digite o ID numérico ou link do jogo no IGDB.', 'warning');
+          return;
+        }
+
+        const creds = getScraperCredentials();
+        if (!creds.clientId || (!creds.clientSecret && !creds.accessToken)) {
+          openScraperModal();
+          showToast('Para consultar no IGDB por ID, configure seu Client ID e Client Secret do IGDB/Twitch.', 'info');
+          return;
+        }
+
+        isFetchingIgdbId.value = true;
+        try {
+          if (!IgdbService || typeof IgdbService.getGameById !== 'function') {
+            showToast('Serviço do IGDB não disponível no momento.', 'error');
+            return;
+          }
+
+          const gameData = await IgdbService.getGameById(idInput, gameForm.value.platform, creds);
+          if (gameData) {
+            // Atualiza Capa em alta definição
+            if (gameData.coverUrl) {
+              gameForm.value.coverUrl = gameData.coverUrl;
+            }
+
+            // Atualiza Gênero(s)
+            if (gameData.genre) {
+              gameForm.value.genre = StorageService ? StorageService.formatGenres(gameData.genre) : gameData.genre;
+            }
+
+            // Preenche o título oficial do IGDB se o campo estiver vazio
+            if (!gameForm.value.title || !gameForm.value.title.trim()) {
+              gameForm.value.title = gameData.title;
+            }
+
+            // Normaliza o ID para o ID numérico canônico do IGDB
+            if (gameData.id) {
+              gameForm.value.igdbId = String(gameData.id);
+            }
+
+            // Atualiza candidatos alternativos de capa
+            if (gameData.candidateCovers && gameData.candidateCovers.length > 0) {
+              singleScraperState.value.candidates = [gameData];
+            }
+
+            showToast(`Dados importados do IGDB: "${gameData.title}" (Capa e Gênero)!`, 'success');
+            refreshLucideIcons();
+          } else {
+            showToast(`Nenhum jogo encontrado no IGDB com o ID/link "${idInput}".`, 'error');
+          }
+        } catch (err) {
+          console.error('Erro ao buscar jogo por ID no IGDB:', err);
+          if (err.isAuthError) {
+            openScraperModal();
+            showToast('Erro de autenticação no IGDB: verifique suas credenciais no painel.', 'error');
+          } else {
+            showToast(`Falha ao consultar IGDB: ${err.message || 'Erro de conexão'}`, 'error');
+          }
+        } finally {
+          isFetchingIgdbId.value = false;
+          refreshLucideIcons();
+        }
+      };
+
+      // ----------------------------------------------------------------------
       // BUSCA DE CAPA INDIVIDUAL (IGDB / SCREEN SCRAPER)
       // ----------------------------------------------------------------------
       const searchSingleGameScreenScraper = async () => {
+        // Se houver um ID do IGDB preenchido no formulário, prioriza a busca exata por ID
+        if (gameForm.value.igdbId && gameForm.value.igdbId.trim()) {
+          return await fetchFromIgdbById();
+        }
+
         const title = (gameForm.value.title || '').trim();
         if (!title) {
-          showToast('Por favor, digite o título do jogo antes de pesquisar.', 'error');
+          showToast('Por favor, digite o título do jogo ou o ID do IGDB antes de pesquisar.', 'error');
           return;
         }
 
@@ -4701,6 +4785,8 @@ function initApp() {
         startBatchScrape,
         cancelBatchScrape,
         searchSingleGameScreenScraper,
+        fetchFromIgdbById,
+        isFetchingIgdbId,
         applyScraperCover,
 
         // Identificação de Rejogados / Replay

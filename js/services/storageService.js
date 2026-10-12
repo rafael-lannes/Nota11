@@ -545,6 +545,7 @@ class StorageService {
       if (!draft) return false;
       return Boolean(
         (draft.title && draft.title.trim()) ||
+        (draft.igdbId && draft.igdbId.trim()) ||
         (draft.genre && draft.genre.trim()) ||
         (draft.coverUrl && draft.coverUrl.trim()) ||
         (draft.playtime && draft.playtime !== '00:00:00' && draft.playtime !== '0h' && draft.playtime !== '0') ||
