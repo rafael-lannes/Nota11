@@ -749,9 +749,129 @@
     }
 
     /**
+     * Busca dados oficiais diretamente da página web do IGDB via leitor proxy CORS (r.jina.ai).
+     * Não requer credenciais do Twitch nem sofre com bloqueios de CORS em navegadores.
+     * @param {string} slugOrUrl - Slug ou URL completa do jogo no IGDB
+     * @param {string} [platformName] - Nome da plataforma
+     * @returns {Promise<{ id: string, title: string, platform: string, genre: string, genres: string[], coverUrl: string, candidateCovers: Array, source: string }|null>}
+     */
+    static async fetchGameViaWebReader(slugOrUrl, platformName = '') {
+      if (!slugOrUrl) return null;
+      let cleanSlug = String(slugOrUrl).trim();
+      if (!cleanSlug) return null;
+
+      if (cleanSlug.includes('/games/')) {
+        const parts = cleanSlug.split('/games/');
+        cleanSlug = parts[1].split('/')[0].split('?')[0].split('#')[0].trim();
+      }
+      cleanSlug = cleanSlug.replace(/^(id\s*[:=]?\s*|#)/i, '').trim();
+      if (!cleanSlug) return null;
+
+      const targetUrl = `https://www.igdb.com/games/${encodeURIComponent(cleanSlug)}`;
+      const jinaUrl = `https://r.jina.ai/${targetUrl}`;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const response = await fetch(jinaUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'text/plain, text/markdown, */*'
+          },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) return null;
+
+        const body = await response.text();
+        if (!body || body.trim() === '' || body.includes('404 Not Found') || body.includes('Page Not Found')) {
+          return null;
+        }
+
+        // 1. Extrai Título Oficial
+        let title = '';
+        const titleMatch = body.match(/Title:\s*(.+)/i);
+        if (titleMatch) {
+          title = titleMatch[1]
+            .replace(/\s*\|\s*IGDB\.com/i, '')
+            .replace(/\s*\(\d{4}\)\s*$/, '')
+            .trim();
+        }
+
+        // 2. Extrai Capa e Imagens (todas as capas e artes do IGDB presentes no texto)
+        const candidateCovers = [];
+        let bestCoverUrl = '';
+
+        const imageMatches = [...body.matchAll(/https:\/\/images\.igdb\.com\/igdb\/image\/upload\/(t_[a-z0-9_]+|[^/]+)\/([a-z0-9_]+)\.(jpg|jpeg|png|webp)/gi)];
+        const seenImageIds = new Set();
+
+        for (const match of imageMatches) {
+          const imgId = match[2];
+          if (!seenImageIds.has(imgId)) {
+            seenImageIds.add(imgId);
+            const coverBig = `https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg`;
+            if (!bestCoverUrl) {
+              bestCoverUrl = coverBig;
+            }
+            candidateCovers.push({
+              type: candidateCovers.length === 0 ? 'cover-main' : 'artwork',
+              url: coverBig,
+              label: candidateCovers.length === 0 ? 'Capa Oficial (IGDB)' : `Arte IGDB #${candidateCovers.length}`,
+              priority: candidateCovers.length + 1
+            });
+          }
+        }
+
+        // 3. Extrai Gêneros
+        let genreList = [];
+        const genreSectionMatch = body.match(/\*\*Genre(?:s)?:\*\*\s*([^\n\r]+)/i);
+        if (genreSectionMatch) {
+          const genreText = genreSectionMatch[1];
+          const genres = [...genreText.matchAll(/\[([^\]]+)\]\(https:\/\/www\.igdb\.com\/genres\/[^)]+\)/g)].map(m => m[1].trim());
+          if (genres.length > 0) {
+            genreList = genres;
+          }
+        }
+
+        if (genreList.length === 0) {
+          const fallbackGenres = [...body.matchAll(/https:\/\/www\.igdb\.com\/genres\/([a-z0-9\-]+)/gi)].map(m => {
+            return m[1].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          });
+          genreList = [...new Set(fallbackGenres)];
+        }
+
+        let formattedGenre = '';
+        if (typeof window !== 'undefined' && window.StorageService && typeof window.StorageService.formatGenres === 'function') {
+          formattedGenre = window.StorageService.formatGenres(genreList);
+        } else {
+          formattedGenre = genreList.join(' • ');
+        }
+
+        if (!bestCoverUrl && !title) return null;
+
+        return {
+          id: cleanSlug,
+          title: title || cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          platform: platformName,
+          coverUrl: bestCoverUrl,
+          genre: formattedGenre,
+          genres: genreList,
+          candidateCovers: candidateCovers,
+          source: 'IGDB'
+        };
+      } catch (err) {
+        console.warn('[IGDB Web Reader] Falhou:', err);
+        return null;
+      }
+    }
+
+    /**
      * Busca um jogo específico no IGDB pelo seu ID numérico oficial, slug ou URL completa
      * (Ex: 1942, 'the-witcher-3-wild-hunt' ou 'https://www.igdb.com/games/the-witcher-3-wild-hunt')
      * Puxa automaticamente a capa oficial em alta definição, gêneros, título e metadados.
+     * Suporta tanto chamadas da API oficial quanto leitura web sem CORS no GitHub Pages.
      * @param {string|number} idOrUrl - ID numérico, slug ou URL da página do jogo no IGDB
      * @param {string} [platformName] - Nome da plataforma
      * @param {Object} [credentials] - Credenciais do Twitch/IGDB
@@ -763,53 +883,66 @@
       if (!raw) return null;
 
       // 1. Extração inteligente do identificador se for link ou texto formatado
-      // Ex: "https://www.igdb.com/games/the-witcher-3-wild-hunt" -> "the-witcher-3-wild-hunt"
-      // Ex: "https://www.igdb.com/games/1942" -> "1942"
       if (raw.includes('/games/')) {
         const parts = raw.split('/games/');
         raw = parts[1].split('/')[0].split('?')[0].split('#')[0].trim();
       }
-
-      // Remove prefixos como "id:" ou "#" se o usuário colar algo como "ID: 1942" ou "#1942"
       raw = raw.replace(/^(id\s*[:=]?\s*|#)/i, '').trim();
 
       const isNumeric = /^\d+$/.test(raw);
       const cleanId = raw;
 
+      // 2. Se for link ou slug (não numérico), tenta primeiro o Web Reader direto
+      // Isso garante funcionamento 100% imediato em qualquer navegador no GitHub Pages sem erros de CORS!
+      if (!isNumeric) {
+        const webResult = await this.fetchGameViaWebReader(cleanId, platformName);
+        if (webResult && (webResult.coverUrl || webResult.genre)) {
+          return webResult;
+        }
+      }
+
+      // 3. Se for numérico ou o Web Reader falhar, tenta a API oficial do IGDB se houver credenciais
       const clientId = (credentials.clientId || credentials.ssid || '').trim();
       const clientSecret = (credentials.clientSecret || credentials.sspassword || '').trim();
       let accessToken = (credentials.accessToken || '').trim();
       let tokenExpiry = credentials.tokenExpiry || 0;
 
-      if (!clientId || (!clientSecret && !accessToken)) {
-        const authErr = new Error('IGDB: Para buscar dados pelo ID do IGDB, configure seu Client ID e Client Secret nas configurações.');
-        authErr.isAuthError = true;
-        throw authErr;
-      }
+      if (clientId && (clientSecret || accessToken)) {
+        try {
+          const auth = await this.getAccessToken(clientId, clientSecret, accessToken, tokenExpiry);
+          accessToken = auth.accessToken;
 
-      const auth = await this.getAccessToken(clientId, clientSecret, accessToken, tokenExpiry);
-      accessToken = auth.accessToken;
+          const fields = 'fields id, name, summary, cover.url, cover.image_id, genres.name, platforms.name, first_release_date, artworks.url, artworks.image_id, screenshots.url, screenshots.image_id;';
+          let query = '';
+          if (isNumeric) {
+            query = `${fields} where id = ${cleanId}; limit 1;`;
+          } else {
+            const escapedSlug = cleanId.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+            query = `${fields} where slug = "${escapedSlug}"; limit 1;`;
+          }
 
-      const fields = 'fields id, name, summary, cover.url, cover.image_id, genres.name, platforms.name, first_release_date, artworks.url, artworks.image_id, screenshots.url, screenshots.image_id;';
-      let query = '';
-      if (isNumeric) {
-        query = `${fields} where id = ${cleanId}; limit 1;`;
-      } else {
-        const escapedSlug = cleanId.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-        query = `${fields} where slug = "${escapedSlug}"; limit 1;`;
-      }
-
-      const rawGames = await this.fetchIgdbGames(query, clientId, accessToken, credentials.proxyUrl);
-      if (rawGames && Array.isArray(rawGames) && rawGames.length > 0) {
-        return this.parseIgdbGameItem(rawGames[0], platformName);
-      }
-
-      // Se não encontrou por slug e não é numérico, tenta uma busca pelo nome
-      if (!isNumeric) {
-        const fallbackResults = await this.searchGames(cleanId, platformName, credentials);
-        if (fallbackResults && fallbackResults.length > 0) {
-          return fallbackResults[0];
+          const rawGames = await this.fetchIgdbGames(query, clientId, accessToken, credentials.proxyUrl);
+          if (rawGames && Array.isArray(rawGames) && rawGames.length > 0) {
+            return this.parseIgdbGameItem(rawGames[0], platformName);
+          }
+        } catch (apiErr) {
+          console.warn('[IGDB API by ID] Falhou na API oficial:', apiErr.message);
+          if (!isNumeric) {
+            const fallbackWeb = await this.fetchGameViaWebReader(cleanId, platformName);
+            if (fallbackWeb) return fallbackWeb;
+          }
         }
+      }
+
+      // 4. Se for numérico mas não temos credenciais ou a API falhou:
+      if (isNumeric) {
+        throw new Error('IGDB: Para buscar por ID numérico puro, configure suas credenciais do IGDB/Twitch, ou cole o link do jogo (ex: https://www.igdb.com/games/...).');
+      }
+
+      // 5. Se não encontrou por slug e não é numérico, tenta uma busca geral pelo nome
+      const fallbackResults = await this.searchGames(cleanId, platformName, credentials);
+      if (fallbackResults && fallbackResults.length > 0) {
+        return fallbackResults[0];
       }
 
       return null;

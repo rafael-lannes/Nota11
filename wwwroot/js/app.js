@@ -2129,10 +2129,14 @@ function initApp() {
           return;
         }
 
+        const cleanInput = idInput.replace(/^(id\s*[:=]?\s*|#)/i, '').trim();
+        const isNumeric = /^\d+$/.test(cleanInput);
         const creds = getScraperCredentials();
-        if (!creds.clientId || (!creds.clientSecret && !creds.accessToken)) {
+
+        // Se for estritamente um ID numérico puro e não houver credenciais nem backend local
+        if (isNumeric && !creds.clientId && !creds.accessToken && !StorageService?.isLocalNativeServer?.()) {
           openScraperModal();
-          showToast('Para consultar no IGDB por ID, configure seu Client ID e Client Secret do IGDB/Twitch.', 'info');
+          showToast('Para consultar por ID numérico puro, configure seu Client ID e Client Secret nas configurações do IGDB ou cole o link do jogo.', 'info');
           return;
         }
 
