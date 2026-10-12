@@ -334,15 +334,22 @@
     /**
      * Carrega os dados salvos do usuário na nuvem
      */
-    static async loadUserData(userId) {
+    static async loadUserData(userId = null) {
       const client = this.getClient();
-      if (!client || !userId) return null;
+      if (!client) return null;
+
+      let uid = userId;
+      if (!uid) {
+        const user = await this.getCurrentUser();
+        uid = user ? user.id : null;
+      }
+      if (!uid) return null;
 
       try {
         const { data, error } = await client
           .from('user_data')
           .select('games, profile, settings, playing_categories, updated_at')
-          .eq('user_id', userId)
+          .eq('user_id', uid)
           .maybeSingle();
 
         if (error) {
@@ -367,19 +374,46 @@
 
     /**
      * Salva ou atualiza os dados completos do usuário na nuvem (Upsert atômico)
+     * Aceita tanto saveUserData(payload) quanto saveUserData(userId, userEmail, payload)
      */
-    static async saveUserData(userId, userEmail, payload = {}) {
+    static async saveUserData(arg1, arg2, arg3) {
       const client = this.getClient();
-      if (!client || !userId) return { success: false, error: 'Usuário não autenticado.' };
+      if (!client) return { success: false, error: 'Supabase não conectado.' };
 
-      const games = Array.isArray(payload.games) ? payload.games : [];
-      const profile = payload.profile && typeof payload.profile === 'object' ? payload.profile : {};
-      const settings = payload.settings && typeof payload.settings === 'object' ? payload.settings : {};
-      const playingCategories = Array.isArray(payload.playingCategories) ? payload.playingCategories : [];
+      let uid = null;
+      let email = null;
+      let payloadData = {};
+
+      if (arg1 && typeof arg1 === 'object' && !arg2 && !arg3) {
+        // Chamada direta: saveUserData(payload)
+        payloadData = arg1;
+        const user = await this.getCurrentUser();
+        if (!user) return { success: false, error: 'Usuário não autenticado.' };
+        uid = user.id;
+        email = user.email || null;
+      } else if (typeof arg1 === 'string') {
+        // Chamada com parâmetros explícitos: saveUserData(userId, userEmail, payload)
+        uid = arg1;
+        email = arg2 || null;
+        payloadData = (arg3 && typeof arg3 === 'object') ? arg3 : {};
+      } else {
+        const user = await this.getCurrentUser();
+        if (!user) return { success: false, error: 'Usuário não autenticado.' };
+        uid = user.id;
+        email = user.email || null;
+        payloadData = (arg1 && typeof arg1 === 'object') ? arg1 : {};
+      }
+
+      if (!uid) return { success: false, error: 'Usuário não autenticado.' };
+
+      const games = Array.isArray(payloadData.games) ? payloadData.games : [];
+      const profile = payloadData.profile && typeof payloadData.profile === 'object' ? payloadData.profile : {};
+      const settings = payloadData.settings && typeof payloadData.settings === 'object' ? payloadData.settings : {};
+      const playingCategories = Array.isArray(payloadData.playingCategories) ? payloadData.playingCategories : [];
 
       const record = {
-        user_id: userId,
-        email: userEmail || null,
+        user_id: uid,
+        email: email,
         games: games,
         profile: profile,
         settings: settings,

@@ -14,6 +14,10 @@ Este guia explica passo a passo como colocar o **Nota 11** online no **GitHub Pa
    - **Region:** Escolha `São Paulo (South America)` ou `East US` (as mais rápidas para o Brasil).
    - **Pricing Plan:** Escolha o plano **Free ($0/month)**.
 4. Clique em **"Create new project"** e aguarde cerca de 1 minuto para o banco ser provisionado.
+5. **(Importante - Login Direto sem espera)**: No menu lateral esquerdo do Supabase, clique em **Authentication** -> **Providers** -> **Email**.
+   - Desmarque a caixinha **"Confirm email"**.
+   - Clique em **"Save"**.
+   *(Isso permite que você e outros jogadores criem contas com login e senha e entrem instantaneamente, sem depender de links por e-mail e sem atingir o limite de envios do plano gratuito do Supabase).*
 
 ---
 

@@ -2414,9 +2414,15 @@ function initApp() {
             isReplay: Boolean(g.isReplay)
           };
         });
+        if (StorageService) {
+          StorageService.saveGames(games.value);
+        }
         showToast('Dados de demonstração restaurados!', 'success');
         isBackupOpen.value = false;
-        refreshLucideIcons();
+        nextTick(() => {
+          refreshLucideIcons();
+          refreshStorageInfo();
+        });
       };
 
       // =======================================================================
@@ -4448,7 +4454,10 @@ function initApp() {
             profile: userProfile.value,
             playingCategories: playingCategories.value
           };
-          await window.SupabaseService.saveUserData(payload);
+          const res = await window.SupabaseService.saveUserData(payload);
+          if (res && res.success === false) {
+            throw new Error(res.error || 'Erro ao salvar dados na nuvem.');
+          }
           lastCloudSync.value = new Date().toISOString();
           if (isManual) {
             showToast('Dados salvos na nuvem com sucesso!', 'success');

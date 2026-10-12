@@ -111,6 +111,46 @@ const SAMPLE_GAMES = [
     coverUrl: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co670h.jpg',
     createdAt: '2023-10-01T08:00:00.000Z',
     updatedAt: '2024-01-14T21:00:00.000Z'
+  },
+  {
+    id: 'sample_4',
+    title: 'Cyberpunk 2077',
+    platform: 'PC - Computador',
+    genre: 'RPG • Ação • Ficção Científica',
+    status: 'Jogando',
+    rating: null,
+    completionDate: '',
+    completionYear: null,
+    playtime: '28:30:00',
+    playtimeHours: 28.5,
+    completionCondition: 'Condição Padrão',
+    isHandheld: false,
+    isPlatinum: false,
+    isNowPlaying: true,
+    priority: 'high',
+    coverUrl: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co725v.jpg',
+    createdAt: '2024-03-01T10:00:00.000Z',
+    updatedAt: '2024-03-10T18:00:00.000Z'
+  },
+  {
+    id: 'sample_5',
+    title: 'Hollow Knight: Silksong',
+    platform: 'PC - Steam Deck',
+    genre: 'Metroidvania • Ação',
+    status: 'Backlog',
+    rating: null,
+    completionDate: '',
+    completionYear: null,
+    playtime: '00:00:00',
+    playtimeHours: 0,
+    completionCondition: 'Condição Padrão',
+    isHandheld: true,
+    isPlatinum: false,
+    isNowPlaying: false,
+    priority: 'high',
+    coverUrl: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1r7f.jpg',
+    createdAt: '2024-03-05T12:00:00.000Z',
+    updatedAt: '2024-03-05T12:00:00.000Z'
   }
 ];
 
