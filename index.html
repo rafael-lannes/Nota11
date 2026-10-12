@@ -100,20 +100,22 @@
             <button 
               @click="setActivePage('library')"
               :class="activePage === 'library' ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium'"
-              class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm transition-all whitespace-nowrap cursor-pointer"
+              class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm transition-all whitespace-nowrap cursor-pointer"
               aria-label="Navegar para a Biblioteca"
+              title="Biblioteca de Jogos"
             >
               <i data-lucide="gamepad-2" class="w-4 h-4"></i>
-              <span>Biblioteca</span>
+              <span class="hidden sm:inline">Biblioteca</span>
             </button>
             <button 
               @click="setActivePage('stats')"
               :class="activePage === 'stats' ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium'"
-              class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm transition-all whitespace-nowrap cursor-pointer"
+              class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm transition-all whitespace-nowrap cursor-pointer"
               aria-label="Navegar para Estatísticas"
+              title="Estatísticas & Gráficos"
             >
               <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
-              <span>Estatísticas</span>
+              <span class="hidden sm:inline">Estatísticas</span>
             </button>
           </nav>
 
@@ -157,7 +159,7 @@
           </div>
 
           <!-- Bloco Direita: Ações Principais (Novo Jogo & Dados & Ferramentas) -->
-          <div class="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+          <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             
             <!-- Indicador de Salvamento em Tempo Real -->
             <div 
@@ -176,22 +178,22 @@
               @click="openCloudModal()" 
               :title="cloudUser ? ('Nuvem: Conectado como ' + cloudUser.email + ' (Clique para sincronizar ou gerenciar)') : 'Nuvem & Supabase: Login, Cadastro e Sincronização Online'"
               :aria-label="cloudUser ? 'Nuvem conectado' : 'Conectar à nuvem'"
-              class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-semibold whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
+              class="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-semibold whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
               :class="cloudUser ? 'bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-300 border-emerald-500/40' : 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white border-slate-700/80'"
             >
               <i v-if="isCloudSyncing" data-lucide="refresh-cw" class="w-4 h-4 text-emerald-400 animate-spin"></i>
               <i v-else-if="cloudUser" data-lucide="cloud" class="w-4 h-4 text-emerald-400"></i>
               <i v-else data-lucide="cloud-off" class="w-4 h-4 text-slate-400"></i>
-              <span class="hidden md:inline">{{ cloudUser ? (cloudUser.email ? cloudUser.email.split('@')[0] : 'Nuvem') : 'Nuvem' }}</span>
+              <span class="hidden xl:inline">{{ cloudUser ? (cloudUser.email ? cloudUser.email.split('@')[0] : 'Nuvem') : 'Nuvem' }}</span>
               <span v-if="cloudUser" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse hidden sm:inline-block"></span>
             </button>
 
-            <!-- Botão Compartilhar / Snapshot PNG -->
+            <!-- Botão Compartilhar / Snapshot PNG (visível em sm+) -->
             <button 
               @click="openShareModal('nowPlaying')" 
               title="Gerar imagem (.PNG) para compartilhar na Steam e redes sociais"
               aria-label="Compartilhar lista em imagem"
-              class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl bg-purple-600/90 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
+              class="hidden sm:flex items-center gap-1.5 p-2 sm:px-3 sm:py-2.5 rounded-xl bg-purple-600/90 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
             >
               <i data-lucide="share-2" class="w-4 h-4 text-purple-200"></i>
               <span class="hidden md:inline">Compartilhar</span>
@@ -202,10 +204,10 @@
               @click="openAddGame('Zerado')" 
               title="Novo Jogo (Atalho: N)"
               aria-label="Adicionar novo jogo (Atalho: N)"
-              class="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
+              class="flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
             >
               <i data-lucide="plus" class="w-4 h-4"></i>
-              <span class="hidden sm:inline">Novo Jogo</span>
+              <span class="hidden md:inline">Novo Jogo</span>
             </button>
 
             <!-- Menu Dropdown Unificado: Dados & Ferramentas -->
@@ -214,12 +216,12 @@
                 @click="toggleToolsMenu" 
                 title="Menu de Dados, Backup, Capas e Armazenamento"
                 aria-label="Menu de dados e ferramentas"
-                class="px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 text-xs sm:text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all shadow-sm cursor-pointer"
+                class="p-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 text-xs sm:text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all shadow-sm cursor-pointer"
               >
                 <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
                 <span class="hidden lg:inline">Dados & Ferramentas</span>
                 <span class="hidden sm:inline lg:hidden">Ferramentas</span>
-                <i :data-lucide="isToolsMenuOpen ? 'chevron-up' : 'chevron-down'" class="w-3.5 h-3.5 text-slate-400"></i>
+                <i :data-lucide="isToolsMenuOpen ? 'chevron-up' : 'chevron-down'" class="w-3.5 h-3.5 text-slate-400 hidden sm:inline"></i>
               </button>
 
               <!-- Dropdown Menu -->

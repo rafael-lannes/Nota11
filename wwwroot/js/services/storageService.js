@@ -517,15 +517,22 @@ class StorageService {
     }
   }
 
+  static isLocalNativeServer() {
+    if (typeof window === 'undefined' || !window.location) return false;
+    if (window.chrome && window.chrome.webview) return true;
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  }
+
   static async initNativeStorage() {
     try {
-      if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
+      if (!this.isLocalNativeServer()) {
         return null;
       }
       if (typeof fetch !== 'function') return null;
 
       const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const timeoutId = controller ? setTimeout(() => controller.abort(), 3000) : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 1500) : null;
 
       const response = await fetch('/api/storage/load', {
         method: 'GET',
@@ -597,7 +604,7 @@ class StorageService {
       try {
         window.chrome.webview.postMessage({ action: 'save_database', data: payload });
       } catch (err) {}
-    } else if (typeof window !== 'undefined' && window.location && window.location.protocol !== 'file:') {
+    } else if (this.isLocalNativeServer()) {
       try {
         fetch('/api/storage/save', {
           method: 'POST',
