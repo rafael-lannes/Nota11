@@ -10,9 +10,7 @@
 
 <p align="center">
   <a href="https://rafael-lannes.github.io/Nota11/">🎮 Acessar Versão Online</a> •
-  <a href="#-funcionalidades">✨ Funcionalidades</a> •
-  <a href="#-como-usar">🚀 Como Usar</a> •
-  <a href="#-nuvem--banco-de-dados">☁️ Nuvem & Supabase</a>
+  <a href="#-funcionalidades">✨ Funcionalidades</a>
 </p>
 
 ---
@@ -72,25 +70,6 @@ Funciona de forma **100% gratuita**, **offline-first** (seus dados salvos no nav
 ### 🔄 Importação & Exportação Universal
 - **Planilhas CSV**: Total compatibilidade para importar e exportar suas tabelas existentes.
 - **Backup JSON**: Salve e restaure toda a sua coleção, preferências e perfil em um único arquivo.
-
----
-
-## 🚀 Como Usar
-
-### 🌐 Opção 1: Diretamente no Navegador (Recomendado)
-Acesse a versão publicada no GitHub Pages:  
-👉 **[https://rafael-lannes.github.io/Nota11/](https://rafael-lannes.github.io/Nota11/)**
-
-### 💻 Opção 2: Executar Localmente
-1. Clone ou baixe este repositório:
-   ```bash
-   git clone https://github.com/rafael-lannes/Nota11.git
-   ```
-2. Abra o arquivo `index.html` diretamente em qualquer navegador moderno.
-
-### 🖥️ Opção 3: Aplicativo Desktop Windows
-O repositório também inclui a versão nativa em C# / .NET 9 com WebView2:
-- Execute `1_Abrir_Desktop_Windows.bat` para iniciar a aplicação em janela nativa.
 
 ---
 
