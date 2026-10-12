@@ -138,8 +138,8 @@ function initApp() {
       const isEditProfileOpen = ref(false);
       const isResetProfileConfirmOpen = ref(false);
       const isAboutOpen = ref(false);
-      const appVersion = ref('1.2');
-      const appVersionDisplay = ref('1.2 (EXCLUSIVO para amigos 😊 )');
+      const appVersion = ref('beta web 1.0');
+      const appVersionDisplay = ref('beta web 1.0');
       const isToolsMenuOpen = ref(false);
       const isShareModalOpen = ref(false);
       const isPickFinishedGameOpen = ref(false);

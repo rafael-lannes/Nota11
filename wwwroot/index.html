@@ -48,11 +48,11 @@
           
           <!-- Bloco Esquerda: Logo + Divisor + Perfil do Jogador -->
           <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <!-- Logo & Nome do App (Abre Painel Sobre & Versão v1.2) -->
+            <!-- Logo & Nome do App (Abre Painel Sobre & Versão beta web 1.0) -->
             <div 
               class="flex items-center gap-2 sm:gap-2.5 cursor-pointer select-none group" 
               @click="openAboutModal"
-              title="Sobre o Nota 11 (v1.2) • O tracker que te ajuda a zerar mais jogos"
+              title="Sobre o Nota 11 (beta web 1.0) • O tracker que te ajuda a zerar mais jogos"
             >
               <!-- Ícone 11 Amarelo -->
               <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 flex items-center justify-center shadow-md shadow-amber-500/20 border border-yellow-300/60 relative overflow-hidden group-hover:scale-105 group-hover:shadow-amber-500/40 transition-all flex-shrink-0">
@@ -64,7 +64,7 @@
                   <span class="font-heading font-extrabold text-base sm:text-xl tracking-tight text-white group-hover:text-amber-400 transition-colors">
                     NOTA <span class="text-amber-400">11</span>
                   </span>
-                  <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">v{{ appVersion }}</span>
+                  <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">{{ appVersion }}</span>
                 </div>
                 <p class="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap group-hover:text-slate-300 transition-colors">Game Tracker • Zerar Mais Jogos</p>
               </div>
@@ -5473,7 +5473,7 @@
         >
           <div class="w-5 h-5 rounded-md bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-slate-950 font-black text-[10px] shadow-sm group-hover:scale-110 transition-transform">11</div>
           <span class="font-heading font-bold text-slate-300 group-hover:text-amber-400 transition-colors">Nota <span class="text-amber-400">11</span></span>
-          <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-mono">v{{ appVersion }}</span>
+          <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-mono">{{ appVersion }}</span>
           <span class="hidden sm:inline">• O tracker que te ajuda a zerar mais jogos</span>
         </div>
         <div>
@@ -9073,7 +9073,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <h3 id="about-modal-title" class="font-heading font-extrabold text-xl text-white">Sobre o <span class="text-amber-400">Nota 11</span></h3>
-                <span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-black font-mono border border-amber-500/40 uppercase tracking-wider">v{{ appVersion }}</span>
+                <span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-black font-mono border border-amber-500/40 uppercase tracking-wider">{{ appVersion }}</span>
               </div>
               <p class="text-xs text-slate-400">O game tracker desenhado para te ajudar a zerar mais jogos</p>
             </div>
@@ -9885,13 +9885,13 @@
   </div>
 
   <!-- Scripts da Aplicação (Compatibilidade Total: Duplo-clique local e Servidores Web) -->
-  <script src="js/services/apiService.js?v=1.2.3"></script>
-  <script src="js/services/imageService.js?v=1.2.3"></script>
-  <script src="js/services/screenScraperService.js?v=1.2.3"></script>
-  <script src="js/services/igdbService.js?v=1.2.3"></script>
-  <script src="js/services/hltbService.js?v=1.2.3"></script>
-  <script src="js/services/supabaseService.js?v=1.2.3"></script>
-  <script src="js/services/storageService.js?v=1.2.3"></script>
-  <script src="js/app.js?v=1.2.3"></script>
+  <script src="js/services/apiService.js?v=1.2.4"></script>
+  <script src="js/services/imageService.js?v=1.2.4"></script>
+  <script src="js/services/screenScraperService.js?v=1.2.4"></script>
+  <script src="js/services/igdbService.js?v=1.2.4"></script>
+  <script src="js/services/hltbService.js?v=1.2.4"></script>
+  <script src="js/services/supabaseService.js?v=1.2.4"></script>
+  <script src="js/services/storageService.js?v=1.2.4"></script>
+  <script src="js/app.js?v=1.2.4"></script>
 </body>
 </html>
