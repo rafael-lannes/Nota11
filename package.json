@@ -1,0 +1,17 @@
+{
+  "name": "nota-11-game-tracker",
+  "version": "2.0.0",
+  "description": "Game Tracker Nota 11 com suporte a API do IGDB e servidor localhost",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "game-tracker",
+    "igdb",
+    "vue3",
+    "games"
+  ],
+  "author": "",
+  "license": "MIT"
+}
