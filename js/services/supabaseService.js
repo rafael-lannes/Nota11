@@ -373,6 +373,113 @@
     }
 
     /**
+     * Carrega a lista de jogos e dados do perfil público de um jogador (Somente Leitura)
+     * Busca por nickname, nome ou user_id. Não expõe e-mail nem configurações privadas.
+     */
+    static async loadPublicUserData(identifier) {
+      const client = this.getClient();
+      if (!client) {
+        throw new Error('Supabase não configurado.');
+      }
+
+      const cleanId = String(identifier || '').trim();
+      if (!cleanId) {
+        throw new Error('Identificador de perfil não informado.');
+      }
+
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+
+      try {
+        let row = null;
+
+        // 1. Se for UUID, busca diretamente por user_id
+        if (isUuid) {
+          const { data, error } = await client
+            .from('user_data')
+            .select('user_id, games, profile, playing_categories, updated_at')
+            .eq('user_id', cleanId)
+            .maybeSingle();
+
+          if (error) console.warn('[SupabaseService] Erro ao buscar por user_id:', error);
+          if (data) row = data;
+        }
+
+        // 2. Busca por profile->>nickname (insensível a maiúsculas/minúsculas)
+        if (!row) {
+          const { data, error } = await client
+            .from('user_data')
+            .select('user_id, games, profile, playing_categories, updated_at')
+            .filter('profile->>nickname', 'ilike', cleanId)
+            .limit(1)
+            .maybeSingle();
+
+          if (error) console.warn('[SupabaseService] Erro ao buscar por nickname:', error);
+          if (data) row = data;
+        }
+
+        // 3. Se veio com hífens (ex: Rafael-Lannes), tenta substituir por espaços
+        if (!row && cleanId.includes('-')) {
+          const spaced = cleanId.replace(/-/g, ' ');
+          const { data } = await client
+            .from('user_data')
+            .select('user_id, games, profile, playing_categories, updated_at')
+            .filter('profile->>nickname', 'ilike', spaced)
+            .limit(1)
+            .maybeSingle();
+
+          if (data) row = data;
+        }
+
+        // 4. Fallback: busca por profile->>name
+        if (!row) {
+          const { data } = await client
+            .from('user_data')
+            .select('user_id, games, profile, playing_categories, updated_at')
+            .filter('profile->>name', 'ilike', cleanId)
+            .limit(1)
+            .maybeSingle();
+
+          if (data) row = data;
+        }
+
+        // 5. Se não encontrou por filtro exato no PostgREST, faz varredura flexível das primeiras linhas públicas
+        if (!row) {
+          const { data } = await client
+            .from('user_data')
+            .select('user_id, games, profile, playing_categories, updated_at')
+            .limit(50);
+
+          if (Array.isArray(data)) {
+            const cleanTarget = cleanId.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const found = data.find(item => {
+              const prof = item.profile || {};
+              const nick = String(prof.nickname || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              const nm = String(prof.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              return (nick && (nick === cleanTarget || nick.includes(cleanTarget))) ||
+                     (nm && (nm === cleanTarget || nm.includes(cleanTarget)));
+            });
+            if (found) row = found;
+          }
+        }
+
+        if (!row) {
+          return null;
+        }
+
+        return {
+          userId: row.user_id,
+          games: Array.isArray(row.games) ? row.games : [],
+          profile: row.profile && typeof row.profile === 'object' ? row.profile : null,
+          playingCategories: Array.isArray(row.playing_categories) ? row.playing_categories : [],
+          updatedAt: row.updated_at
+        };
+      } catch (err) {
+        console.error('[SupabaseService] Erro ao carregar perfil público:', err);
+        throw err;
+      }
+    }
+
+    /**
      * Salva ou atualiza os dados completos do usuário na nuvem (Upsert atômico)
      * Aceita tanto saveUserData(payload) quanto saveUserData(userId, userEmail, payload)
      */

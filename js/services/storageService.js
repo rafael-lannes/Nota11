@@ -342,20 +342,34 @@ class StorageService {
         }
         const condition = this.normalizeCompletionCondition(game.completionCondition, Boolean(game.isPlatinum));
         const isPlat = condition === 'Platinado/Perfeitos';
-        const formattedPlaytime = this.formatPlaytimeToHHMMSS(game.playtime || game.playtimeHours || 0);
-        const year = game.status === 'Zerado' ? this.extractCompletionYear(game.completionDate, game.completionYear) : null;
+        let status = 'Zerado';
+        const rawStatus = (game.status || '').toString().trim().toLowerCase();
+        if (rawStatus === 'backlog' || rawStatus === 'fila' || rawStatus === 'quero jogar') {
+          status = 'Backlog';
+        } else if (rawStatus === 'jogando' || rawStatus === 'playing' || rawStatus === 'nowplaying' || Boolean(game.isNowPlaying)) {
+          status = 'Jogando';
+        } else if (rawStatus === 'zerado' || rawStatus === 'concluído' || rawStatus === 'concluido' || rawStatus === 'finished') {
+          status = 'Zerado';
+        } else if (game.status) {
+          status = game.status;
+        }
+
+        const isZerado = status === 'Zerado';
+        const year = isZerado ? this.extractCompletionYear(game.completionDate, game.completionYear) : null;
         const isHandheldFinal = isPcPlatform(platform) ? (Boolean(game.isHandheld) || platform === 'PC - Steam Deck' || platform === 'PC - Rog Ally') : false;
 
         return {
           ...game,
+          status,
           platform,
           genre: this.formatGenres(game.genre || ''),
           completionYear: year,
+          completionDate: isZerado ? (game.completionDate || null) : null,
           completionCondition: condition,
           isPlatinum: isPlat,
           isHandheld: isHandheldFinal,
           isReplay: Boolean(game.isReplay),
-          isNowPlaying: Boolean(game.isNowPlaying),
+          isNowPlaying: status === 'Jogando',
           playtime: formattedPlaytime,
           playtimeHours: game.playtimeHours !== undefined ? Number(game.playtimeHours) : this.playtimeToHours(formattedPlaytime)
         };
@@ -973,6 +987,7 @@ class StorageService {
     const isYearHeader = (c) => c.includes('ano') || c.includes('year');
     const isRatingHeader = (c) => c.includes('nota') || c.includes('rating') || c.includes('score') || c.includes('avalia') || c.includes('stars') || c.includes('grade');
     const isConditionHeader = (c) => c.includes('condição') || c.includes('condicao') || c.includes('condition') || c.includes('status de zerar') || (c.includes('zerar') && !c.includes('jogos'));
+    const isStatusHeader = (c) => c.includes('status') || c.includes('estado') || c.includes('situação') || c.includes('situacao') || c.includes('fila');
 
     let headerMatches = 0;
     if (firstRowCols.some(isTitleHeader)) headerMatches++;
@@ -983,6 +998,7 @@ class StorageService {
     if (firstRowCols.some(isPlaytimeHeader)) headerMatches++;
     if (firstRowCols.some(isRatingHeader)) headerMatches++;
     if (firstRowCols.some(isConditionHeader)) headerMatches++;
+    if (firstRowCols.some(isStatusHeader)) headerMatches++;
 
     const firstColIsExplicitTitleHeader = isTitleHeader(firstRowCols[0]);
     const hasHeader = firstColIsExplicitTitleHeader || (headerMatches >= 2);
@@ -1007,6 +1023,8 @@ class StorageService {
           detectedMap.rating = idx;
         } else if (isConditionHeader(colName) && detectedMap.condition === undefined) {
           detectedMap.condition = idx;
+        } else if (isStatusHeader(colName) && detectedMap.status === undefined) {
+          detectedMap.status = idx;
         }
       });
       colMap = { ...colMap, ...detectedMap };
@@ -1106,15 +1124,28 @@ class StorageService {
         (pLow.includes('steam deck') || pLow.includes('portátil') || pLow.includes('portatil') || pLow.includes('handheld') || pLow.includes('deck'))
       );
 
+      let status = 'Zerado';
+      if (colMap.status !== undefined && cols[colMap.status] !== undefined) {
+        const rawStat = String(cols[colMap.status]).replace(/[\r\n]+/g, ' ').trim().toLowerCase();
+        if (rawStat === 'backlog' || rawStat === 'fila' || rawStat === 'quero jogar') {
+          status = 'Backlog';
+        } else if (rawStat === 'jogando' || rawStat === 'playing' || rawStat === 'nowplaying') {
+          status = 'Jogando';
+        } else if (rawStat === 'zerado' || rawStat === 'concluído' || rawStat === 'concluido' || rawStat === 'finished') {
+          status = 'Zerado';
+        }
+      }
+      const isZerado = status === 'Zerado';
+
       importedGames.push({
         id: `imported_${Date.now()}_${Math.random().toString(36).substr(2, 6)}_${i}`,
         title,
         platform,
         genre,
-        status: 'Zerado',
-        rating,
-        completionDate,
-        completionYear,
+        status,
+        rating: isZerado ? rating : null,
+        completionDate: isZerado ? completionDate : null,
+        completionYear: isZerado ? completionYear : null,
         playtime: formattedPlaytime,
         playtimeHours,
         completionCondition,
@@ -1122,6 +1153,7 @@ class StorageService {
         isEarlyAccess: false,
         isPlatinum,
         isReplay,
+        isNowPlaying: status === 'Jogando',
         coverUrl,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -1175,7 +1207,21 @@ class StorageService {
         const condition = this.normalizeCompletionCondition(game.completionCondition, Boolean(game.isPlatinum));
         const isPlat = condition === 'Platinado/Perfeitos';
         const formattedPlaytime = this.formatPlaytimeToHHMMSS(game.playtime || game.playtimeHours || 0);
-        const year = game.status === 'Zerado' ? this.extractCompletionYear(game.completionDate, game.completionYear) : null;
+
+        let normalizedStatus = 'Zerado';
+        const rawStatus = (game.status || '').toString().trim().toLowerCase();
+        if (rawStatus === 'backlog' || rawStatus === 'fila' || rawStatus === 'quero jogar') {
+          normalizedStatus = 'Backlog';
+        } else if (rawStatus === 'jogando' || rawStatus === 'playing' || rawStatus === 'nowplaying' || Boolean(game.isNowPlaying)) {
+          normalizedStatus = 'Jogando';
+        } else if (rawStatus === 'zerado' || rawStatus === 'concluído' || rawStatus === 'concluido' || rawStatus === 'finished') {
+          normalizedStatus = 'Zerado';
+        } else if (game.status) {
+          normalizedStatus = game.status;
+        }
+
+        const isZerado = normalizedStatus === 'Zerado';
+        const year = isZerado ? this.extractCompletionYear(game.completionDate, game.completionYear) : null;
         const isHandheldFinal = isPcPlatform(platform) ? Boolean(game.isHandheld) : false;
 
         return {
@@ -1183,9 +1229,9 @@ class StorageService {
           title: game.title || 'Jogo Sem Título',
           platform,
           genre: this.formatGenres(game.genre || ''),
-          status: game.status === 'Jogando' ? 'Jogando' : 'Zerado',
-          rating: game.rating !== undefined && game.rating !== null ? Math.max(1, Math.min(11, Number(game.rating))) : null,
-          completionDate: game.completionDate || null,
+          status: normalizedStatus,
+          rating: isZerado && game.rating !== undefined && game.rating !== null ? Math.max(1, Math.min(11, Number(game.rating))) : null,
+          completionDate: isZerado ? (game.completionDate || null) : null,
           completionYear: year,
           playtime: formattedPlaytime,
           playtimeHours: game.playtimeHours !== undefined ? Number(game.playtimeHours) : this.playtimeToHours(formattedPlaytime),
@@ -1194,7 +1240,7 @@ class StorageService {
           isEarlyAccess: Boolean(game.isEarlyAccess),
           isPlatinum: isPlat,
           isReplay: Boolean(game.isReplay),
-          isNowPlaying: Boolean(game.isNowPlaying),
+          isNowPlaying: normalizedStatus === 'Jogando',
           priority: game.priority || null,
           playingCategory: game.playingCategory || null,
           coverUrl: game.coverUrl || (window.PlaceholderGenerator ? window.PlaceholderGenerator.generate(game.title, platform) : ''),

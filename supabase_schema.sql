@@ -17,12 +17,14 @@ CREATE TABLE IF NOT EXISTS public.user_data (
 -- 2. Habilita Row Level Security (RLS) para isolamento total e segurança máxima
 ALTER TABLE public.user_data ENABLE ROW LEVEL SECURITY;
 
--- 3. Políticas de Segurança (Cada usuário só pode ver, salvar e alterar os seus próprios dados)
+-- 3. Políticas de Segurança (Row Level Security - RLS)
+-- Permite leitura pública dos perfis para que amigos possam visualizar a lista compartilhada (somente leitura)
 DROP POLICY IF EXISTS "Usuários podem ver apenas seus próprios dados" ON public.user_data;
-CREATE POLICY "Usuários podem ver apenas seus próprios dados" 
+DROP POLICY IF EXISTS "Permitir leitura pública de perfis" ON public.user_data;
+CREATE POLICY "Permitir leitura pública de perfis" 
     ON public.user_data 
     FOR SELECT 
-    USING (auth.uid() = user_id);
+    USING (true);
 
 DROP POLICY IF EXISTS "Usuários podem inserir apenas seus próprios dados" ON public.user_data;
 CREATE POLICY "Usuários podem inserir apenas seus próprios dados" 

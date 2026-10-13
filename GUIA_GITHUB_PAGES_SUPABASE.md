@@ -28,6 +28,7 @@ Este guia explica passo a passo como colocar o **Nota 11** online no **GitHub Pa
 3. Abra o arquivo [`supabase_schema.sql`](./supabase_schema.sql) deste projeto, copie todo o conteúdo e cole no editor do Supabase.
 4. Clique no botão verde **"Run"** (ou pressione `Ctrl + Enter`).
 5. Você verá a mensagem **"Success. No rows returned"**. A tabela `user_data` foi criada com segurança *Row Level Security (RLS)* ativa!
+   *(Nota: A política inclui leitura pública liberada para que seus colegas possam visualizar sua lista e estatísticas pelo link compartilhado, enquanto a edição continua 100% restrita ao dono da conta).*
 
 ---
 

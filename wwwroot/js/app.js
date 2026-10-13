@@ -178,6 +178,119 @@ function initApp() {
         testResult: null
       });
 
+      // Estado de Perfil Público Compartilhado (Somente Leitura)
+      const isPublicViewMode = ref(false);
+      const publicProfileIdentifier = ref('');
+      const publicProfileOwnerName = ref('');
+      const isPublicLoading = ref(false);
+      const publicProfileError = ref('');
+
+      const ownAppUrl = computed(() => {
+        const origin = window.location.origin;
+        let path = window.location.pathname.replace(/\/(index|404)\.html$/i, '');
+        if (!path.endsWith('/')) path += '/';
+        return origin + path;
+      });
+
+      const publicProfileShareUrl = computed(() => {
+        const hasSync = Boolean(lastCloudSync.value || (window.SupabaseService && window.SupabaseService.getLastSyncTime()));
+        if (!hasSync) return '';
+
+        const nick = (userProfile.value && userProfile.value.nickname ? userProfile.value.nickname : '').trim();
+        const nm = (userProfile.value && userProfile.value.name ? userProfile.value.name : '').trim();
+        const slug = nick || nm;
+        if (!slug) return '';
+
+        const origin = window.location.origin;
+        let path = window.location.pathname.replace(/\/(index|404)\.html$/i, '');
+        if (!path.endsWith('/')) path += '/';
+        return `${origin}${path}${encodeURIComponent(slug)}`;
+      });
+
+      const publicProfileQueryUrl = computed(() => {
+        const hasSync = Boolean(lastCloudSync.value || (window.SupabaseService && window.SupabaseService.getLastSyncTime()));
+        if (!hasSync) return '';
+
+        const nick = (userProfile.value && userProfile.value.nickname ? userProfile.value.nickname : '').trim();
+        const nm = (userProfile.value && userProfile.value.name ? userProfile.value.name : '').trim();
+        const slug = nick || nm;
+        if (!slug) return '';
+
+        const origin = window.location.origin;
+        let path = window.location.pathname.replace(/\/(index|404)\.html$/i, '');
+        if (!path.endsWith('/')) path += '/';
+        return `${origin}${path}?u=${encodeURIComponent(slug)}`;
+      });
+
+      const copyPublicProfileUrl = async () => {
+        const url = publicProfileShareUrl.value;
+        if (!url) {
+          showToast('Faça o upload da sua lista para a nuvem para gerar o link público.', 'warning');
+          return;
+        }
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(url);
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = url;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          }
+          showToast('Link do perfil público copiado! Compartilhe com seus amigos.', 'success');
+        } catch (err) {
+          showToast('Erro ao copiar link: ' + err.message, 'error');
+        }
+      };
+
+      const loadPublicProfile = async (identifier) => {
+        isPublicLoading.value = true;
+        publicProfileError.value = '';
+        try {
+          if (!window.SupabaseService) {
+            throw new Error('Serviço de nuvem Supabase indisponível no momento.');
+          }
+          const cleanId = String(identifier || '').trim();
+          if (!cleanId) {
+            publicProfileError.value = 'Nenhum identificador de perfil informado.';
+            return false;
+          }
+
+          const publicData = await window.SupabaseService.loadPublicUserData(cleanId);
+          if (!publicData) {
+            publicProfileError.value = `O perfil "${cleanId}" não foi encontrado na nuvem ou ainda não sincronizou seus dados.`;
+            return false;
+          }
+
+          games.value = Array.isArray(publicData.games) ? publicData.games : [];
+          if (publicData.profile && typeof publicData.profile === 'object') {
+            userProfile.value = { ...DEFAULT_PROFILE, ...publicData.profile };
+            publicProfileOwnerName.value = userProfile.value.nickname || userProfile.value.name || cleanId;
+          } else {
+            publicProfileOwnerName.value = cleanId;
+          }
+
+          if (Array.isArray(publicData.playingCategories)) {
+            playingCategories.value = publicData.playingCategories;
+          }
+
+          document.title = `Nota 11 - Lista de Jogos de ${publicProfileOwnerName.value}`;
+          return true;
+        } catch (err) {
+          console.error('[loadPublicProfile] Erro:', err);
+          publicProfileError.value = err.message || 'Falha ao carregar perfil público.';
+          return false;
+        } finally {
+          isPublicLoading.value = false;
+          nextTick(() => refreshLucideIcons());
+        }
+      };
+
       // Estado da Integração HowLongToBeat (HLTB)
       const isHltbModalOpen = ref(false);
       const isHltbSyncing = ref(false);
@@ -515,21 +628,46 @@ function initApp() {
       };
 
       onMounted(async () => {
-        if (StorageService) {
-          await StorageService.initNativeStorage();
-          loadActiveProfileData();
+        // 1. Verifica se a URL contém parâmetro de perfil público (?u=... ou /Nota11/<slug>)
+        const urlParams = new URLSearchParams(window.location.search);
+        let publicSlug = urlParams.get('u') || urlParams.get('user') || urlParams.get('perfil') || urlParams.get('profile');
 
-          // Conecta listener de alterações locais para auto-sync com Supabase
-          StorageService.onDataChanged = () => {
-            if (cloudUser.value && cloudAutoSyncEnabled.value && !isCloudSyncing.value) {
-              debouncedCloudSync();
-            }
-          };
+        if (!publicSlug && window.location.hash) {
+          const hashMatch = window.location.hash.match(/#\/?u\/(.+)/i);
+          if (hashMatch) publicSlug = decodeURIComponent(hashMatch[1]);
         }
 
-        // Inicializa sessão e listener de autenticação Supabase
-        if (window.SupabaseService) {
-          initSupabaseAuth();
+        if (!publicSlug) {
+          const pathSegments = window.location.pathname.split('/').filter(Boolean);
+          if (pathSegments.length >= 2 && pathSegments[0].toLowerCase() === 'nota11') {
+            const candidate = pathSegments[pathSegments.length - 1];
+            if (candidate && !candidate.endsWith('.html') && candidate.toLowerCase() !== 'nota11') {
+              publicSlug = decodeURIComponent(candidate);
+            }
+          }
+        }
+
+        if (publicSlug) {
+          isPublicViewMode.value = true;
+          publicProfileIdentifier.value = publicSlug.trim();
+          await loadPublicProfile(publicProfileIdentifier.value);
+        } else {
+          if (StorageService) {
+            await StorageService.initNativeStorage();
+            loadActiveProfileData();
+
+            // Conecta listener de alterações locais para auto-sync com Supabase
+            StorageService.onDataChanged = () => {
+              if (cloudUser.value && cloudAutoSyncEnabled.value && !isCloudSyncing.value) {
+                debouncedCloudSync();
+              }
+            };
+          }
+
+          // Inicializa sessão e listener de autenticação Supabase
+          if (window.SupabaseService) {
+            initSupabaseAuth();
+          }
         }
 
         refreshLucideIcons();
@@ -554,7 +692,7 @@ function initApp() {
             return;
           }
 
-          if (e.key.toLowerCase() === 'n' && !isInput && !isAddEditOpen.value && !isQuickFinishOpen.value && !isDetailOpen.value && !isProfileOpen.value) {
+          if (e.key.toLowerCase() === 'n' && !isInput && !isAddEditOpen.value && !isQuickFinishOpen.value && !isDetailOpen.value && !isProfileOpen.value && !isPublicViewMode.value) {
             e.preventDefault();
             openAddGame('Zerado');
           }
@@ -597,7 +735,7 @@ function initApp() {
 
       // Salva automaticamente sempre que a lista de jogos mudar e recalcula armazenamento
       watch(games, (newGames) => {
-        if (StorageService) {
+        if (!isPublicViewMode.value && StorageService) {
           StorageService.saveGames(newGames);
         }
         refreshStorageInfo();
@@ -605,7 +743,9 @@ function initApp() {
 
       // Recalcula armazenamento se o perfil mudar
       watch(userProfile, () => {
-        refreshStorageInfo();
+        if (!isPublicViewMode.value) {
+          refreshStorageInfo();
+        }
       }, { deep: true });
 
       // Salva rascunho do formulário de novo jogo em tempo real
@@ -1470,6 +1610,7 @@ function initApp() {
 
       // 1. FINALIZAR JOGO RÁPIDO ("Zerar Jogo")
       const openQuickFinish = (game) => {
+        if (isPublicViewMode.value) return;
         gameToFinish.value = game;
         const today = new Date().toISOString().split('T')[0];
         const currentYear = new Date().getFullYear();
@@ -1596,6 +1737,7 @@ function initApp() {
 
       // 2. NOVO JOGO / EDITAR JOGO
       const openAddGame = (status = 'Zerado') => {
+        if (isPublicViewMode.value) return;
         isEditMode.value = false;
         const today = new Date().toISOString().split('T')[0];
         const currentYear = new Date().getFullYear();
@@ -1657,11 +1799,13 @@ function initApp() {
       };
 
       const openAddGameWithCategory = (shelfId) => {
+        if (isPublicViewMode.value) return;
         openAddGame('Jogando');
         gameForm.value.playingCategory = (shelfId && shelfId !== 'uncategorized') ? shelfId : null;
       };
 
       const openEditGame = (game) => {
+        if (isPublicViewMode.value) return;
         isEditMode.value = true;
         const pt = parsePlaytimeInput(game.playtime || game.playtimeHours || 0);
         const condition = game.completionCondition || (game.isPlatinum ? 'Platinado/Perfeitos' : 'Condição Padrão');
@@ -1696,6 +1840,7 @@ function initApp() {
       };
 
       const saveGameForm = () => {
+        if (isPublicViewMode.value) return;
         const title = (gameForm.value.title || '').trim();
         if (!title) {
           showToast('O título do jogo é obrigatório.', 'error');
@@ -1805,7 +1950,7 @@ function initApp() {
 
       // 3. VINCULAR / DESVINCULAR JOGOS ZERADOS EM "JOGANDO AGORA"
       const toggleNowPlayingStatus = (game) => {
-        if (!game) return;
+        if (isPublicViewMode.value || !game) return;
         const idx = games.value.findIndex(g => g.id === game.id);
         if (idx === -1) return;
 
@@ -1827,7 +1972,7 @@ function initApp() {
       };
 
       const removeFromNowPlaying = (game) => {
-        if (!game) return;
+        if (isPublicViewMode.value || !game) return;
         const idx = games.value.findIndex(g => g.id === game.id);
         if (idx === -1) return;
 
@@ -2421,6 +2566,7 @@ function initApp() {
       };
 
       const handleJsonUpload = (event) => {
+        if (isPublicViewMode.value) return;
         const file = event.target.files[0];
         if (!file || !StorageService) return;
 
@@ -2434,9 +2580,13 @@ function initApp() {
               games.value = parsed.games.map(g => {
                 const pt = parsePlaytimeInput(g.playtime || g.playtimeHours || 0);
                 const condition = StorageService.normalizeCompletionCondition(g.completionCondition, Boolean(g.isPlatinum));
-                const year = g.status === 'Zerado' ? StorageService.extractCompletionYear(g.completionDate, g.completionYear) : null;
+                const isZerado = g.status === 'Zerado';
+                const year = isZerado ? StorageService.extractCompletionYear(g.completionDate, g.completionYear) : null;
                 return {
                   ...g,
+                  status: g.status || 'Zerado',
+                  rating: isZerado && g.rating !== undefined && g.rating !== null ? Math.max(1, Math.min(11, Number(g.rating))) : null,
+                  completionDate: isZerado ? (g.completionDate || null) : null,
                   playtime: pt.str,
                   playtimeHours: pt.hours,
                   genre: g.genre || '',
@@ -2446,6 +2596,7 @@ function initApp() {
                   isEarlyAccess: Boolean(g.isEarlyAccess),
                   isPlatinum: condition === 'Platinado/Perfeitos',
                   isReplay: Boolean(g.isReplay),
+                  isNowPlaying: g.status === 'Jogando',
                   priority: g.priority || null,
                   playingCategory: g.playingCategory || null
                 };
@@ -2485,6 +2636,7 @@ function initApp() {
       };
 
       const restoreSampleData = () => {
+        if (isPublicViewMode.value) return;
         games.value = (SAMPLE_GAMES || []).map(g => {
           const pt = parsePlaytimeInput(g.playtime || g.playtimeHours || 0);
           const condition = StorageService.normalizeCompletionCondition(g.completionCondition, Boolean(g.isPlatinum));
@@ -2517,11 +2669,13 @@ function initApp() {
       // LIMPEZA TOTAL DA LISTA
       // =======================================================================
       const openClearAllModal = () => {
+        if (isPublicViewMode.value) return;
         isClearAllModalOpen.value = true;
         refreshLucideIcons();
       };
 
       const confirmClearAll = () => {
+        if (isPublicViewMode.value) return;
         games.value = [];
         if (StorageService) {
           StorageService.saveGames([]);
@@ -2535,13 +2689,14 @@ function initApp() {
       // EXCLUSÃO INDIVIDUAL & DETALHES
       // =======================================================================
       const openDeleteConfirm = (game) => {
+        if (isPublicViewMode.value) return;
         gameToDelete.value = game;
         isDeleteConfirmOpen.value = true;
         refreshLucideIcons();
       };
 
       const confirmDelete = () => {
-        if (!gameToDelete.value) return;
+        if (isPublicViewMode.value || !gameToDelete.value) return;
         const title = gameToDelete.value.title;
         games.value = games.value.filter(g => g.id !== gameToDelete.value.id);
         isDeleteConfirmOpen.value = false;
@@ -3004,6 +3159,7 @@ function initApp() {
       };
 
       const openEditProfileModal = () => {
+        if (isPublicViewMode.value) return;
         editProfileForm.value = {
           name: userProfile.value.name || '',
           nickname: userProfile.value.nickname || '',
@@ -3017,6 +3173,7 @@ function initApp() {
       };
 
       const saveProfile = () => {
+        if (isPublicViewMode.value) return;
         userProfile.value = {
           ...userProfile.value,
           ...editProfileForm.value
@@ -3055,6 +3212,7 @@ function initApp() {
       };
 
       const handleAvatarUpload = (event) => {
+        if (isPublicViewMode.value) return;
         const file = event.target.files[0];
         if (!file) return;
         if (file.size > 2 * 1024 * 1024) {
@@ -3070,11 +3228,13 @@ function initApp() {
       };
 
       const openResetProfileConfirm = () => {
+        if (isPublicViewMode.value) return;
         isResetProfileConfirmOpen.value = true;
         refreshLucideIcons();
       };
 
       const confirmResetProfile = () => {
+        if (isPublicViewMode.value) return;
         if (StorageService) {
           userProfile.value = StorageService.clearUserProfile();
         } else {
@@ -3653,6 +3813,7 @@ function initApp() {
 
 
       const createPlayingCategory = (name = '', icon = 'folder') => {
+        if (isPublicViewMode.value) return;
         const cleanName = (name || newCategoryName.value || '').trim();
         if (!cleanName) {
           showToast('Informe um nome para a categoria.', 'warning');
@@ -3682,12 +3843,13 @@ function initApp() {
       };
 
       const startEditPlayingCategory = (cat) => {
+        if (isPublicViewMode.value) return;
         editingCategoryId.value = cat.id;
         editingCategoryName.value = cat.name;
       };
 
       const saveEditPlayingCategory = () => {
-        if (!editingCategoryId.value) return;
+        if (isPublicViewMode.value || !editingCategoryId.value) return;
         const cleanName = editingCategoryName.value.trim();
         if (!cleanName) {
           showToast('O nome da categoria não pode ficar vazio.', 'warning');
@@ -3714,6 +3876,7 @@ function initApp() {
       };
 
       const deletePlayingCategory = (catId) => {
+        if (isPublicViewMode.value) return;
         const cat = playingCategories.value.find(c => c.id === catId);
         const catName = cat ? cat.name : 'Categoria';
 
@@ -3738,6 +3901,7 @@ function initApp() {
       };
 
       const movePlayingCategory = (catId, direction) => {
+        if (isPublicViewMode.value) return;
         const idx = playingCategories.value.findIndex(c => c.id === catId);
         if (idx === -1) return;
         const targetIdx = idx + direction;
@@ -3817,6 +3981,10 @@ function initApp() {
       // 4. Drop sobre Card Alvo (Reordenação Instantânea por ID)
       const onGameDrop = (event, targetGame, targetShelfId = null) => {
         if (event && event.preventDefault) event.preventDefault();
+        if (isPublicViewMode.value) {
+          onGameDragEnd();
+          return;
+        }
         const sourceId = draggedGameId.value;
         const targetId = targetGame ? targetGame.id : null;
 
@@ -3861,6 +4029,10 @@ function initApp() {
 
       // 5. Drop Direto na Prateleira
       const onShelfDrop = (shelfId) => {
+        if (isPublicViewMode.value) {
+          onGameDragEnd();
+          return;
+        }
         const sourceId = draggedGameId.value;
         if (!sourceId) {
           onGameDragEnd();
@@ -3891,6 +4063,10 @@ function initApp() {
 
       // 7. Soltar sobre Abas Principais (Jogando Agora / Backlog)
       const onDropOnHeroTab = (targetTab) => {
+        if (isPublicViewMode.value) {
+          onGameDragEnd();
+          return;
+        }
         const sourceId = draggedGameId.value;
         dragOverHeroTab.value = null;
         if (!sourceId) {
@@ -3929,6 +4105,7 @@ function initApp() {
       const onNowPlayingDragEnd = () => onGameDragEnd();
 
       const moveNowPlayingGame = (gameId, direction) => {
+        if (isPublicViewMode.value) return;
         const nowPlayingList = [...nowPlayingGames.value];
         const idx = nowPlayingList.findIndex(g => g.id === gameId);
         if (idx === -1) return;
@@ -3945,11 +4122,10 @@ function initApp() {
         debouncedSaveGames();
       };
 
-      // =======================================================================
-      // AÇÕES DO BACKLOG (TRANSIÇÃO RÁPIDA, REORDENAÇÃO & HLTB)
+      // 4. AÇÕES DO BACKLOG (TRANSIÇÃO RÁPIDA, REORDENAÇÃO & HLTB)
       // =======================================================================
       const startPlayingBacklogGame = (game) => {
-        if (!game) return;
+        if (isPublicViewMode.value || !game) return;
         const idx = games.value.findIndex(g => g.id === game.id);
         if (idx === -1) return;
 
@@ -3971,7 +4147,7 @@ function initApp() {
       };
 
       const moveToBacklog = (game) => {
-        if (!game) return;
+        if (isPublicViewMode.value || !game) return;
         const idx = games.value.findIndex(g => g.id === game.id);
         if (idx === -1) return;
 
@@ -3993,6 +4169,7 @@ function initApp() {
       };
 
       const moveBacklogGame = (gameId, direction) => {
+        if (isPublicViewMode.value) return;
         const backlogList = [...backlogGames.value];
         const idx = backlogList.findIndex(g => g.id === gameId);
         if (idx === -1) return;
@@ -4011,7 +4188,7 @@ function initApp() {
       };
 
       const fetchHltbForBacklogGame = async (game) => {
-        if (!game || !game.title) return;
+        if (isPublicViewMode.value || !game || !game.title) return;
         if (!window.HltbService) {
           showToast('Serviço HLTB não carregado.', 'error');
           return;
@@ -4047,6 +4224,7 @@ function initApp() {
       };
 
       const runBacklogHltbSync = async (targets) => {
+        if (isPublicViewMode.value) return;
         if (!window.HltbService) {
           showToast('Serviço HLTB não carregado.', 'error');
           return;
@@ -4110,6 +4288,7 @@ function initApp() {
       };
 
       const moveGameInList = (gameId, direction) => {
+        if (isPublicViewMode.value) return;
         const idx = games.value.findIndex(g => g.id === gameId);
         if (idx === -1) return;
         const targetIdx = idx + direction;
@@ -4159,6 +4338,7 @@ function initApp() {
       };
 
       const setGamePriority = (game, priorityVal) => {
+        if (isPublicViewMode.value) return;
         const idx = games.value.findIndex(g => g.id === game.id);
         if (idx !== -1) {
           games.value[idx].priority = priorityVal || null;
@@ -4178,6 +4358,7 @@ function initApp() {
       };
 
       const cycleGamePriority = (game) => {
+        if (isPublicViewMode.value) return;
         const current = (game.priority || '').toLowerCase();
         let next = '';
         if (!current) next = 'alta';
@@ -4936,7 +5117,19 @@ function initApp() {
         testAndSaveCloudConfig,
         syncToCloud,
         syncFromCloud,
-        toggleCloudAutoSync
+        toggleCloudAutoSync,
+
+        // Perfil Público Compartilhado (Somente Leitura)
+        isPublicViewMode,
+        publicProfileIdentifier,
+        publicProfileOwnerName,
+        isPublicLoading,
+        publicProfileError,
+        ownAppUrl,
+        publicProfileShareUrl,
+        publicProfileQueryUrl,
+        copyPublicProfileUrl,
+        loadPublicProfile
       };
     }
   });
