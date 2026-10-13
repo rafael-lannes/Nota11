@@ -7685,35 +7685,54 @@
         </div>
 
         <!-- Link Público do Perfil Compartilhado (Visível para o Dono) -->
-        <div v-if="!isPublicViewMode && publicProfileShareUrl" class="p-4 rounded-2xl bg-gradient-to-r from-indigo-950/70 via-slate-900 to-indigo-950/70 border border-indigo-500/40 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 flex-shrink-0 shadow-inner">
-              <i data-lucide="share-2" class="w-5 h-5"></i>
-            </div>
-            <div class="min-w-0 text-left">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-white">Link Público do seu Perfil</span>
-                <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-500/30">ATIVO NA NUVEM</span>
+        <div v-if="!isPublicViewMode && publicProfileShareUrl" class="p-4 rounded-2xl bg-slate-900/90 border border-indigo-500/40 space-y-3 shadow-md">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
               </div>
-              <p class="text-[11px] text-slate-300 font-mono truncate select-all">{{ publicProfileShareUrl }}</p>
+              <span class="text-xs font-bold text-white">Link Público do seu Perfil</span>
             </div>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>ATIVO NA NUVEM</span>
+            </span>
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
-            <button @click="copyPublicProfileUrl" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer">
+
+          <div class="flex items-center gap-2">
+            <input 
+              type="text" 
+              readonly 
+              :value="publicProfileShareUrl" 
+              @click="$event.target.select()"
+              class="flex-1 min-w-0 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs font-mono outline-none"
+              title="Clique para selecionar a URL"
+            />
+            <button 
+              type="button"
+              @click="copyPublicProfileUrl" 
+              class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer whitespace-nowrap flex-shrink-0"
+              title="Copiar link do perfil público"
+            >
               <i data-lucide="copy" class="w-3.5 h-3.5"></i>
               <span>Copiar Link</span>
             </button>
-            <button @click="openExternalUrl(publicProfileShareUrl)" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer" title="Visualizar como visitante">
+            <button 
+              type="button"
+              @click="openExternalUrl(publicProfileShareUrl)" 
+              class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer flex-shrink-0" 
+              title="Visualizar como visitante em nova aba"
+            >
               <i data-lucide="external-link" class="w-4 h-4"></i>
             </button>
           </div>
         </div>
-        <div v-else-if="!isPublicViewMode" class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-          <div class="flex items-center gap-2.5">
+        <div v-else-if="!isPublicViewMode" class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between gap-3 flex-wrap text-xs text-slate-400">
+          <div class="flex items-center gap-2.5 min-w-0">
             <i data-lucide="cloud" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
             <span>Faça upload da sua lista na <strong>Nuvem</strong> para gerar o link público e compartilhar seu perfil com amigos.</span>
           </div>
-          <button @click="isProfileOpen = false; openCloudModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs whitespace-nowrap cursor-pointer">
+          <button @click="isProfileOpen = false; openCloudModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs whitespace-nowrap cursor-pointer flex-shrink-0">
             Conectar Nuvem
           </button>
         </div>
