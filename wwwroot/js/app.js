@@ -37,7 +37,14 @@ function initApp() {
     top5GameIds: [],
     top5Games: [],
     myConsoles: [],
-    mySetup: ''
+    mySetup: '',
+    socialTwitter: '',
+    socialInstagram: '',
+    socialWebsite: '',
+    socialSteam: '',
+    socialTwitch: '',
+    socialDiscord: '',
+    socialYoutube: ''
   };
 
   const app = createApp({
@@ -362,7 +369,14 @@ function initApp() {
               top5GameIds: Array.isArray(publicData.profile.top5GameIds) ? publicData.profile.top5GameIds : (Array.isArray(publicData.profile.top5Games) ? publicData.profile.top5Games.map(g => typeof g === 'string' ? g : g?.id).filter(Boolean) : []),
               top5Games: Array.isArray(publicData.profile.top5Games) ? publicData.profile.top5Games : [],
               myConsoles: Array.isArray(publicData.profile.myConsoles) ? publicData.profile.myConsoles : [],
-              mySetup: typeof publicData.profile.mySetup === 'string' ? publicData.profile.mySetup : ''
+              mySetup: typeof publicData.profile.mySetup === 'string' ? publicData.profile.mySetup : '',
+              socialTwitter: typeof publicData.profile.socialTwitter === 'string' ? publicData.profile.socialTwitter.trim() : '',
+              socialInstagram: typeof publicData.profile.socialInstagram === 'string' ? publicData.profile.socialInstagram.trim() : '',
+              socialWebsite: typeof publicData.profile.socialWebsite === 'string' ? publicData.profile.socialWebsite.trim() : '',
+              socialSteam: typeof publicData.profile.socialSteam === 'string' ? publicData.profile.socialSteam.trim() : '',
+              socialTwitch: typeof publicData.profile.socialTwitch === 'string' ? publicData.profile.socialTwitch.trim() : '',
+              socialDiscord: typeof publicData.profile.socialDiscord === 'string' ? publicData.profile.socialDiscord.trim() : '',
+              socialYoutube: typeof publicData.profile.socialYoutube === 'string' ? publicData.profile.socialYoutube.trim() : ''
             };
             publicProfileOwnerName.value = userProfile.value.nickname || userProfile.value.name || cleanId;
           } else {
@@ -425,7 +439,14 @@ function initApp() {
         top5GameIds: [],
         top5Games: [],
         myConsoles: [],
-        mySetup: ''
+        mySetup: '',
+        socialTwitter: '',
+        socialInstagram: '',
+        socialWebsite: '',
+        socialSteam: '',
+        socialTwitch: '',
+        socialDiscord: '',
+        socialYoutube: ''
       }));
 
       const editProfileForm = ref({
@@ -434,7 +455,14 @@ function initApp() {
         avatarUrl: userProfile.value.avatarUrl || '',
         bio: userProfile.value.bio || '',
         favoritePlatform: userProfile.value.favoritePlatform || 'PC',
-        favoriteGenre: userProfile.value.favoriteGenre || ''
+        favoriteGenre: userProfile.value.favoriteGenre || '',
+        socialTwitter: userProfile.value.socialTwitter || '',
+        socialInstagram: userProfile.value.socialInstagram || '',
+        socialWebsite: userProfile.value.socialWebsite || '',
+        socialSteam: userProfile.value.socialSteam || '',
+        socialTwitch: userProfile.value.socialTwitch || '',
+        socialDiscord: userProfile.value.socialDiscord || '',
+        socialYoutube: userProfile.value.socialYoutube || ''
       });
 
       // Informações de Armazenamento e Cache Local (incluindo tamanho das capas)
@@ -688,7 +716,14 @@ function initApp() {
           avatarUrl: userProfile.value.avatarUrl || '',
           bio: userProfile.value.bio || '',
           favoritePlatform: userProfile.value.favoritePlatform || 'PC',
-          favoriteGenre: userProfile.value.favoriteGenre || ''
+          favoriteGenre: userProfile.value.favoriteGenre || '',
+          socialTwitter: userProfile.value.socialTwitter || '',
+          socialInstagram: userProfile.value.socialInstagram || '',
+          socialWebsite: userProfile.value.socialWebsite || '',
+          socialSteam: userProfile.value.socialSteam || '',
+          socialTwitch: userProfile.value.socialTwitch || '',
+          socialDiscord: userProfile.value.socialDiscord || '',
+          socialYoutube: userProfile.value.socialYoutube || ''
         };
 
         igdbForm.value.clientId = settings.value.igdb_client_id || '';
@@ -3433,7 +3468,14 @@ function initApp() {
           avatarUrl: userProfile.value.avatarUrl || '',
           bio: userProfile.value.bio || '',
           favoritePlatform: userProfile.value.favoritePlatform || 'PC - Computador',
-          favoriteGenre: userProfile.value.favoriteGenre || ''
+          favoriteGenre: userProfile.value.favoriteGenre || '',
+          socialTwitter: userProfile.value.socialTwitter || '',
+          socialInstagram: userProfile.value.socialInstagram || '',
+          socialWebsite: userProfile.value.socialWebsite || '',
+          socialSteam: userProfile.value.socialSteam || '',
+          socialTwitch: userProfile.value.socialTwitch || '',
+          socialDiscord: userProfile.value.socialDiscord || '',
+          socialYoutube: userProfile.value.socialYoutube || ''
         };
         isEditProfileOpen.value = true;
         refreshLucideIcons();
@@ -3711,6 +3753,97 @@ Headset / Áudio: `;
             value: line
           };
         });
+      });
+
+      // =======================================================================
+      // REDES SOCIAIS & LINKS DO PERFIL
+      // =======================================================================
+      const getSocialUrl = (type, val) => {
+        if (!val || typeof val !== 'string') return '';
+        const raw = val.trim();
+        if (!raw) return '';
+        if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+
+        const cleanHandle = raw.replace(/^@+/, '');
+        switch (type) {
+          case 'twitter':
+          case 'x':
+            return `https://x.com/${cleanHandle}`;
+          case 'instagram':
+            return `https://instagram.com/${cleanHandle}`;
+          case 'steam':
+            if (raw.includes('steamcommunity.com')) return `https://${raw.replace(/^https?:\/\//, '')}`;
+            if (/^\d{17}$/.test(raw)) return `https://steamcommunity.com/profiles/${raw}`;
+            return `https://steamcommunity.com/id/${cleanHandle}`;
+          case 'twitch':
+            return `https://twitch.tv/${cleanHandle}`;
+          case 'youtube':
+            if (raw.includes('youtube.com') || raw.includes('youtu.be')) return `https://${raw.replace(/^https?:\/\//, '')}`;
+            return `https://youtube.com/@${cleanHandle}`;
+          case 'discord':
+            if (raw.includes('discord.gg') || raw.includes('discord.com')) return `https://${raw.replace(/^https?:\/\//, '')}`;
+            return `https://discord.com/users/${cleanHandle}`;
+          case 'website':
+          default:
+            return `https://${raw}`;
+        }
+      };
+
+      const getSocialDisplay = (type, val) => {
+        if (!val || typeof val !== 'string') return '';
+        const raw = val.trim();
+        if (!raw) return '';
+
+        try {
+          if (raw.startsWith('http://') || raw.startsWith('https://')) {
+            const urlObj = new URL(raw);
+            const path = urlObj.pathname.replace(/^\/+|\/+$/g, '');
+            if (type === 'twitter' || type === 'x') {
+              return '@' + (path.split('/')[0] || urlObj.hostname);
+            }
+            if (type === 'instagram') {
+              return '@' + (path.split('/')[0] || urlObj.hostname);
+            }
+            if (type === 'youtube') {
+              const part = path.split('/')[0] || '';
+              return part.startsWith('@') ? part : ('@' + part);
+            }
+            if (type === 'twitch') {
+              return path.split('/')[0] || urlObj.hostname;
+            }
+            if (type === 'steam') {
+              const parts = path.split('/');
+              return parts[parts.length - 1] || 'Steam';
+            }
+            if (type === 'website') {
+              return urlObj.hostname.replace(/^www\./, '');
+            }
+            return urlObj.hostname.replace(/^www\./, '');
+          }
+        } catch (e) {}
+
+        const cleanHandle = raw.replace(/^@+/, '');
+        if (type === 'twitter' || type === 'x' || type === 'instagram') {
+          return `@${cleanHandle}`;
+        }
+        if (type === 'youtube') {
+          return `@${cleanHandle}`;
+        }
+        return raw;
+      };
+
+      const hasSocialLinks = computed(() => {
+        const p = userProfile.value;
+        if (!p) return false;
+        return Boolean(
+          (p.socialTwitter && p.socialTwitter.trim()) ||
+          (p.socialInstagram && p.socialInstagram.trim()) ||
+          (p.socialWebsite && p.socialWebsite.trim()) ||
+          (p.socialSteam && p.socialSteam.trim()) ||
+          (p.socialTwitch && p.socialTwitch.trim()) ||
+          (p.socialDiscord && p.socialDiscord.trim()) ||
+          (p.socialYoutube && p.socialYoutube.trim())
+        );
       });
 
       // =======================================================================
@@ -5447,6 +5580,9 @@ Headset / Áudio: `;
         confirmResetProfile,
         saveProfile,
         handleAvatarUpload,
+        getSocialUrl,
+        getSocialDisplay,
+        hasSocialLinks,
 
         // Nichos da Página de Perfil
         isTop5ModalOpen,

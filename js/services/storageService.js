@@ -38,7 +38,14 @@ const DEFAULT_PROFILE = {
   top5GameIds: [],
   top5Games: [],
   myConsoles: [],
-  mySetup: ''
+  mySetup: '',
+  socialTwitter: '',
+  socialInstagram: '',
+  socialWebsite: '',
+  socialSteam: '',
+  socialTwitch: '',
+  socialDiscord: '',
+  socialYoutube: ''
 };
 
 const DEFAULT_SETTINGS = {
@@ -468,7 +475,14 @@ class StorageService {
         top5GameIds: Array.isArray(parsed.top5GameIds) ? parsed.top5GameIds : (Array.isArray(parsed.top5Games) ? parsed.top5Games.map(g => typeof g === 'string' ? g : g?.id).filter(Boolean) : []),
         top5Games: Array.isArray(parsed.top5Games) ? parsed.top5Games : [],
         myConsoles: Array.isArray(parsed.myConsoles) ? parsed.myConsoles : [],
-        mySetup: typeof parsed.mySetup === 'string' ? parsed.mySetup : ''
+        mySetup: typeof parsed.mySetup === 'string' ? parsed.mySetup : '',
+        socialTwitter: typeof parsed.socialTwitter === 'string' ? parsed.socialTwitter.trim() : '',
+        socialInstagram: typeof parsed.socialInstagram === 'string' ? parsed.socialInstagram.trim() : '',
+        socialWebsite: typeof parsed.socialWebsite === 'string' ? parsed.socialWebsite.trim() : '',
+        socialSteam: typeof parsed.socialSteam === 'string' ? parsed.socialSteam.trim() : '',
+        socialTwitch: typeof parsed.socialTwitch === 'string' ? parsed.socialTwitch.trim() : '',
+        socialDiscord: typeof parsed.socialDiscord === 'string' ? parsed.socialDiscord.trim() : '',
+        socialYoutube: typeof parsed.socialYoutube === 'string' ? parsed.socialYoutube.trim() : ''
       };
     } catch (e) {
       console.error('Erro ao ler perfil do usuário:', e);
@@ -1268,7 +1282,14 @@ class StorageService {
         top5GameIds: Array.isArray(profileRaw.top5GameIds) ? profileRaw.top5GameIds : (Array.isArray(profileRaw.top5Games) ? profileRaw.top5Games.map(g => typeof g === 'string' ? g : g?.id).filter(Boolean) : []),
         top5Games: Array.isArray(profileRaw.top5Games) ? profileRaw.top5Games : [],
         myConsoles: Array.isArray(profileRaw.myConsoles) ? profileRaw.myConsoles : [],
-        mySetup: typeof profileRaw.mySetup === 'string' ? profileRaw.mySetup : ''
+        mySetup: typeof profileRaw.mySetup === 'string' ? profileRaw.mySetup : '',
+        socialTwitter: typeof profileRaw.socialTwitter === 'string' ? profileRaw.socialTwitter.trim() : '',
+        socialInstagram: typeof profileRaw.socialInstagram === 'string' ? profileRaw.socialInstagram.trim() : '',
+        socialWebsite: typeof profileRaw.socialWebsite === 'string' ? profileRaw.socialWebsite.trim() : '',
+        socialSteam: typeof profileRaw.socialSteam === 'string' ? profileRaw.socialSteam.trim() : '',
+        socialTwitch: typeof profileRaw.socialTwitch === 'string' ? profileRaw.socialTwitch.trim() : '',
+        socialDiscord: typeof profileRaw.socialDiscord === 'string' ? profileRaw.socialDiscord.trim() : '',
+        socialYoutube: typeof profileRaw.socialYoutube === 'string' ? profileRaw.socialYoutube.trim() : ''
       } : null;
 
       const sanitizedCategories = Array.isArray(data.playingCategories) ? data.playingCategories.map(c => {
