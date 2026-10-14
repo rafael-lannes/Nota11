@@ -34,7 +34,11 @@ const DEFAULT_PROFILE = {
   avatarUrl: '',
   bio: 'Registro pessoal de jogos concluídos, tempos e avaliações.',
   favoritePlatform: 'PC - Computador',
-  favoriteGenre: ''
+  favoriteGenre: '',
+  top5GameIds: [],
+  top5Games: [],
+  myConsoles: [],
+  mySetup: ''
 };
 
 const DEFAULT_SETTINGS = {
@@ -458,7 +462,14 @@ class StorageService {
       const data = localStorage.getItem(STORAGE_KEYS.PROFILE);
       if (!data) return { ...DEFAULT_PROFILE };
       const parsed = JSON.parse(data);
-      return { ...DEFAULT_PROFILE, ...parsed };
+      return {
+        ...DEFAULT_PROFILE,
+        ...parsed,
+        top5GameIds: Array.isArray(parsed.top5GameIds) ? parsed.top5GameIds : (Array.isArray(parsed.top5Games) ? parsed.top5Games.map(g => typeof g === 'string' ? g : g?.id).filter(Boolean) : []),
+        top5Games: Array.isArray(parsed.top5Games) ? parsed.top5Games : [],
+        myConsoles: Array.isArray(parsed.myConsoles) ? parsed.myConsoles : [],
+        mySetup: typeof parsed.mySetup === 'string' ? parsed.mySetup : ''
+      };
     } catch (e) {
       console.error('Erro ao ler perfil do usuário:', e);
       return { ...DEFAULT_PROFILE };
@@ -1251,7 +1262,14 @@ class StorageService {
       });
 
       const profileRaw = data.profile || (data.profiles && data.profiles[0] ? data.profiles[0] : null);
-      const sanitizedProfile = profileRaw ? { ...DEFAULT_PROFILE, ...profileRaw } : null;
+      const sanitizedProfile = profileRaw ? {
+        ...DEFAULT_PROFILE,
+        ...profileRaw,
+        top5GameIds: Array.isArray(profileRaw.top5GameIds) ? profileRaw.top5GameIds : (Array.isArray(profileRaw.top5Games) ? profileRaw.top5Games.map(g => typeof g === 'string' ? g : g?.id).filter(Boolean) : []),
+        top5Games: Array.isArray(profileRaw.top5Games) ? profileRaw.top5Games : [],
+        myConsoles: Array.isArray(profileRaw.myConsoles) ? profileRaw.myConsoles : [],
+        mySetup: typeof profileRaw.mySetup === 'string' ? profileRaw.mySetup : ''
+      } : null;
 
       const sanitizedCategories = Array.isArray(data.playingCategories) ? data.playingCategories.map(c => {
         if (typeof c === 'string') {

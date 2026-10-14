@@ -172,6 +172,9 @@ function initApp() {
       const isScraperPickerOpen = ref(false);
       const isProfileOpen = ref(false);
       const isEditProfileOpen = ref(false);
+      const isTop5ModalOpen = ref(false);
+      const isConsolesModalOpen = ref(false);
+      const isSetupModalOpen = ref(false);
       const isResetProfileConfirmOpen = ref(false);
       const isAboutOpen = ref(false);
       const appVersion = ref('beta web 1.0');
@@ -352,7 +355,14 @@ function initApp() {
           });
 
           if (publicData.profile && typeof publicData.profile === 'object') {
-            userProfile.value = { ...DEFAULT_PROFILE, ...publicData.profile };
+            userProfile.value = {
+              ...DEFAULT_PROFILE,
+              ...publicData.profile,
+              top5GameIds: Array.isArray(publicData.profile.top5GameIds) ? publicData.profile.top5GameIds : (Array.isArray(publicData.profile.top5Games) ? publicData.profile.top5Games.map(g => typeof g === 'string' ? g : g?.id).filter(Boolean) : []),
+              top5Games: Array.isArray(publicData.profile.top5Games) ? publicData.profile.top5Games : [],
+              myConsoles: Array.isArray(publicData.profile.myConsoles) ? publicData.profile.myConsoles : [],
+              mySetup: typeof publicData.profile.mySetup === 'string' ? publicData.profile.mySetup : ''
+            };
             publicProfileOwnerName.value = userProfile.value.nickname || userProfile.value.name || cleanId;
           } else {
             publicProfileOwnerName.value = cleanId;
@@ -410,7 +420,11 @@ function initApp() {
         avatarUrl: '',
         bio: 'Registro pessoal de jogos concluídos, tempos e avaliações.',
         favoritePlatform: 'PC',
-        favoriteGenre: ''
+        favoriteGenre: '',
+        top5GameIds: [],
+        top5Games: [],
+        myConsoles: [],
+        mySetup: ''
       }));
 
       const editProfileForm = ref({
@@ -697,6 +711,9 @@ function initApp() {
         isProfileOpen.value = false;
         isEditProfileOpen.value = false;
         isResetProfileConfirmOpen.value = false;
+        isTop5ModalOpen.value = false;
+        isConsolesModalOpen.value = false;
+        isSetupModalOpen.value = false;
         isAboutOpen.value = false;
         isCloudModalOpen.value = false;
         isToolsMenuOpen.value = false;
@@ -736,8 +753,14 @@ function initApp() {
           publicProfileIdentifier.value = publicSlug.trim();
           await loadPublicProfile(publicProfileIdentifier.value);
 
+          const pageParam = (urlParams.get('page') || urlParams.get('p') || '').toLowerCase();
           const tabParam = (urlParams.get('tab') || urlParams.get('aba') || '').toLowerCase();
-          if (tabParam === 'backlog') {
+
+          if (pageParam === 'profile' || pageParam === 'perfil' || tabParam === 'perfil' || tabParam === 'profile') {
+            setActivePage('profile');
+          } else if (pageParam === 'stats' || pageParam === 'estatisticas') {
+            setActivePage('stats');
+          } else if (tabParam === 'backlog') {
             setHeroTab('backlog');
           } else if (tabParam === 'jogando' || tabParam === 'nowplaying') {
             setHeroTab('nowPlaying');
@@ -3395,11 +3418,10 @@ function initApp() {
       };
 
       // =======================================================================
-      // MÉTODOS DE MULTI-PERFIL & GESTÃO
+      // MÉTODOS DE PÁGINA DE PERFIL & GESTÃO
       // =======================================================================
       const openProfileModal = () => {
-        isProfileOpen.value = true;
-        refreshLucideIcons();
+        setActivePage('profile');
       };
 
       const openEditProfileModal = () => {
@@ -3409,7 +3431,7 @@ function initApp() {
           nickname: userProfile.value.nickname || '',
           avatarUrl: userProfile.value.avatarUrl || '',
           bio: userProfile.value.bio || '',
-          favoritePlatform: userProfile.value.favoritePlatform || 'PC',
+          favoritePlatform: userProfile.value.favoritePlatform || 'PC - Computador',
           favoriteGenre: userProfile.value.favoriteGenre || ''
         };
         isEditProfileOpen.value = true;
@@ -3430,6 +3452,222 @@ function initApp() {
         showToast('Perfil atualizado com sucesso!', 'success');
         refreshLucideIcons();
       };
+
+      // =======================================================================
+      // NICHOS CUSTOMIZÁVEIS DA PÁGINA DE PERFIL (TOP 5, CONSOLES, MEU SETUP)
+      // =======================================================================
+      
+      // 1. MEU TOP 5 (Jogos da Vida • Escolhidos entre os Nota 11)
+      const top5SelectedIds = ref([]);
+      const top5SearchQuery = ref('');
+
+      const filteredMasterpieceGamesForTop5 = computed(() => {
+        const list = games.value.filter(g => Number(g.rating) === 11);
+        const q = top5SearchQuery.value.trim().toLowerCase();
+        if (!q) return list;
+        return list.filter(g => (g.title || '').toLowerCase().includes(q) || (g.platform || '').toLowerCase().includes(q));
+      });
+
+      const top5SelectedGames = computed(() => {
+        return top5SelectedIds.value.map(id => games.value.find(g => g.id === id)).filter(Boolean);
+      });
+
+      const profileTop5Games = computed(() => {
+        const ids = Array.isArray(userProfile.value?.top5GameIds) ? userProfile.value.top5GameIds : [];
+        if (ids.length > 0) {
+          const resolved = ids.map(id => games.value.find(g => g.id === id || g.title === id)).filter(Boolean);
+          if (resolved.length > 0) return resolved;
+        }
+        if (Array.isArray(userProfile.value?.top5Games) && userProfile.value.top5Games.length > 0) {
+          return userProfile.value.top5Games.map(item => {
+            if (typeof item === 'string') {
+              return games.value.find(g => g.id === item || g.title === item);
+            }
+            return item;
+          }).filter(Boolean);
+        }
+        return [];
+      });
+
+      const openTop5Modal = () => {
+        if (isPublicViewMode.value) return;
+        top5SelectedIds.value = [...(userProfile.value.top5GameIds || [])];
+        top5SearchQuery.value = '';
+        isTop5ModalOpen.value = true;
+        nextTick(() => refreshLucideIcons());
+      };
+
+      const closeTop5Modal = () => {
+        isTop5ModalOpen.value = false;
+      };
+
+      const toggleTop5Game = (gameId) => {
+        if (!gameId) return;
+        const idx = top5SelectedIds.value.indexOf(gameId);
+        if (idx !== -1) {
+          top5SelectedIds.value.splice(idx, 1);
+        } else {
+          if (top5SelectedIds.value.length >= 5) {
+            showToast('Você já selecionou 5 jogos para o Top 5. Remova um para adicionar outro.', 'warning');
+            return;
+          }
+          top5SelectedIds.value.push(gameId);
+        }
+        nextTick(() => refreshLucideIcons());
+      };
+
+      const isTop5GameSelected = (gameId) => {
+        return top5SelectedIds.value.includes(gameId);
+      };
+
+      const getTop5GameRank = (gameId) => {
+        const idx = top5SelectedIds.value.indexOf(gameId);
+        return idx !== -1 ? idx + 1 : null;
+      };
+
+      const moveTop5Game = (index, direction) => {
+        const target = index + direction;
+        if (target < 0 || target >= top5SelectedIds.value.length) return;
+        const temp = top5SelectedIds.value[index];
+        top5SelectedIds.value[index] = top5SelectedIds.value[target];
+        top5SelectedIds.value[target] = temp;
+        nextTick(() => refreshLucideIcons());
+      };
+
+      const removeTop5Game = (index) => {
+        top5SelectedIds.value.splice(index, 1);
+        nextTick(() => refreshLucideIcons());
+      };
+
+      const saveTop5Modal = () => {
+        if (isPublicViewMode.value) return;
+        userProfile.value.top5GameIds = [...top5SelectedIds.value];
+        const snapshots = top5SelectedIds.value.map(id => games.value.find(g => g.id === id)).filter(Boolean).map(g => ({
+          id: g.id,
+          title: g.title,
+          coverUrl: g.coverUrl,
+          platform: g.platform,
+          rating: g.rating,
+          completionYear: g.completionYear
+        }));
+        userProfile.value.top5Games = snapshots;
+        if (StorageService) {
+          StorageService.saveUserProfile(userProfile.value);
+        }
+        isTop5ModalOpen.value = false;
+        showToast('Top 5 de jogos da vida atualizado com sucesso!', 'success');
+        refreshLucideIcons();
+      };
+
+      // 2. MEUS CONSOLES (Plataformas que Possui)
+      const consolesSelectedList = ref([]);
+      const consoleSearchQuery = ref('');
+
+      const filteredConsoleCategories = computed(() => {
+        const q = consoleSearchQuery.value.trim().toLowerCase();
+        if (!q) return platformCategories;
+        return platformCategories.map(cat => ({
+          group: cat.group,
+          items: cat.items.filter(item => item.toLowerCase().includes(q))
+        })).filter(cat => cat.items.length > 0);
+      });
+
+      const openConsolesModal = () => {
+        if (isPublicViewMode.value) return;
+        consolesSelectedList.value = [...(userProfile.value.myConsoles || [])];
+        consoleSearchQuery.value = '';
+        isConsolesModalOpen.value = true;
+        nextTick(() => refreshLucideIcons());
+      };
+
+      const closeConsolesModal = () => {
+        isConsolesModalOpen.value = false;
+      };
+
+      const toggleConsole = (consoleName) => {
+        if (!consoleName) return;
+        const idx = consolesSelectedList.value.indexOf(consoleName);
+        if (idx !== -1) {
+          consolesSelectedList.value.splice(idx, 1);
+        } else {
+          consolesSelectedList.value.push(consoleName);
+        }
+      };
+
+      const isConsoleSelected = (consoleName) => {
+        return consolesSelectedList.value.includes(consoleName);
+      };
+
+      const saveConsolesModal = () => {
+        if (isPublicViewMode.value) return;
+        userProfile.value.myConsoles = [...consolesSelectedList.value];
+        if (StorageService) {
+          StorageService.saveUserProfile(userProfile.value);
+        }
+        isConsolesModalOpen.value = false;
+        showToast('Lista de consoles atualizada com sucesso!', 'success');
+        refreshLucideIcons();
+      };
+
+      // 3. MEU PC / MEU SETUP
+      const setupFormText = ref('');
+
+      const openSetupModal = () => {
+        if (isPublicViewMode.value) return;
+        setupFormText.value = userProfile.value.mySetup || '';
+        isSetupModalOpen.value = true;
+        nextTick(() => refreshLucideIcons());
+      };
+
+      const closeSetupModal = () => {
+        isSetupModalOpen.value = false;
+      };
+
+      const fillSetupTemplate = () => {
+        const template = 
+`Processador (CPU): 
+Placa de Vídeo (GPU): 
+Memória RAM: 
+Placa-Mãe: 
+Armazenamento (SSD/HD): 
+Fonte de Alimentação: 
+Gabinete & Refrigeração: 
+Monitor Principal: 
+Teclado & Mouse: 
+Headset / Áudio: `;
+        if (!setupFormText.value || confirm('Preencher com o modelo padrão de hardware?')) {
+          setupFormText.value = template;
+        }
+      };
+
+      const saveSetupModal = () => {
+        if (isPublicViewMode.value) return;
+        userProfile.value.mySetup = setupFormText.value.trim();
+        if (StorageService) {
+          StorageService.saveUserProfile(userProfile.value);
+        }
+        isSetupModalOpen.value = false;
+        showToast('Configuração do PC atualizada com sucesso!', 'success');
+        refreshLucideIcons();
+      };
+
+      const formattedSetupLines = computed(() => {
+        const text = (userProfile.value?.mySetup || '').trim();
+        if (!text) return [];
+        return text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+          const colonIdx = line.indexOf(':');
+          if (colonIdx > 0 && colonIdx < 35) {
+            return {
+              label: line.substring(0, colonIdx).trim(),
+              value: line.substring(colonIdx + 1).trim()
+            };
+          }
+          return {
+            label: null,
+            value: line
+          };
+        });
+      });
 
       // =======================================================================
       // MODAL SOBRE & INFORMAÇÕES DO NOTA 11
@@ -5157,6 +5395,40 @@ function initApp() {
         confirmResetProfile,
         saveProfile,
         handleAvatarUpload,
+
+        // Nichos da Página de Perfil
+        isTop5ModalOpen,
+        top5SelectedIds,
+        top5SelectedGames,
+        top5SearchQuery,
+        filteredMasterpieceGamesForTop5,
+        profileTop5Games,
+        openTop5Modal,
+        closeTop5Modal,
+        toggleTop5Game,
+        isTop5GameSelected,
+        getTop5GameRank,
+        moveTop5Game,
+        removeTop5Game,
+        saveTop5Modal,
+
+        isConsolesModalOpen,
+        consolesSelectedList,
+        consoleSearchQuery,
+        filteredConsoleCategories,
+        openConsolesModal,
+        closeConsolesModal,
+        toggleConsole,
+        isConsoleSelected,
+        saveConsolesModal,
+
+        isSetupModalOpen,
+        setupFormText,
+        openSetupModal,
+        closeSetupModal,
+        fillSetupTemplate,
+        saveSetupModal,
+        formattedSetupLines,
 
         // Menu Unificado de Ferramentas & Armazenamento
         isToolsMenuOpen,
