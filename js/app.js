@@ -304,7 +304,53 @@ function initApp() {
             return false;
           }
 
-          games.value = Array.isArray(publicData.games) ? publicData.games : [];
+          const rawGames = Array.isArray(publicData.games) ? publicData.games : [];
+          games.value = rawGames.map(g => {
+            let platform = (g.platform || 'PC').trim();
+            const pLow = platform.toLowerCase();
+            if (pLow === 'pc (windows / steam)' || pLow === 'pc / steam' || pLow === 'pc (windows)' || pLow === 'pc(windows/steam)') {
+              platform = 'PC';
+            }
+
+            let normalizedStatus = 'Zerado';
+            const rawStatus = (g.status || '').toString().trim().toLowerCase();
+            if (rawStatus === 'backlog' || rawStatus === 'fila' || rawStatus === 'quero jogar') {
+              normalizedStatus = 'Backlog';
+            } else if (rawStatus === 'jogando' || rawStatus === 'playing' || rawStatus === 'nowplaying' || Boolean(g.isNowPlaying)) {
+              normalizedStatus = 'Jogando';
+            } else if (rawStatus === 'zerado' || rawStatus === 'concluído' || rawStatus === 'concluido' || rawStatus === 'finished') {
+              normalizedStatus = 'Zerado';
+            } else if (g.status) {
+              normalizedStatus = g.status;
+            }
+
+            const condition = StorageService ? StorageService.normalizeCompletionCondition(g.completionCondition, Boolean(g.isPlatinum)) : (g.completionCondition || (g.isPlatinum ? 'Platinado/Perfeitos' : 'Condição Padrão'));
+            const isPlat = condition === 'Platinado/Perfeitos';
+            const pt = parsePlaytimeInput(g.playtime || g.playtimeHours || 0);
+            const isZerado = normalizedStatus === 'Zerado';
+            const year = isZerado ? (StorageService ? StorageService.extractCompletionYear(g.completionDate, g.completionYear) : (g.completionYear || null)) : null;
+
+            return {
+              ...g,
+              platform,
+              status: normalizedStatus,
+              rating: isZerado && g.rating !== undefined && g.rating !== null ? Math.max(1, Math.min(11, Number(g.rating))) : null,
+              completionDate: isZerado ? (g.completionDate || null) : null,
+              completionYear: year,
+              playtime: pt.str,
+              playtimeHours: pt.hours,
+              genre: g.genre || '',
+              completionCondition: condition,
+              isHandheld: Boolean(g.isHandheld),
+              isEarlyAccess: Boolean(g.isEarlyAccess),
+              isPlatinum: isPlat,
+              isReplay: Boolean(g.isReplay),
+              isNowPlaying: normalizedStatus === 'Jogando',
+              priority: g.priority || null,
+              playingCategory: g.playingCategory || null
+            };
+          });
+
           if (publicData.profile && typeof publicData.profile === 'object') {
             userProfile.value = { ...DEFAULT_PROFILE, ...publicData.profile };
             publicProfileOwnerName.value = userProfile.value.nickname || userProfile.value.name || cleanId;
@@ -689,6 +735,17 @@ function initApp() {
           isPublicViewMode.value = true;
           publicProfileIdentifier.value = publicSlug.trim();
           await loadPublicProfile(publicProfileIdentifier.value);
+
+          const tabParam = (urlParams.get('tab') || urlParams.get('aba') || '').toLowerCase();
+          if (tabParam === 'backlog') {
+            setHeroTab('backlog');
+          } else if (tabParam === 'jogando' || tabParam === 'nowplaying') {
+            setHeroTab('nowPlaying');
+          } else if (tabParam === 'zerados' || tabParam === 'finished') {
+            setHeroTab('finished');
+          } else if (nowPlayingGames.value.length === 0 && finishedGames.value.length > 0) {
+            setHeroTab('finished');
+          }
         } else {
           if (StorageService) {
             await StorageService.initNativeStorage();
@@ -849,7 +906,11 @@ function initApp() {
       // COMPUTED PROPERTIES: FILTRAGEM, LISTAS & ESTATÍSTICAS
       // =======================================================================
       const nowPlayingGames = computed(() => {
-        return games.value.filter(g => g.status === 'Jogando' || (g.status === 'Zerado' && Boolean(g.isNowPlaying)));
+        return games.value.filter(g => {
+          const s = (g.status || '').toString().trim().toLowerCase();
+          if (s === 'backlog' || s === 'fila' || s === 'quero jogar') return false;
+          return g.status === 'Jogando' || s === 'jogando' || (g.status === 'Zerado' && Boolean(g.isNowPlaying));
+        });
       });
 
       const playingShelves = computed(() => {
@@ -898,11 +959,19 @@ function initApp() {
       });
 
       const finishedGames = computed(() => {
-        return games.value.filter(g => g.status === 'Zerado');
+        return games.value.filter(g => {
+          const s = (g.status || '').toString().trim().toLowerCase();
+          if (s === 'backlog' || s === 'fila' || s === 'quero jogar') return false;
+          if (s === 'jogando') return false;
+          return g.status === 'Zerado' || s === 'zerado' || s === 'finalizado' || s === 'concluido' || s === 'completed';
+        });
       });
 
       const backlogGames = computed(() => {
-        return games.value.filter(g => g.status === 'Backlog');
+        return games.value.filter(g => {
+          const s = (g.status || '').toString().trim().toLowerCase();
+          return s === 'backlog' || s === 'fila' || s === 'quero jogar' || g.status === 'Backlog';
+        });
       });
 
       const backlogEligibleGames = computed(() => {
@@ -4643,6 +4712,9 @@ function initApp() {
                 }
                 refreshStorageInfo();
               }
+            } else if (games.value.length > 0 && cloudAutoSyncEnabled.value && !isCloudSyncing.value) {
+              // Garante que adições locais (como Backlog) sejam sincronizadas com o banco na nuvem
+              debouncedCloudSync();
             }
           }
 
@@ -4673,6 +4745,8 @@ function initApp() {
                   }
                   refreshStorageInfo();
                 }
+              } else if (cloudUser.value && games.value.length > 0 && cloudAutoSyncEnabled.value && !isCloudSyncing.value) {
+                debouncedCloudSync();
               }
               refreshLucideIcons();
             } else if (event === 'SIGNED_OUT') {
