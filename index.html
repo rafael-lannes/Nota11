@@ -219,10 +219,11 @@
             <!-- Botão Nuvem / Supabase & Sincronização -->
             <button 
               v-if="!isPublicViewMode"
+              type="button"
               @click="openCloudModal()" 
               :title="cloudUser ? ('Nuvem: Conectado como ' + cloudUser.email + ' (Clique para sincronizar ou gerenciar)') : 'Nuvem & Supabase: Login, Cadastro e Sincronização Online'"
-              :aria-label="cloudUser ? 'Nuvem conectado' : 'Conectar à nuvem'"
-              class="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-semibold whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
+              :aria-label="cloudUser ? ('Nuvem: Conectado como ' + cloudUser.email) : 'Conectar à nuvem'"
+              class="relative p-2 sm:p-2.5 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-center transition-all shadow-sm active:scale-95 cursor-pointer"
               :class="cloudUser ? 'bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-300 border-emerald-500/40' : 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white border-slate-700/80'"
             >
               <span v-if="isCloudSyncing" key="hdr-syncing" class="inline-flex items-center">
@@ -234,8 +235,7 @@
               <span v-else key="hdr-cloud-off" class="inline-flex items-center">
                 <i data-lucide="cloud-off" class="w-4 h-4 text-slate-400"></i>
               </span>
-              <span class="hidden md:inline">{{ cloudUser ? (cloudUser.email ? cloudUser.email.split('@')[0] : 'Nuvem') : 'Nuvem' }}</span>
-              <span v-if="cloudUser" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse hidden sm:inline-block"></span>
+              <span v-if="cloudUser" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse absolute top-1 right-1"></span>
             </button>
 
             <!-- Botão Compartilhar / Snapshot PNG (visível em sm+) -->
@@ -262,11 +262,13 @@
             </button>
 
             <!-- Menu Dropdown Unificado: Dados & Ferramentas -->
-            <div v-if="!isPublicViewMode" class="relative">
+            <div v-if="!isPublicViewMode" class="relative" data-tools-menu-container>
               <button 
-                @click="toggleToolsMenu" 
+                type="button"
+                @click.stop="toggleToolsMenu" 
                 title="Menu de Dados, Backup, Capas e Armazenamento"
                 aria-label="Menu de dados e ferramentas"
+                :aria-expanded="isToolsMenuOpen ? 'true' : 'false'"
                 class="p-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 text-xs sm:text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all shadow-sm cursor-pointer"
               >
                 <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
@@ -275,10 +277,11 @@
                 <i :data-lucide="isToolsMenuOpen ? 'chevron-up' : 'chevron-down'" class="w-3.5 h-3.5 text-slate-400 hidden sm:inline"></i>
               </button>
 
-              <!-- Dropdown Menu -->
+              <!-- Dropdown Menu (Desktop) -->
               <div 
                 v-if="isToolsMenuOpen" 
-                class="tools-menu-dropdown absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-[#12141c]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2 text-xs"
+                class="hidden md:block tools-menu-dropdown absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-[#12141c]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2 text-xs"
+                @click.stop
               >
                 <div class="px-2 py-1.5 border-b border-slate-800/80 flex items-center justify-between">
                   <span class="font-bold text-white text-[11px] uppercase tracking-wider">Gerenciamento da Coleção</span>
@@ -732,7 +735,7 @@
 
           <!-- Toolbar Quando heroTab === 'nowPlaying' -->
           <div v-if="heroTab === 'nowPlaying'" class="flex items-center gap-2 flex-wrap">
-            <!-- Seletor de Formato: Grade vs Tabela -->
+            <!-- 1. Seletor de Formato: Grade vs Tabela -->
             <div class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 shadow-sm">
               <button 
                 type="button"
@@ -740,6 +743,7 @@
                 :class="nowPlayingLayout === 'grid' ? 'bg-indigo-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'"
                 class="px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer"
                 title="Visualização em Grade de Cards"
+                aria-label="Visualização em Grade"
               >
                 <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
                 <span>Grade</span>
@@ -750,42 +754,14 @@
                 :class="nowPlayingLayout === 'table' ? 'bg-indigo-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'"
                 class="px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer"
                 title="Visualização em Tabela / Lista Detalhada"
+                aria-label="Visualização em Tabela"
               >
                 <i data-lucide="list" class="w-3.5 h-3.5"></i>
                 <span>Tabela</span>
               </button>
             </div>
 
-            <!-- Barra de Zoom Dinâmica (Apenas no modo Grade e telas sm+) -->
-            <div 
-              v-if="nowPlayingLayout === 'grid'" 
-              class="zoom-slider-container hidden sm:inline-flex animate-in fade-in duration-150"
-              title="Barra de Zoom: Arraste para diminuir ou aumentar o tamanho dos jogos"
-            >
-              <i data-lucide="minimize-2" class="w-3 h-3 text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer" @click="cardZoom = Math.max(95, cardZoom - 20)" title="Diminuir tamanho dos jogos"></i>
-              <input 
-                type="range" 
-                min="95" 
-                max="275" 
-                step="5" 
-                :value="cardZoom" 
-                @input="onCardZoomChange($event.target.value)" 
-                class="zoom-slider-input" 
-                title="Arraste para ajustar o tamanho dos cards em tempo real"
-              />
-              <i data-lucide="maximize-2" class="w-3 h-3 text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer" @click="cardZoom = Math.min(275, cardZoom + 20)" title="Aumentar tamanho dos jogos"></i>
-              <button 
-                type="button"
-                v-if="cardZoom !== 165"
-                @click="resetCardZoom" 
-                class="text-[9px] font-mono px-1 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60 transition-colors cursor-pointer"
-                title="Restaurar tamanho padrão"
-              >
-                Reset
-              </button>
-            </div>
-
-            <!-- Seletor de Organização: Prateleiras vs Todos Juntos (se houver categorias) -->
+            <!-- 2. Seletor de Organização: Prateleiras vs Todos Juntos (se houver categorias) -->
             <div v-if="playingCategories.length > 0" class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 shadow-sm">
               <button 
                 type="button"
@@ -793,6 +769,7 @@
                 :class="nowPlayingViewMode === 'shelves' ? 'bg-indigo-600/30 text-indigo-300 font-semibold border border-indigo-500/40' : 'text-slate-400 hover:text-white border border-transparent'"
                 class="px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer"
                 title="Organizado em Prateleiras por Categoria"
+                aria-label="Modo Prateleiras"
               >
                 <i data-lucide="layers" class="w-3.5 h-3.5"></i>
                 <span class="hidden md:inline">Prateleiras</span>
@@ -803,72 +780,133 @@
                 :class="nowPlayingViewMode === 'unified' ? 'bg-indigo-600/30 text-indigo-300 font-semibold border border-indigo-500/40' : 'text-slate-400 hover:text-white border border-transparent'"
                 class="px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer"
                 title="Visão Unificada (Todos Juntos)"
+                aria-label="Modo Todos Juntos"
               >
                 <i data-lucide="grid" class="w-3.5 h-3.5"></i>
-                <span class="hidden md:inline">Todos Juntos</span>
+                <span class="hidden md:inline">Todos</span>
               </button>
             </div>
 
-            <!-- Botão Gerenciar Prateleiras / Categorias -->
-            <button 
-              v-if="!isPublicViewMode"
-              type="button" 
-              @click="isManagePlayingCategoriesOpen = true" 
-              class="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-              title="Criar e gerenciar prateleiras personalizadas (ex: Singleplayer, Multiplayer, Jogando com amigos)"
-            >
-              <i data-lucide="folder-plus" class="w-3.5 h-3.5 text-indigo-400"></i>
-              <span class="hidden sm:inline">Prateleiras</span>
-              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300 font-bold">
-                {{ playingCategories.length }}
-              </span>
-            </button>
-
-            <!-- Botão Adicionar Jogo Concluído -->
-            <button 
-              v-if="!isPublicViewMode"
-              type="button" 
-              @click="openAddGame('Zerado')" 
-              class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-              title="Cadastrar um novo jogo concluído na biblioteca"
-            >
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-              <span>Novo Jogo Zerado</span>
-            </button>
-            <!-- Botão Compartilhar Jogando Agora -->
-            <button 
-              type="button" 
-              @click="openShareModal('nowPlaying')" 
-              class="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-              title="Gerar imagem (.PNG) do que você está jogando agora"
-            >
-              <i data-lucide="share-2" class="w-3.5 h-3.5 text-purple-400"></i>
-              <span class="hidden sm:inline">Compartilhar</span>
-            </button>
-
-            <!-- Botão Incluir Jogo Zerado da Biblioteca -->
-            <button 
-              v-if="!isPublicViewMode"
-              type="button" 
-              @click="openPickFinishedGameModal()" 
-              class="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/50 text-slate-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-              title="Selecionar um jogo já zerado da sua biblioteca para continuar jogando (ex: platinar, endgame, live service)"
-            >
-              <i data-lucide="bookmark-plus" class="w-3.5 h-3.5 text-amber-400"></i>
-              <span>Incluir Zerado</span>
-            </button>
-
-            <!-- Botão Rápido Adicionar Jogo -->
+            <!-- 3. Botão Principal: Adicionar Jogo em Andamento -->
             <button 
               v-if="!isPublicViewMode"
               type="button" 
               @click="openAddGame('Jogando')" 
-              class="px-3 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+              class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
               title="Adicionar novo jogo em andamento"
+              aria-label="Adicionar novo jogo em andamento"
             >
               <i data-lucide="plus" class="w-3.5 h-3.5"></i>
               <span>Adicionar</span>
             </button>
+
+            <!-- 4. Menu Consolidado de Opções Secundárias (Divulgação Progressiva) -->
+            <div v-if="!isPublicViewMode" class="relative" data-nowplaying-options-menu>
+              <button 
+                type="button" 
+                @click.stop="toggleNowPlayingMenu" 
+                class="px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer select-none"
+                title="Mais opções e configurações do Jogando Agora"
+                aria-label="Mais opções do Jogando Agora"
+                :aria-expanded="isNowPlayingMenuOpen ? 'true' : 'false'"
+              >
+                <i data-lucide="more-horizontal" class="w-4 h-4 text-slate-400"></i>
+                <span class="inline sm:inline">Opções</span>
+              </button>
+
+              <!-- Dropdown de Opções Secundárias -->
+              <div 
+                v-if="isNowPlayingMenuOpen" 
+                class="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-2xl bg-[#12141c]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1.5 text-xs select-none"
+                @click.stop
+              >
+                <div class="px-2 py-1 border-b border-slate-800/80 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>Ferramentas de Foco</span>
+                  <span class="font-mono text-emerald-400">{{ nowPlayingGames.length }} ativos</span>
+                </div>
+
+                <!-- Incluir Jogo Zerado da Biblioteca -->
+                <button 
+                  type="button" 
+                  @click="openPickFinishedGameModal(); closeNowPlayingMenu()" 
+                  class="w-full text-left p-2 rounded-xl hover:bg-slate-800/80 text-slate-200 hover:text-white flex items-center gap-2.5 transition-colors cursor-pointer group"
+                >
+                  <div class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+                    <i data-lucide="bookmark-plus" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <strong class="text-white block font-semibold text-xs">Incluir Zerado</strong>
+                    <span class="text-[10px] text-slate-400">Continuar jogando título da biblioteca</span>
+                  </div>
+                </button>
+
+                <!-- Gerenciar Prateleiras -->
+                <button 
+                  type="button" 
+                  @click="isManagePlayingCategoriesOpen = true; closeNowPlayingMenu()" 
+                  class="w-full text-left p-2 rounded-xl hover:bg-slate-800/80 text-slate-200 hover:text-white flex items-center gap-2.5 transition-colors cursor-pointer group"
+                >
+                  <div class="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                    <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="min-w-0 flex-1 flex items-center justify-between">
+                    <div>
+                      <strong class="text-white block font-semibold text-xs">Gerenciar Prateleiras</strong>
+                      <span class="text-[10px] text-slate-400">Personalizar categorias</span>
+                    </div>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-bold">
+                      {{ playingCategories.length }}
+                    </span>
+                  </div>
+                </button>
+
+                <!-- Compartilhar Snapshot PNG -->
+                <button 
+                  type="button" 
+                  @click="openShareModal('nowPlaying'); closeNowPlayingMenu()" 
+                  class="w-full text-left p-2 rounded-xl hover:bg-purple-950/40 border border-transparent hover:border-purple-500/40 text-purple-200 hover:text-white flex items-center gap-2.5 transition-colors cursor-pointer group"
+                >
+                  <div class="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 flex-shrink-0">
+                    <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <strong class="text-purple-200 block font-semibold text-xs">Compartilhar Snapshot</strong>
+                    <span class="text-[10px] text-purple-300/70">Gerar imagem PNG das jogatinas</span>
+                  </div>
+                </button>
+
+                <!-- Controle de Zoom em Grade -->
+                <div v-if="nowPlayingLayout === 'grid'" class="p-2 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-1.5 mt-1">
+                  <div class="flex items-center justify-between text-[10px] text-slate-400">
+                    <span class="flex items-center gap-1 font-semibold text-slate-300">
+                      <i data-lucide="zoom-in" class="w-3 h-3 text-cyan-400"></i>
+                      <span>Tamanho dos Cards</span>
+                    </span>
+                    <button 
+                      type="button"
+                      v-if="cardZoom !== 165"
+                      @click="resetCardZoom" 
+                      class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60 transition-colors cursor-pointer"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input 
+                      type="range" 
+                      min="95" 
+                      max="275" 
+                      step="5" 
+                      :value="cardZoom" 
+                      @input="onCardZoomChange($event.target.value)" 
+                      class="zoom-slider-input w-full" 
+                      title="Ajuste fino de zoom"
+                    />
+                  </div>
+                </div>
+
+              </div>
+            </div>
           </div>
 
           <!-- Toolbar Quando heroTab === 'finished' -->
@@ -1462,25 +1500,27 @@
                     </div>
 
                     <!-- Controles de Reordenação Rápida -->
-                    <div v-if="shelf.games.length > 1" class="flex items-center justify-between text-[9px] text-slate-500 pt-1 border-t border-slate-800/60" @click.stop>
+                    <div v-if="shelf.games.length > 1" class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-800/80" @click.stop>
                       <button 
                         @click="moveNowPlayingGame(game.id, -1)" 
                         :disabled="index === 0"
-                        class="px-1.5 py-0.5 rounded-md text-slate-400 hover:text-indigo-300 hover:bg-slate-800/80 disabled:opacity-20 transition-all flex items-center gap-0.5 reorder-btn"
-                        title="Subir posição de foco"
+                        class="px-2 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/90 active:scale-95 disabled:opacity-20 transition-all flex items-center gap-1 reorder-btn cursor-pointer"
+                        title="Subir prioridade de foco"
+                        aria-label="Subir prioridade de foco"
                       >
-                        <i data-lucide="chevron-left" class="w-2.5 h-2.5"></i>
+                        <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-indigo-400"></i>
                         <span>Subir</span>
                       </button>
-                      <span class="font-mono text-slate-500 text-[9px] font-bold">#{{ index + 1 }}</span>
+                      <span class="font-mono text-slate-400 text-xs font-bold">#{{ index + 1 }}</span>
                       <button 
                         @click="moveNowPlayingGame(game.id, 1)" 
                         :disabled="index === shelf.games.length - 1"
-                        class="px-1.5 py-0.5 rounded-md text-slate-400 hover:text-indigo-300 hover:bg-slate-800/80 disabled:opacity-20 transition-all flex items-center gap-0.5 reorder-btn"
-                        title="Descer posição de foco"
+                        class="px-2 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/90 active:scale-95 disabled:opacity-20 transition-all flex items-center gap-1 reorder-btn cursor-pointer"
+                        title="Descer prioridade de foco"
+                        aria-label="Descer prioridade de foco"
                       >
                         <span>Descer</span>
-                        <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-indigo-400"></i>
                       </button>
                     </div>
                   </div>
@@ -1953,25 +1993,27 @@
                 </div>
 
                 <!-- Controles de Reordenação Rápida -->
-                <div v-if="nowPlayingGames.length > 1" class="flex items-center justify-between text-[9px] text-slate-500 pt-1 border-t border-slate-800/60" @click.stop>
+                <div v-if="nowPlayingGames.length > 1" class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-800/80" @click.stop>
                   <button 
                     @click="moveNowPlayingGame(game.id, -1)" 
                     :disabled="index === 0"
-                    class="px-1.5 py-0.5 rounded-md text-slate-400 hover:text-indigo-300 hover:bg-slate-800/80 disabled:opacity-20 transition-all flex items-center gap-0.5 reorder-btn"
-                    title="Subir posição de foco"
+                    class="px-2 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/90 active:scale-95 disabled:opacity-20 transition-all flex items-center gap-1 reorder-btn cursor-pointer"
+                    title="Subir prioridade de foco"
+                    aria-label="Subir prioridade de foco"
                   >
-                    <i data-lucide="chevron-left" class="w-2.5 h-2.5"></i>
+                    <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-indigo-400"></i>
                     <span>Subir</span>
                   </button>
-                  <span class="font-mono text-slate-500 text-[9px] font-bold">#{{ index + 1 }}</span>
+                  <span class="font-mono text-slate-400 text-xs font-bold">#{{ index + 1 }}</span>
                   <button 
                     @click="moveNowPlayingGame(game.id, 1)" 
                     :disabled="index === nowPlayingGames.length - 1"
-                    class="px-1.5 py-0.5 rounded-md text-slate-400 hover:text-indigo-300 hover:bg-slate-800/80 disabled:opacity-20 transition-all flex items-center gap-0.5 reorder-btn"
-                    title="Descer posição de foco"
+                    class="px-2 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/90 active:scale-95 disabled:opacity-20 transition-all flex items-center gap-1 reorder-btn cursor-pointer"
+                    title="Descer prioridade de foco"
+                    aria-label="Descer prioridade de foco"
                   >
                     <span>Descer</span>
-                    <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-indigo-400"></i>
                   </button>
                 </div>
               </div>
@@ -2409,25 +2451,27 @@
                   </button>
 
                   <!-- Reordenação Rápida -->
-                  <div v-if="backlogGames.length > 1" class="flex items-center justify-between text-[9px] text-slate-500 pt-1 border-t border-slate-800/60">
+                  <div v-if="backlogGames.length > 1" class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-800/80">
                     <button 
                       @click="moveBacklogGame(game.id, -1)" 
                       :disabled="index === 0"
-                      class="px-1.5 py-0.5 rounded-md text-slate-400 hover:text-amber-300 hover:bg-slate-800/80 disabled:opacity-20 transition-all flex items-center gap-0.5 reorder-btn cursor-pointer"
+                      class="px-2 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/90 active:scale-95 disabled:opacity-20 transition-all flex items-center gap-1 reorder-btn cursor-pointer"
                       title="Subir posição no backlog"
+                      aria-label="Subir posição no backlog"
                     >
-                      <i data-lucide="chevron-left" class="w-2.5 h-2.5"></i>
+                      <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-amber-400"></i>
                       <span>Subir</span>
                     </button>
-                    <span class="font-mono text-slate-500 text-[9px] font-bold">#{{ index + 1 }}</span>
+                    <span class="font-mono text-slate-400 text-xs font-bold">#{{ index + 1 }}</span>
                     <button 
                       @click="moveBacklogGame(game.id, 1)" 
                       :disabled="index === backlogGames.length - 1"
-                      class="px-1.5 py-0.5 rounded-md text-slate-400 hover:text-amber-300 hover:bg-slate-800/80 disabled:opacity-20 transition-all flex items-center gap-0.5 reorder-btn cursor-pointer"
+                      class="px-2 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/90 active:scale-95 disabled:opacity-20 transition-all flex items-center gap-1 reorder-btn cursor-pointer"
                       title="Descer posição no backlog"
+                      aria-label="Descer posição no backlog"
                     >
                       <span>Descer</span>
-                      <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
+                      <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-amber-400"></i>
                     </button>
                   </div>
                 </div>
@@ -2483,11 +2527,14 @@
 
           <!-- Barra de Filtros, Busca e Alternador de Visão -->
           <div class="bg-[#12141c] p-3 sm:p-4 rounded-2xl border border-slate-800 shadow-sm space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-2.5 sm:gap-3">
+            
+            <!-- LINHA PRINCIPAL: Busca + Ordenação + Botão Filtros + Controles de Visão (Sempre Visível) -->
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
               
-              <!-- Busca por Nome / Texto / Gênero / Ano / Condição -->
-              <div class="lg:col-span-3 flex items-center gap-2">
-                <div class="relative flex-1">
+              <!-- Busca por Texto + Ordenação + Botão Toggle de Filtros -->
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <!-- Campo de Busca -->
+                <div class="relative flex-1 min-w-[150px] sm:min-w-[220px]">
                   <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                   <input 
                     type="text" 
@@ -2507,16 +2554,38 @@
                   </button>
                 </div>
 
-                <!-- Botão Mobile para Alternar Filtros Avançados -->
+                <!-- Ordenação Rápida -->
+                <div class="w-32 sm:w-40 flex-shrink-0">
+                  <select 
+                    v-model="sortBy" 
+                    aria-label="Ordenar biblioteca"
+                    class="w-full px-2.5 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors font-medium truncate"
+                  >
+                    <option value="custom">Personalizada</option>
+                    <option value="date-desc">Data (mais recente)</option>
+                    <option value="date-asc">Data (mais antiga)</option>
+                    <option value="year-desc">Ano (mais recente)</option>
+                    <option value="year-asc">Ano (mais antigo)</option>
+                    <option value="title-asc">Título (A-Z)</option>
+                    <option value="title-desc">Título (Z-A)</option>
+                    <option value="rating-desc">Nota (maior)</option>
+                    <option value="rating-asc">Nota (menor)</option>
+                    <option value="time-desc">Tempo (maior)</option>
+                    <option value="time-asc">Tempo (menor)</option>
+                  </select>
+                </div>
+
+                <!-- Botão Toggle de Filtros Avançados (Desktop e Mobile) -->
                 <button 
                   type="button"
                   @click="isMobileFilterOpen = !isMobileFilterOpen" 
-                  class="sm:hidden px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
-                  :class="activeFiltersCount > 0 ? 'bg-indigo-950/80 text-indigo-300 border-indigo-500/60' : 'bg-slate-900 text-slate-300 border-slate-700'"
-                  title="Abrir/fechar filtros avançados"
-                  aria-label="Alternar filtros no mobile"
+                  class="px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 active:scale-95 select-none"
+                  :class="activeFiltersCount > 0 ? 'bg-indigo-950/90 text-indigo-300 border-indigo-500/60 shadow-sm' : 'bg-slate-900 text-slate-300 border-slate-700/80 hover:bg-slate-800'"
+                  title="Abrir ou recolher filtros avançados"
+                  aria-label="Alternar filtros avançados"
                 >
                   <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+                  <span>Filtros</span>
                   <span v-if="activeFiltersCount > 0" class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold">
                     {{ activeFiltersCount }}
                   </span>
@@ -2524,290 +2593,260 @@
                 </button>
               </div>
 
-              <!-- Filtro de Plataforma -->
-              <div class="lg:col-span-2" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
-                <select 
-                  v-model="platformFilter" 
-                  aria-label="Filtrar por plataforma"
-                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+              <!-- Controles de Visão: Agrupamento + Formato + Zoom -->
+              <div class="flex items-center gap-2 flex-wrap justify-between sm:justify-end flex-shrink-0">
+                <!-- Ocultar Capas se Tabela -->
+                <button 
+                  v-if="currentLayout === 'table'"
+                  @click="hideTableCovers = !hideTableCovers" 
+                  :class="hideTableCovers ? 'bg-slate-800 text-slate-200 border-slate-700' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-700/80'"
+                  class="px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all border shadow-sm cursor-pointer"
+                  :title="hideTableCovers ? 'Exibir miniaturas de capas na tabela' : 'Ocultar miniaturas de capas para visão mais compacta'"
                 >
-                  <option value="ALL">Todas as Plataformas</option>
-                  <optgroup v-for="cat in platformCategories" :key="cat.group" :label="cat.group">
-                    <option v-for="plat in cat.items" :key="plat" :value="plat">{{ plat }}</option>
-                  </optgroup>
-                </select>
+                  <i :data-lucide="hideTableCovers ? 'image' : 'image-off'" class="w-3.5 h-3.5 text-slate-400"></i>
+                  <span class="hidden sm:inline">{{ hideTableCovers ? 'Mostrar Capas' : 'Ocultar Capas' }}</span>
+                </button>
+
+                <!-- Agrupamento: Por Ano vs Geral -->
+                <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-700/80 shadow-sm">
+                  <button 
+                    @click="currentGrouping = 'year'" 
+                    :class="currentGrouping === 'year' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Organizar jogos por ano de conclusão"
+                    aria-label="Organizar por Ano"
+                  >
+                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                    <span>Por Ano</span>
+                  </button>
+                  <button 
+                    @click="currentGrouping = 'all'" 
+                    :class="currentGrouping === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Exibir todos os jogos concluídos juntos (Geral)"
+                    aria-label="Todos os Jogos (Geral)"
+                  >
+                    <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                    <span>Geral</span>
+                  </button>
+                </div>
+
+                <!-- Formato: Grade vs Tabela -->
+                <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-700/80 shadow-sm">
+                  <button 
+                    @click="currentLayout = 'grid'" 
+                    :class="currentLayout === 'grid' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Visualização em Grade / Cards"
+                    aria-label="Visualização em Grade"
+                  >
+                    <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Grade</span>
+                  </button>
+                  <button 
+                    @click="currentLayout = 'table'" 
+                    :class="currentLayout === 'table' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Visualização em Tabela / Lista"
+                    aria-label="Visualização em Tabela"
+                  >
+                    <i data-lucide="list" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Tabela</span>
+                  </button>
+                </div>
+
+                <!-- Barra de Zoom Dinâmica na Biblioteca (Apenas no modo Grade em telas sm+) -->
+                <div 
+                  v-if="currentLayout === 'grid'" 
+                  class="zoom-slider-container hidden sm:inline-flex animate-in fade-in duration-150"
+                  title="Ajustar tamanho dos cards"
+                >
+                  <i data-lucide="minimize-2" class="w-3 h-3 text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer" @click="cardZoom = Math.max(95, cardZoom - 20)" title="Diminuir tamanho dos jogos"></i>
+                  <input 
+                    type="range" 
+                    min="95" 
+                    max="275" 
+                    step="5" 
+                    :value="cardZoom" 
+                    @input="onCardZoomChange($event.target.value)" 
+                    class="zoom-slider-input" 
+                    title="Arraste para ajustar o tamanho dos cards"
+                  />
+                  <i data-lucide="maximize-2" class="w-3 h-3 text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer" @click="cardZoom = Math.min(275, cardZoom + 20)" title="Aumentar tamanho dos jogos"></i>
+                </div>
               </div>
 
-              <!-- Filtro de Gênero -->
-              <div class="lg:col-span-2" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
-                <select 
-                  v-model="genreFilter" 
-                  aria-label="Filtrar por gênero"
-                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
-                >
-                  <option value="ALL">Todos os Gêneros</option>
-                  <option v-for="g in availableGenres" :key="g.name" :value="g.name">
-                    {{ g.name }} ({{ g.count }})
-                  </option>
-                </select>
+            </div>
+
+            <!-- PAINEL COLAPSÁVEL DE FILTROS AVANÇADOS (Divulgação Progressiva) -->
+            <div 
+              v-show="isMobileFilterOpen" 
+              class="pt-3 border-t border-slate-800 space-y-3 animate-in fade-in duration-150"
+            >
+              <!-- Linha 1 de Dropdowns de Filtro -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+                <!-- Filtro de Plataforma -->
+                <div>
+                  <label class="block text-[10px] text-slate-400 font-semibold mb-1">Plataforma</label>
+                  <select 
+                    v-model="platformFilter" 
+                    aria-label="Filtrar por plataforma"
+                    class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  >
+                    <option value="ALL">Todas as Plataformas</option>
+                    <optgroup v-for="cat in platformCategories" :key="cat.group" :label="cat.group">
+                      <option v-for="plat in cat.items" :key="plat" :value="plat">{{ plat }}</option>
+                    </optgroup>
+                  </select>
+                </div>
+
+                <!-- Filtro de Gênero -->
+                <div>
+                  <label class="block text-[10px] text-slate-400 font-semibold mb-1">Gênero</label>
+                  <select 
+                    v-model="genreFilter" 
+                    aria-label="Filtrar por gênero"
+                    class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  >
+                    <option value="ALL">Todos os Gêneros</option>
+                    <option v-for="g in availableGenres" :key="g.name" :value="g.name">
+                      {{ g.name }} ({{ g.count }})
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Filtro de Ano -->
+                <div>
+                  <label class="block text-[10px] text-slate-400 font-semibold mb-1">Ano</label>
+                  <select 
+                    v-model="yearFilter" 
+                    aria-label="Filtrar por ano de conclusão"
+                    class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  >
+                    <option value="ALL">Todos os Anos</option>
+                    <option v-for="y in availableYears" :key="y" :value="y">{{ y }}</option>
+                  </select>
+                </div>
+
+                <!-- Filtro de Nota -->
+                <div>
+                  <label class="block text-[10px] text-slate-400 font-semibold mb-1">Nota</label>
+                  <select 
+                    v-model="ratingFilter" 
+                    aria-label="Filtrar por nota"
+                    class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  >
+                    <option value="ALL">Todas as Notas</option>
+                    <option value="11">★ 11 (Masterpiece)</option>
+                    <option value="9-10">9 a 10</option>
+                    <option value="7-8">7 a 8</option>
+                    <option value="1-6">1 a 6</option>
+                  </select>
+                </div>
+
+                <!-- Filtro de Condição -->
+                <div class="col-span-2 sm:col-span-1">
+                  <label class="block text-[10px] text-slate-400 font-semibold mb-1">Condição</label>
+                  <select 
+                    v-model="conditionFilter" 
+                    aria-label="Filtrar por condição de conclusão"
+                    class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  >
+                    <option value="ALL">Todas as Condições</option>
+                    <option value="Platinado/Perfeitos">Platinado / 100%</option>
+                    <option value="Condição Padrão">Campanha Concluída</option>
+                    <option value="Condição Reduzida">História Rápida</option>
+                    <option value="Jogo sem fim">Sem Fim / MMO</option>
+                  </select>
+                </div>
               </div>
 
-              <!-- Filtro de Condição de Zerar -->
-              <div class="lg:col-span-1" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
-                <select 
-                  v-model="conditionFilter" 
-                  aria-label="Filtrar por condição de conclusão"
-                  class="w-full px-2 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
-                >
-                  <option value="ALL">Condição</option>
-                  <option value="Platinado/Perfeitos">Platinado / 100%</option>
-                  <option value="Condição Padrão">Campanha Concluída</option>
-                  <option value="Condição Reduzida">História Rápida</option>
-                  <option value="Jogo sem fim">Sem Fim / MMO</option>
-                </select>
-              </div>
-
-              <!-- Filtro de Ano -->
-              <div class="lg:col-span-1" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
-                <select 
-                  v-model="yearFilter" 
-                  aria-label="Filtrar por ano de conclusão"
-                  class="w-full px-2 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
-                >
-                  <option value="ALL">Ano</option>
-                  <option v-for="y in availableYears" :key="y" :value="y">{{ y }}</option>
-                </select>
-              </div>
-
-              <!-- Filtro de Nota -->
-              <div class="lg:col-span-1" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
-                <select 
-                  v-model="ratingFilter" 
-                  aria-label="Filtrar por nota"
-                  class="w-full px-2 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
-                >
-                  <option value="ALL">Nota</option>
-                  <option value="11">★ 11 (Masterpiece)</option>
-                  <option value="9-10">9 a 10</option>
-                  <option value="7-8">7 a 8</option>
-                  <option value="1-6">1 a 6</option>
-                </select>
-              </div>
-
-              <!-- Ordenação -->
-              <div class="lg:col-span-2" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
-                <select 
-                  v-model="sortBy" 
-                  aria-label="Ordenar biblioteca"
-                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors font-medium"
-                >
-                  <option value="custom">Ordem Personalizada</option>
-                  <option value="date-desc">Data de conclusão (mais recente)</option>
-                  <option value="date-asc">Data de conclusão (mais antiga)</option>
-                  <option value="year-desc">Ano (mais recente)</option>
-                  <option value="year-asc">Ano (mais antigo)</option>
-                  <option value="title-asc">Título (A a Z)</option>
-                  <option value="title-desc">Título (Z a A)</option>
-                  <option value="platform-asc">Plataforma (A a Z)</option>
-                  <option value="platform-desc">Plataforma (Z a A)</option>
-                  <option value="genre-asc">Gênero (A a Z)</option>
-                  <option value="genre-desc">Gênero (Z a A)</option>
-                  <option value="rating-desc">Nota (maior primeiro)</option>
-                  <option value="rating-asc">Nota (menor primeiro)</option>
-                  <option value="time-desc">Tempo de jogo (maior primeiro)</option>
-                  <option value="time-asc">Tempo de jogo (menor primeiro)</option>
-                  <option value="condition-asc">Condição de conclusão</option>
-                </select>
-              </div>
-
-              <!-- Botões de Filtros Especiais (Portáteis & Platinados) + Alternador Grid/Tabela -->
-              <div 
-                class="lg:col-span-12 items-center justify-between pt-1 border-t border-slate-800 flex-wrap gap-2"
-                :class="isMobileFilterOpen ? 'flex' : 'hidden sm:flex'"
-              >
-                <div class="flex items-center gap-2 flex-wrap">
+              <!-- Linha 2 de Toggles Especiais + Botão Limpar -->
+              <div class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-slate-800/80">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <!-- Toggle Platinados -->
                   <button 
                     @click="onlyPlatinumFilter = !onlyPlatinumFilter"
                     :class="onlyPlatinumFilter ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-700/80'"
-                    class="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all relative"
+                    class="px-2.5 py-1 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                     title="Filtrar apenas jogos Platinados"
                     aria-label="Filtrar jogos platinados"
                   >
                     <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
                     <span>Platinados</span>
-                    <span v-if="onlyPlatinumFilter" class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
                   </button>
 
                   <!-- Toggle Portáteis -->
                   <button 
                     @click="onlyHandheldFilter = !onlyHandheldFilter"
                     :class="onlyHandheldFilter ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-700/80'"
-                    class="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all relative"
+                    class="px-2.5 py-1 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                     title="Filtrar apenas jogos no Steam Deck / PC Portátil"
                     aria-label="Filtrar jogos jogados em portáteis"
                   >
                     <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-cyan-400"></i>
                     <span>Portáteis</span>
-                    <span v-if="onlyHandheldFilter" class="w-1.5 h-1.5 bg-cyan-400 rounded-full"></span>
                   </button>
 
                   <!-- Toggle Rejogados -->
                   <button 
                     @click="onlyReplayFilter = !onlyReplayFilter"
                     :class="onlyReplayFilter ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-700/80'"
-                    class="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all relative"
-                    title="Filtrar apenas jogos Rejogados (duplicados na lista)"
+                    class="px-2.5 py-1 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Filtrar apenas jogos Rejogados"
                     aria-label="Filtrar jogos rejogados"
                   >
                     <i data-lucide="repeat" class="w-3.5 h-3.5 text-amber-400"></i>
                     <span>Rejogados</span>
-                    <span v-if="onlyReplayFilter" class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
                   </button>
 
                   <!-- Toggle Early Access -->
                   <button 
                     @click="onlyEarlyAccessFilter = !onlyEarlyAccessFilter"
                     :class="onlyEarlyAccessFilter ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-700/80'"
-                    class="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all relative"
-                    title="Filtrar apenas jogos em Early Access (Acesso Antecipado)"
+                    class="px-2.5 py-1 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Filtrar apenas jogos em Early Access"
                     aria-label="Filtrar jogos em Early Access"
                   >
                     <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-purple-400"></i>
                     <span>Early Access</span>
-                    <span v-if="onlyEarlyAccessFilter" class="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
                   </button>
 
-                  <!-- Toggle Possíveis Duplicados -->
+                  <!-- Toggle Duplicados -->
                   <button 
                     @click="onlyDuplicatesFilter = !onlyDuplicatesFilter"
                     :class="onlyDuplicatesFilter ? 'bg-rose-500/20 text-rose-300 border-rose-500/50' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-700/80'"
-                    class="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all relative"
-                    title="Filtrar apenas jogos com registros idênticos duplicados (mesmo título, plataforma, tempo e data)"
+                    class="px-2.5 py-1 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Filtrar apenas registros duplicados"
                     aria-label="Filtrar jogos duplicados"
                   >
                     <i data-lucide="copy" class="w-3.5 h-3.5 text-rose-400"></i>
                     <span>Duplicados</span>
-                    <span v-if="duplicateGameIds.size > 0" class="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-700/60 font-bold">
+                    <span v-if="duplicateGameIds.size > 0" class="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-rose-950 text-rose-300 font-bold">
                       {{ duplicateGameIds.size }}
                     </span>
-                    <span v-if="onlyDuplicatesFilter" class="w-1.5 h-1.5 bg-rose-400 rounded-full"></span>
                   </button>
 
                   <!-- Limpar Filtros Ativos -->
                   <button 
-                    v-if="platformFilter !== 'ALL' || genreFilter !== 'ALL' || conditionFilter !== 'ALL' || yearFilter !== 'ALL' || ratingFilter !== 'ALL' || onlyHandheldFilter || onlyPlatinumFilter || onlyReplayFilter || onlyEarlyAccessFilter || onlyDuplicatesFilter || searchQuery"
-                    @click="platformFilter = 'ALL'; genreFilter = 'ALL'; conditionFilter = 'ALL'; yearFilter = 'ALL'; ratingFilter = 'ALL'; onlyHandheldFilter = false; onlyPlatinumFilter = false; onlyReplayFilter = false; onlyEarlyAccessFilter = false; onlyDuplicatesFilter = false; searchQuery = ''"
-                    class="px-2.5 py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-800/50 text-xs font-semibold flex items-center gap-1 transition-colors"
+                    v-if="activeFiltersCount > 0 || searchQuery"
+                    @click="resetAllFilters"
+                    class="px-2.5 py-1 rounded-xl bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-800/50 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                     title="Limpar todos os filtros ativos"
+                    aria-label="Limpar filtros"
                   >
                     <i data-lucide="x" class="w-3 h-3"></i>
                     <span>Limpar Filtros</span>
                   </button>
-
-                  <!-- Contagem filtrada -->
-                  <span class="text-xs text-slate-500 ml-1">
-                    Exibindo {{ filteredFinishedGames.length }} de {{ finishedGames.length }} jogos
-                  </span>
                 </div>
 
-                <!-- Controles de Visão: Agrupamento (Geral vs Por Ano) + Formato (Grade vs Tabela) + Ocultar Capas -->
-                <div class="flex items-center gap-2 flex-wrap">
-                  <!-- Botão Ocultar/Mostrar Capas na Tabela (visível apenas quando o formato for Tabela) -->
-                  <button 
-                    v-if="currentLayout === 'table'"
-                    @click="hideTableCovers = !hideTableCovers" 
-                    :class="hideTableCovers ? 'bg-slate-800 text-slate-200 border-slate-700' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-700/80'"
-                    class="px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all border shadow-sm"
-                    :title="hideTableCovers ? 'Exibir miniaturas de capas na tabela' : 'Ocultar miniaturas de capas para visão mais compacta'"
-                  >
-                    <i :data-lucide="hideTableCovers ? 'image' : 'image-off'" class="w-3.5 h-3.5 text-slate-400"></i>
-                    <span>{{ hideTableCovers ? 'Mostrar Capas' : 'Ocultar Capas' }}</span>
-                  </button>
-
-                  <!-- Seletor de Agrupamento: Por Ano (Padrão) vs Geral (Secundário) -->
-                  <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-700/80 shadow-sm">
-                    <button 
-                      @click="currentGrouping = 'year'" 
-                      :class="currentGrouping === 'year' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
-                      class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
-                      title="Organizar jogos por ano de conclusão (Padrão de Alta Performance)"
-                      aria-label="Organizar por Ano"
-                    >
-                      <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                      <span>Por Ano</span>
-                    </button>
-                    <button 
-                      @click="currentGrouping = 'all'" 
-                      :class="currentGrouping === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
-                      class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
-                      title="Exibir todos os jogos concluídos juntos (Visão Geral)"
-                      aria-label="Todos os Jogos (Geral)"
-                    >
-                      <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-                      <span>Geral</span>
-                    </button>
-                  </div>
-
-                  <!-- Divisor sutil entre agrupamento e formato -->
-                  <div class="hidden sm:block h-5 w-px bg-slate-800"></div>
-
-                  <!-- Seletor de Formato: Grade vs Tabela -->
-                  <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-700/80 shadow-sm">
-                    <button 
-                      @click="currentLayout = 'grid'" 
-                      :class="currentLayout === 'grid' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
-                      class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                      title="Visualização em Grade / Cards"
-                      aria-label="Visualização em Grade"
-                    >
-                      <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-                      <span class="hidden sm:inline">Grade</span>
-                    </button>
-                    <button 
-                      @click="currentLayout = 'table'" 
-                      :class="currentLayout === 'table' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
-                      class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                      title="Visualização em Tabela / Lista"
-                      aria-label="Visualização em Tabela"
-                    >
-                      <i data-lucide="list" class="w-3.5 h-3.5"></i>
-                      <span class="hidden sm:inline">Tabela</span>
-                    </button>
-                  </div>
-
-                  <!-- Barra de Zoom Dinâmica na Biblioteca (Apenas em telas sm+) -->
-                  <div 
-                    v-if="currentLayout === 'grid'" 
-                    class="zoom-slider-container hidden sm:inline-flex animate-in fade-in duration-150"
-                    title="Barra de Zoom: Arraste para diminuir ou aumentar o tamanho dos cards na biblioteca"
-                  >
-                    <i data-lucide="minimize-2" class="w-3 h-3 text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer" @click="cardZoom = Math.max(95, cardZoom - 20)" title="Diminuir tamanho dos jogos"></i>
-                    <input 
-                      type="range" 
-                      min="95" 
-                      max="275" 
-                      step="5" 
-                      :value="cardZoom" 
-                      @input="onCardZoomChange($event.target.value)" 
-                      class="zoom-slider-input" 
-                      title="Arraste para ajustar o tamanho dos cards em tempo real"
-                    />
-                    <i data-lucide="maximize-2" class="w-3 h-3 text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer" @click="cardZoom = Math.min(275, cardZoom + 20)" title="Aumentar tamanho dos jogos"></i>
-                    <button 
-                      type="button"
-                      v-if="cardZoom !== 165"
-                      @click="resetCardZoom" 
-                      class="text-[9px] font-mono px-1 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white border border-slate-700/60 transition-colors cursor-pointer"
-                      title="Restaurar tamanho padrão"
-                    >
-                      Reset
-                    </button>
-                  </div>
-                </div>
+                <!-- Contagem de Resultados -->
+                <span class="text-xs text-slate-400 font-mono">
+                  Exibindo {{ filteredFinishedGames.length }} de {{ finishedGames.length }} jogos
+                </span>
               </div>
-
             </div>
+
           </div>
         </div>
 
@@ -5678,14 +5717,14 @@
                   type="text" 
                   v-model="quickFinishForm.playtime" 
                   required
-                  placeholder="Ex: 25:30:00 ou 135:00:00"
+                  placeholder="Ex: 25h, 25h 30m ou 25:30:00"
                   class="w-full pl-3.5 pr-8 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
                 />
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">
                   <i data-lucide="clock" class="w-3.5 h-3.5"></i>
                 </span>
               </div>
-              <span class="text-[10px] text-slate-500 block mt-0.5">Formato: xx:xx:xx (ex: 25:30:00)</span>
+              <span class="text-[10px] text-slate-400 block mt-0.5">Aceita 25h, 25h 30m, 25.5 ou 25:30:00</span>
             </div>
 
             <!-- Gênero -->
@@ -5719,10 +5758,10 @@
             <div class="flex items-center justify-between">
               <label class="text-xs font-semibold text-slate-300">Sua Avaliação (Nota 1 a 11)</label>
               <span v-if="quickFinishForm.rating === 11" class="text-xs font-extrabold text-amber-400">
-                ★ 11 - Masterpiece
+                ★ 11 / 11 - Masterpiece
               </span>
               <span v-else class="text-xs font-bold text-slate-400">
-                Nota selecionada: {{ quickFinishForm.rating }}/10
+                Nota selecionada: {{ quickFinishForm.rating }}/11
               </span>
             </div>
 
@@ -6127,10 +6166,10 @@
                 <input 
                   type="text" 
                   v-model="gameForm.playtime" 
-                  placeholder="Ex: 25:30:00 ou 135:00:00"
+                  placeholder="Ex: 25h, 25h 30m ou 25:30:00"
                   class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500 font-mono"
                 />
-                <span class="text-[10px] text-slate-500 block mt-0.5">Formato: xx:xx:xx (ex: 25:30:00)</span>
+                <span class="text-[10px] text-slate-400 block mt-0.5">Aceita 25h, 25h 30m, 25.5 ou 25:30:00</span>
               </div>
 
               <div>
@@ -6152,10 +6191,10 @@
               <div class="flex items-center justify-between">
                 <label class="text-xs font-semibold text-slate-300">Nota da Avaliação (1 a 11)</label>
                 <span v-if="gameForm.rating === 11" class="text-xs font-black text-amber-400">
-                  ★ 11 - Masterpiece
+                  ★ 11 / 11 - Masterpiece
                 </span>
                 <span v-else class="text-xs text-slate-400 font-bold">
-                  {{ gameForm.rating ?? '-' }}/10
+                  {{ gameForm.rating ?? '-' }}/11
                 </span>
               </div>
               <div class="grid grid-cols-6 sm:grid-cols-11 gap-1">
@@ -10107,6 +10146,205 @@
     </button>
 
     <!-- ====================================================================
+         GAVETA / BOTTOM SHEET MOBILE DE OPÇÕES & FERRAMENTAS (md:hidden)
+         ==================================================================== -->
+    <div 
+      v-if="isToolsMenuOpen" 
+      class="md:hidden fixed inset-0 z-50 select-none"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu de opções e ferramentas"
+    >
+      <!-- Backdrop translúcido -->
+      <div 
+        class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+        @click="closeToolsMenu"
+      ></div>
+
+      <!-- Gaveta Inferior (Bottom Sheet) -->
+      <div 
+        class="fixed bottom-0 inset-x-0 z-50 bg-[#12141c] border-t border-slate-700/80 rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-200"
+        @click.stop
+        data-mobile-tools-sheet
+      >
+        <!-- Barra de Arraste / Header da Gaveta -->
+        <div class="px-5 pt-3 pb-2.5 flex-shrink-0 border-b border-slate-800/80">
+          <div class="w-10 h-1 bg-slate-700/80 rounded-full mx-auto mb-2.5"></div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <i data-lucide="database" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-white leading-tight">Opções & Ferramentas</h3>
+                <span class="text-[10px] text-slate-400 font-medium">{{ games.length }} jogos na biblioteca</span>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              @click="closeToolsMenu"
+              class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Fechar menu de opções"
+            >
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Conteúdo Rolável da Gaveta -->
+        <div class="p-4 space-y-2 overflow-y-auto overscroll-contain pb-8 text-xs">
+          <!-- Compartilhar Snapshot (PNG) -->
+          <button 
+            type="button"
+            @click="openShareModal('nowPlaying'); closeToolsMenu()"
+            class="w-full text-left p-2.5 rounded-xl bg-purple-950/30 hover:bg-purple-900/40 border border-purple-500/30 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
+          >
+            <div class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 flex-shrink-0">
+              <i data-lucide="share-2" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <strong class="text-purple-200 block font-semibold text-xs">Compartilhar Snapshot (PNG)</strong>
+              <span class="text-[10px] text-purple-300/70">Gerar imagem para Steam e redes sociais</span>
+            </div>
+          </button>
+
+          <!-- Nuvem & Supabase -->
+          <button 
+            type="button"
+            @click="openCloudModal(); closeToolsMenu()"
+            class="w-full text-left p-2.5 rounded-xl bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-500/30 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
+          >
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
+              <i data-lucide="cloud" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <strong class="text-emerald-200 block font-semibold text-xs">Nuvem & Supabase</strong>
+                <span v-if="cloudUser" class="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[9px] font-bold">CONECTADO</span>
+                <span v-else class="px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[9px] font-bold">OFFLINE</span>
+              </div>
+              <span class="text-[10px] text-emerald-300/70">{{ cloudUser ? cloudUser.email : 'Login, cadastro e sync online gratuito' }}</span>
+            </div>
+          </button>
+
+          <!-- Backup & CSV -->
+          <button 
+            type="button"
+            @click="isBackupOpen = true; closeToolsMenu()"
+            class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
+          >
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
+              <i data-lucide="arrow-down-up" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <strong class="text-white block font-semibold text-xs">Backup & Planilhas</strong>
+              <span class="text-[10px] text-slate-400">Exportar/Importar CSV e JSON</span>
+            </div>
+          </button>
+
+          <!-- Baixar Capas IGDB -->
+          <button 
+            type="button"
+            @click="openScraperModal(); closeToolsMenu()"
+            class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
+          >
+            <div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 flex-shrink-0">
+              <i data-lucide="download-cloud" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <strong class="text-white block font-semibold text-xs">Baixar Capas (IGDB)</strong>
+              <span class="text-[10px] text-slate-400">Varredura automática oficial em HD</span>
+            </div>
+          </button>
+
+          <!-- Revisar Gêneros IGDB -->
+          <button 
+            type="button"
+            @click="openGenreReviewModal(); closeToolsMenu()"
+            class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
+          >
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0">
+              <i data-lucide="tags" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <strong class="text-white block font-semibold text-xs">Revisar Gêneros (IGDB)</strong>
+              <span class="text-[10px] text-slate-400">Completar tags e gêneros pendentes</span>
+            </div>
+          </button>
+
+          <!-- Estimar Tempos (HLTB) -->
+          <button 
+            type="button"
+            @click="openHltbModal(); closeToolsMenu()"
+            class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
+          >
+            <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+              <i data-lucide="timer" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <strong class="text-white block font-semibold text-xs">Estimar Tempos (HLTB)</strong>
+                <span v-if="hltbEligibleCount > 0" class="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold font-mono">{{ hltbEligibleCount }}</span>
+              </div>
+              <span class="text-[10px] text-slate-400">Preencher jogos com 00:00:00</span>
+            </div>
+          </button>
+
+          <!-- Armazenamento Local -->
+          <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="text-slate-400 flex items-center gap-1">
+                <i data-lucide="hard-drive" class="w-3 h-3 text-cyan-400"></i>
+                <span>Espaço Ocupado</span>
+              </span>
+              <strong class="text-white font-mono font-bold">{{ storageInfo.totalFormatted }}</strong>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+              <div 
+                class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-300"
+                :style="{ width: `${Math.max(2, storageInfo.percentUsed)}%` }"
+              ></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-500">
+              <span>{{ storageInfo.coversTotalCount }} capas em cache</span>
+              <span>{{ storageInfo.percentUsed }}% do LocalStorage</span>
+            </div>
+          </div>
+
+          <!-- Ações Secundárias / Sistema -->
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button 
+              type="button"
+              @click="openResetProfileConfirm(); closeToolsMenu()"
+              class="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-[11px]"
+            >
+              <i data-lucide="user-x" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Limpar Perfil</span>
+            </button>
+            <button 
+              type="button"
+              @click="openAboutModal(); closeToolsMenu()"
+              class="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-[11px]"
+            >
+              <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-400"></i>
+              <span>Sobre o App</span>
+            </button>
+          </div>
+
+          <button 
+            type="button"
+            v-if="games.length > 0"
+            @click="openClearAllModal(); closeToolsMenu()"
+            class="w-full text-center p-2 rounded-xl bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 text-red-400 hover:text-red-300 flex items-center justify-center gap-2 transition-colors cursor-pointer text-[11px]"
+          >
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>Limpar Biblioteca Inteira</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
          BARRA DE NAVEGAÇÃO INFERIOR MOBILE (BOTTOM NAV BAR) - md:hidden
          ==================================================================== -->
     <nav class="mobile-bottom-nav md:hidden flex items-center justify-around px-2 pt-1.5 text-[10px] select-none">
@@ -10132,22 +10370,7 @@
         <span>Métricas</span>
       </button>
 
-      <!-- 3. Nuvem / Supabase -->
-      <button 
-        v-if="!isPublicViewMode"
-        type="button"
-        @click="openCloudModal()" 
-        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1 relative"
-        :class="cloudUser ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-200 font-medium'"
-      >
-        <i :data-lucide="cloudUser ? 'cloud' : 'cloud-off'" class="w-5 h-5"></i>
-        <span class="flex items-center gap-1">
-          <span>Nuvem</span>
-          <span v-if="cloudUser" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        </span>
-      </button>
-
-      <!-- 4. Perfil -->
+      <!-- 3. Perfil -->
       <button 
         v-if="!isPublicViewMode"
         type="button"
@@ -10159,13 +10382,16 @@
         <span>Perfil</span>
       </button>
 
-      <!-- 5. Ferramentas -->
+      <!-- 4. Ferramentas / Opções -->
       <button 
         v-if="!isPublicViewMode"
         type="button"
-        @click="toggleToolsMenu()" 
+        data-mobile-tools-btn
+        @click.stop="toggleToolsMenu" 
         class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
         :class="isToolsMenuOpen ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+        aria-label="Opções e ferramentas da biblioteca"
+        :aria-expanded="isToolsMenuOpen ? 'true' : 'false'"
       >
         <i data-lucide="database" class="w-5 h-5"></i>
         <span>Opções</span>

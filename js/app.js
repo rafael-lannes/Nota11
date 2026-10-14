@@ -171,6 +171,7 @@ function initApp() {
       const appVersion = ref('beta web 1.0');
       const appVersionDisplay = ref('beta web 1.0');
       const isToolsMenuOpen = ref(false);
+      const isNowPlayingMenuOpen = ref(false);
       const isShareModalOpen = ref(false);
       const isPickFinishedGameOpen = ref(false);
       const pickFinishedSearchQuery = ref('');
@@ -647,6 +648,7 @@ function initApp() {
         isAboutOpen.value = false;
         isCloudModalOpen.value = false;
         isToolsMenuOpen.value = false;
+        isNowPlayingMenuOpen.value = false;
         isNowPlayingLayoutMenuOpen.value = false;
         isBacklogLayoutMenuOpen.value = false;
         isManagePlayingCategoriesOpen.value = false;
@@ -730,10 +732,31 @@ function initApp() {
 
         // Fechar dropdowns ao clicar fora
         window.addEventListener('click', (e) => {
+          // Se o elemento foi desmontado ou não pertence mais ao DOM, ignore
+          if (!e.target || !document.body.contains(e.target)) return;
+
           if (isNowPlayingLayoutMenuOpen.value) {
             const menuEl = document.querySelector('[data-nowplaying-layout-menu]');
             if (menuEl && !menuEl.contains(e.target)) {
               isNowPlayingLayoutMenuOpen.value = false;
+            }
+          }
+          if (isNowPlayingMenuOpen.value) {
+            const npMenuEl = document.querySelector('[data-nowplaying-options-menu]');
+            if (npMenuEl && !npMenuEl.contains(e.target)) {
+              isNowPlayingMenuOpen.value = false;
+            }
+          }
+          if (isToolsMenuOpen.value) {
+            const toolsMenuEl = document.querySelector('[data-tools-menu-container]');
+            const mobileToolsBtn = document.querySelector('[data-mobile-tools-btn]');
+            const mobileToolsSheet = document.querySelector('[data-mobile-tools-sheet]');
+            if (
+              (!toolsMenuEl || !toolsMenuEl.contains(e.target)) &&
+              (!mobileToolsBtn || !mobileToolsBtn.contains(e.target)) &&
+              (!mobileToolsSheet || !mobileToolsSheet.contains(e.target))
+            ) {
+              isToolsMenuOpen.value = false;
             }
           }
           if (isBacklogLayoutMenuOpen.value) {
@@ -3705,14 +3728,35 @@ function initApp() {
       // =======================================================================
       // MENU UNIFICADO DE FERRAMENTAS E DADOS
       // =======================================================================
-      const toggleToolsMenu = () => {
+      const toggleToolsMenu = (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
         isToolsMenuOpen.value = !isToolsMenuOpen.value;
-        refreshStorageInfo();
-        refreshLucideIcons();
+        if (isToolsMenuOpen.value) {
+          isNowPlayingMenuOpen.value = false;
+          refreshStorageInfo();
+        }
+        nextTick(() => {
+          refreshLucideIcons();
+        });
       };
 
       const closeToolsMenu = () => {
         isToolsMenuOpen.value = false;
+      };
+
+      const toggleNowPlayingMenu = (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        isNowPlayingMenuOpen.value = !isNowPlayingMenuOpen.value;
+        if (isNowPlayingMenuOpen.value) {
+          isToolsMenuOpen.value = false;
+        }
+        nextTick(() => {
+          refreshLucideIcons();
+        });
+      };
+
+      const closeNowPlayingMenu = () => {
+        isNowPlayingMenuOpen.value = false;
       };
 
       // =======================================================================
@@ -4919,6 +4963,9 @@ function initApp() {
         isToolsMenuOpen,
         toggleToolsMenu,
         closeToolsMenu,
+        isNowPlayingMenuOpen,
+        toggleNowPlayingMenu,
+        closeNowPlayingMenu,
         storageInfo,
         refreshStorageInfo,
 
