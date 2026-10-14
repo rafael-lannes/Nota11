@@ -745,6 +745,43 @@ tr.game-row, .game-table-row {
   height: clamp(0.52rem, calc(var(--grid-card-min, 165px) * 0.042), 0.8rem) !important;
 }
 
+/* Custom Console Platform Icons */
+.platform-badge-icon {
+  display: inline-block;
+  vertical-align: middle;
+  height: 14px;
+  width: auto;
+  max-width: 30px;
+  max-height: 14px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+[class*="badge-platform-"].badge-icon-only {
+  padding: 0.15rem 0.35rem !important;
+  min-width: 24px;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.game-card .platform-badge-icon {
+  height: clamp(11px, calc(var(--grid-card-min, 165px) * 0.075), 15px) !important;
+  max-height: clamp(11px, calc(var(--grid-card-min, 165px) * 0.075), 15px) !important;
+  max-width: clamp(20px, calc(var(--grid-card-min, 165px) * 0.16), 32px) !important;
+}
+
+.game-card [class*="badge-platform-"].badge-icon-only {
+  padding: clamp(0.08rem, calc(var(--grid-card-min, 165px) * 0.012), 0.18rem) clamp(0.2rem, calc(var(--grid-card-min, 165px) * 0.024), 0.38rem) !important;
+  min-width: clamp(20px, calc(var(--grid-card-min, 165px) * 0.12), 26px) !important;
+  min-height: clamp(16px, calc(var(--grid-card-min, 165px) * 0.1), 22px) !important;
+}
+
+
 .game-card .finish-btn {
   padding: clamp(0.22rem, calc(var(--grid-card-min, 165px) * 0.022), 0.5rem) clamp(0.32rem, calc(var(--grid-card-min, 165px) * 0.04), 0.8rem) !important;
   font-size: clamp(0.6rem, calc(var(--grid-card-min, 165px) * 0.042), 0.825rem) !important;

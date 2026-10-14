@@ -3183,6 +3183,119 @@ function initApp() {
         return 'gamepad-2';
       };
 
+      const PLATFORM_ICONS_MAP = {
+        'PC - Computador': 'icones/computador.png',
+        'PC - Steam Deck': 'icones/Steam Deck.png',
+        'PC - Rog Ally': 'icones/rog ally asus.png',
+        'Mac / Apple Silicon': 'icones/mac.png',
+        'Linux': 'icones/linux.png',
+        'PC': 'icones/computador.png',
+
+        'PlayStation 5': 'icones/ps5.png',
+        'Xbox Series X/S': 'icones/xbox series.png',
+        'Nintendo Switch': 'icones/nintendo switch.png',
+
+        'PlayStation 4': 'icones/ps4.png',
+        'Xbox One': 'icones/xbox one.png',
+        'Nintendo Wii U': 'icones/nintendo wiiu.png',
+        'Nintendo 3DS / 2DS': 'icones/n3ds.png',
+        'Nintendo 3DS': 'icones/n3ds.png',
+        'PlayStation Vita': 'icones/psvita.png',
+
+        'PlayStation 3': 'icones/ps3.png',
+        'Xbox 360': 'icones/xbox360.png',
+        'Nintendo Wii': 'icones/nintendo wii.png',
+        'Nintendo DS': 'icones/nintendo ds.png',
+        'PlayStation Portable (PSP)': 'icones/psp.png',
+        'PSP': 'icones/psp.png',
+
+        'PlayStation 2 (PS2)': 'icones/ps2.png',
+        'Nintendo GameCube': 'icones/gamecube.png',
+        'Sega Dreamcast': 'icones/dreamcast.png',
+        'Game Boy Advance (GBA)': 'icones/gba.png',
+
+        'PlayStation 1 (PS1)': 'icones/ps1.png',
+        'Nintendo 64 (N64)': 'icones/nintendo 64.png',
+        'Sega Saturn': 'icones/sega saturn.png',
+        'Game Boy Color (GBC)': 'icones/gameboy color.png',
+
+        'Super Nintendo (SNES)': 'icones/super nintendo.png',
+        'Sega Mega Drive / Genesis': 'icones/sega mega drive.png',
+        'Neo Geo AES/CD': 'icones/neogeo.png',
+
+        'Nintendo Entertainment System (NES / Famicom)': 'icones/NES.png',
+        'Sega Master System': 'icones/Sega master system.png',
+        'Atari 7800': 'icones/atari.png',
+
+        'Atari 2600': 'icones/atari.png',
+        'Atari 5200': 'icones/atari.png',
+
+        'Android': 'icones/android.png',
+        'iOS (iPhone / iPad)': 'icones/ios.png'
+      };
+
+      const getPlatformCustomIcon = (platform) => {
+        if (!platform) return null;
+        const trimmed = String(platform).trim();
+        if (PLATFORM_ICONS_MAP[trimmed]) {
+          return encodeURI(PLATFORM_ICONS_MAP[trimmed]);
+        }
+
+        const p = trimmed.toLowerCase();
+
+        // Atari (All Atari systems use atari.png)
+        if (p.includes('atari')) return encodeURI('icones/atari.png');
+
+        // PC & Portáteis PC
+        if (p.includes('steam deck') || p === 'deck') return encodeURI('icones/Steam Deck.png');
+        if (p.includes('rog ally') || p === 'ally') return encodeURI('icones/rog ally asus.png');
+        if (p.includes('mac') || p.includes('apple silicon') || p.includes('macos')) return encodeURI('icones/mac.png');
+        if (p.includes('linux') || p.includes('ubuntu')) return encodeURI('icones/linux.png');
+        if (p === 'pc' || p.includes('computador') || p.includes('windows')) return encodeURI('icones/computador.png');
+
+        // PlayStation
+        if (p.includes('ps5') || p.includes('playstation 5')) return encodeURI('icones/ps5.png');
+        if (p.includes('ps4') || p.includes('playstation 4')) return encodeURI('icones/ps4.png');
+        if (p.includes('ps3') || p.includes('playstation 3')) return encodeURI('icones/ps3.png');
+        if (p.includes('ps2') || p.includes('playstation 2')) return encodeURI('icones/ps2.png');
+        if (p.includes('ps1') || p.includes('playstation 1') || p.includes('psx') || p.includes('psone')) return encodeURI('icones/ps1.png');
+        if (p.includes('vita') || p.includes('psvita')) return encodeURI('icones/psvita.png');
+        if (p.includes('psp') || p.includes('playstation portable')) return encodeURI('icones/psp.png');
+
+        // Xbox
+        if (p.includes('series x') || p.includes('series s') || p.includes('xbox series') || p.includes('xsx') || p.includes('xss')) return encodeURI('icones/xbox series.png');
+        if (p.includes('xbox one') || p.includes('xone')) return encodeURI('icones/xbox one.png');
+        if (p.includes('xbox 360') || p.includes('x360')) return encodeURI('icones/xbox360.png');
+
+        // Nintendo
+        if (p.includes('switch')) return encodeURI('icones/nintendo switch.png');
+        if (p.includes('wii u') || p.includes('wiiu')) return encodeURI('icones/nintendo wiiu.png');
+        if (p.includes('wii') && !p.includes('wii u') && !p.includes('wiiu')) return encodeURI('icones/nintendo wii.png');
+        if (p.includes('3ds') || p.includes('2ds')) return encodeURI('icones/n3ds.png');
+        if (p.includes('gamecube') || p.includes('cube')) return encodeURI('icones/gamecube.png');
+        if (p.includes('nintendo 64') || p.includes('n64')) return encodeURI('icones/nintendo 64.png');
+        if (p.includes('super nintendo') || p.includes('snes') || p.includes('super famicom')) return encodeURI('icones/super nintendo.png');
+        if (p.includes('nes') || p.includes('famicom') || p.includes('nintendo entertainment system')) return encodeURI('icones/NES.png');
+        if (p.includes('advance') || p.includes('gba')) return encodeURI('icones/gba.png');
+        if (p.includes('color') || p.includes('gbc')) return encodeURI('icones/gameboy color.png');
+        if (p.includes('ds') && !p.includes('3ds') && !p.includes('2ds')) return encodeURI('icones/nintendo ds.png');
+
+        // Sega
+        if (p.includes('dreamcast')) return encodeURI('icones/dreamcast.png');
+        if (p.includes('saturn')) return encodeURI('icones/sega saturn.png');
+        if (p.includes('mega drive') || p.includes('genesis') || p.includes('megadrive')) return encodeURI('icones/sega mega drive.png');
+        if (p.includes('master system')) return encodeURI('icones/Sega master system.png');
+
+        // Neo Geo
+        if (p.includes('neo geo') || p.includes('neogeo')) return encodeURI('icones/neogeo.png');
+
+        // Smartphones
+        if (p.includes('android')) return encodeURI('icones/android.png');
+        if (p.includes('ios') || p.includes('iphone') || p.includes('ipad')) return encodeURI('icones/ios.png');
+
+        return null;
+      };
+
       const getPlayingCategoryIcon = (catIdOrName) => {
         if (!catIdOrName) return 'layers';
         const cat = playingCategories.value.find(c => c.id === catIdOrName || c.name.toLowerCase() === catIdOrName.toLowerCase());
@@ -5174,6 +5287,7 @@ function initApp() {
         getPlayingCategoryName,
         getPlayingCategoryIcon,
         getPlatformIcon,
+        getPlatformCustomIcon,
         setGamePlayingCategory,
         openAddGameWithCategory,
         draggedNowPlayingIndex,

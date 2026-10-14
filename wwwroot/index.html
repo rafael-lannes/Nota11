@@ -1145,10 +1145,16 @@
                       <!-- Plataforma -->
                       <span 
                         class="text-[10px] font-bold px-1.5 py-0.5 rounded-md border tracking-wider uppercase inline-flex items-center gap-1 truncate max-w-full"
-                        :class="getPlatformBadgeColor(game.platform)"
+                        :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                        :title="game.platform"
                       >
-                        <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                        <span class="truncate">{{ game.platform }}</span>
+                        <template v-if="getPlatformCustomIcon(game.platform)">
+                          <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                        </template>
+                        <template v-else>
+                          <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                          <span class="truncate">{{ game.platform }}</span>
+                        </template>
                       </span>
 
                       <!-- Portátil -->
@@ -1417,10 +1423,16 @@
                     <div class="flex items-center gap-1 flex-wrap mt-1">
                       <span 
                         class="text-[9px] font-bold px-1.5 py-0.5 rounded-md border tracking-wider uppercase backdrop-blur-md truncate max-w-full inline-flex items-center gap-1 badge-tag"
-                        :class="getPlatformBadgeColor(game.platform)"
+                        :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                        :title="game.platform"
                       >
-                        <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                        <span class="truncate">{{ game.platform }}</span>
+                        <template v-if="getPlatformCustomIcon(game.platform)">
+                          <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                        </template>
+                        <template v-else>
+                          <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                          <span class="truncate">{{ game.platform }}</span>
+                        </template>
                       </span>
                       <span 
                         v-if="isGameHandheld(game)" 
@@ -1622,10 +1634,16 @@
                   <!-- Plataforma -->
                   <span 
                     class="text-[10px] font-bold px-1.5 py-0.5 rounded-md border tracking-wider uppercase inline-flex items-center gap-1 truncate max-w-full"
-                    :class="getPlatformBadgeColor(game.platform)"
+                    :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                    :title="game.platform"
                   >
-                    <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                    <span class="truncate">{{ game.platform }}</span>
+                    <template v-if="getPlatformCustomIcon(game.platform)">
+                      <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                    </template>
+                    <template v-else>
+                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                      <span class="truncate">{{ game.platform }}</span>
+                    </template>
                   </span>
 
                   <!-- Prateleira/Categoria (se houver) -->
@@ -1905,10 +1923,16 @@
                 <div class="flex items-center gap-1 flex-wrap mt-1">
                   <span 
                     class="text-[9px] font-bold px-1.5 py-0.5 rounded-md border tracking-wider uppercase backdrop-blur-md truncate max-w-full inline-flex items-center gap-1 badge-tag"
-                    :class="getPlatformBadgeColor(game.platform)"
+                    :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                    :title="game.platform"
                   >
-                    <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                    <span class="truncate">{{ game.platform }}</span>
+                    <template v-if="getPlatformCustomIcon(game.platform)">
+                      <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                    </template>
+                    <template v-else>
+                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                      <span class="truncate">{{ game.platform }}</span>
+                    </template>
                   </span>
                   <span 
                     v-if="game.playingCategory && getPlayingCategoryName(game.playingCategory)" 
@@ -2157,10 +2181,16 @@
                     <span 
                       v-if="game.platform" 
                       class="text-[9px] font-bold px-2 py-0.5 rounded-md border tracking-wider uppercase inline-flex items-center gap-1 badge-tag"
-                      :class="getPlatformBadgeColor(game.platform)"
+                      :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                      :title="game.platform"
                     >
-                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5"></i>
-                      <span>{{ game.platform }}</span>
+                      <template v-if="getPlatformCustomIcon(game.platform)">
+                        <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                      </template>
+                      <template v-else>
+                        <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5"></i>
+                        <span>{{ game.platform }}</span>
+                      </template>
                     </span>
 
                     <!-- Badge de Portátil -->
@@ -2405,10 +2435,16 @@
                     <span 
                       v-if="game.platform"
                       class="text-[9px] font-bold px-1.5 py-0.5 rounded-md border tracking-wider uppercase backdrop-blur-md truncate max-w-full inline-flex items-center gap-1 badge-tag"
-                      :class="getPlatformBadgeColor(game.platform)"
+                      :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                      :title="game.platform"
                     >
-                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                      <span class="truncate">{{ game.platform }}</span>
+                      <template v-if="getPlatformCustomIcon(game.platform)">
+                        <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                      </template>
+                      <template v-else>
+                        <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                        <span class="truncate">{{ game.platform }}</span>
+                      </template>
                     </span>
                     <span 
                       v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" 
@@ -2976,10 +3012,16 @@
                 <div class="flex items-center gap-1 flex-wrap">
                   <span 
                     class="text-[10px] font-bold px-1.5 py-0.5 rounded-md border tracking-wider uppercase backdrop-blur-md truncate max-w-full inline-flex items-center gap-1"
-                    :class="getPlatformBadgeColor(game.platform)"
+                    :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                    :title="game.platform"
                   >
-                    <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                    <span class="truncate">{{ game.platform }}</span>
+                    <template v-if="getPlatformCustomIcon(game.platform)">
+                      <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                    </template>
+                    <template v-else>
+                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                      <span class="truncate">{{ game.platform }}</span>
+                    </template>
                   </span>
                   <span 
                     v-if="game.isNowPlaying" 
@@ -3273,10 +3315,16 @@
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span 
                         class="text-[10px] font-bold px-2 py-0.5 rounded-md border tracking-wider uppercase inline-flex items-center gap-1.5 truncate max-w-full"
-                        :class="getPlatformBadgeColor(game.platform)"
+                        :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                        :title="game.platform"
                       >
-                        <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                        <span class="truncate">{{ game.platform }}</span>
+                        <template v-if="getPlatformCustomIcon(game.platform)">
+                          <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                        </template>
+                        <template v-else>
+                          <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                          <span class="truncate">{{ game.platform }}</span>
+                        </template>
                       </span>
                       <span 
                         v-if="isGameHandheld(game)" 
@@ -3471,10 +3519,16 @@
                     <!-- Plataforma -->
                     <span 
                       class="font-bold px-1.5 py-0.5 rounded border tracking-wider uppercase inline-flex items-center gap-1"
-                      :class="getPlatformBadgeColor(game.platform)"
+                      :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                      :title="game.platform"
                     >
-                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                      <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                      <template v-if="getPlatformCustomIcon(game.platform)">
+                        <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                      </template>
+                      <template v-else>
+                        <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                        <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                      </template>
                     </span>
 
                     <!-- Tempo -->
@@ -3806,10 +3860,16 @@
                     <div class="flex items-center gap-1 flex-wrap">
                       <span 
                         class="text-[10px] font-bold px-1.5 py-0.5 rounded-md border tracking-wider uppercase backdrop-blur-md truncate max-w-full inline-flex items-center gap-1"
-                        :class="getPlatformBadgeColor(game.platform)"
+                        :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                        :title="game.platform"
                       >
-                        <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                        <span class="truncate">{{ game.platform }}</span>
+                        <template v-if="getPlatformCustomIcon(game.platform)">
+                          <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                        </template>
+                        <template v-else>
+                          <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                          <span class="truncate">{{ game.platform }}</span>
+                        </template>
                       </span>
                       <span 
                         v-if="game.isNowPlaying" 
@@ -4098,10 +4158,16 @@
                         <div class="flex items-center gap-1.5 flex-wrap">
                           <span 
                             class="text-[10px] font-bold px-2 py-0.5 rounded-md border tracking-wider uppercase inline-flex items-center gap-1.5 truncate max-w-full"
-                            :class="getPlatformBadgeColor(game.platform)"
+                            :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                            :title="game.platform"
                           >
-                            <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                            <span class="truncate">{{ game.platform }}</span>
+                            <template v-if="getPlatformCustomIcon(game.platform)">
+                              <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                            </template>
+                            <template v-else>
+                              <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                              <span class="truncate">{{ game.platform }}</span>
+                            </template>
                           </span>
                           <span 
                             v-if="isGameHandheld(game)" 
@@ -4296,10 +4362,16 @@
                         <!-- Plataforma -->
                         <span 
                           class="font-bold px-1.5 py-0.5 rounded border tracking-wider uppercase inline-flex items-center gap-1"
-                          :class="getPlatformBadgeColor(game.platform)"
+                          :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                          :title="game.platform"
                         >
-                          <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                          <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                          <template v-if="getPlatformCustomIcon(game.platform)">
+                            <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                          </template>
+                          <template v-else>
+                            <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                            <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                          </template>
                         </span>
 
                         <!-- Tempo -->
@@ -4503,10 +4575,16 @@
                       <div class="flex items-center gap-1 flex-wrap">
                         <span 
                           class="text-[10px] font-bold px-1.5 py-0.5 rounded-md border tracking-wider uppercase backdrop-blur-md inline-flex items-center gap-1 truncate max-w-full"
-                          :class="getPlatformBadgeColor(game.platform)"
+                          :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                          :title="game.platform"
                         >
-                          <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                          <span class="truncate">{{ game.platform }}</span>
+                          <template v-if="getPlatformCustomIcon(game.platform)">
+                            <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                          </template>
+                          <template v-else>
+                            <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                            <span class="truncate">{{ game.platform }}</span>
+                          </template>
                         </span>
                         <span 
                           v-if="game.isNowPlaying" 
@@ -4787,10 +4865,16 @@
                           <div class="flex items-center gap-1.5 flex-wrap">
                             <span 
                               class="text-[10px] font-bold px-2 py-0.5 rounded-md border tracking-wider uppercase inline-flex items-center gap-1.5 truncate max-w-full"
-                              :class="getPlatformBadgeColor(game.platform)"
+                              :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                              :title="game.platform"
                             >
-                              <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                              <span class="truncate">{{ game.platform }}</span>
+                              <template v-if="getPlatformCustomIcon(game.platform)">
+                                <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                              </template>
+                              <template v-else>
+                                <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                                <span class="truncate">{{ game.platform }}</span>
+                              </template>
                             </span>
                             <span 
                               v-if="isGameHandheld(game)" 
@@ -4985,10 +5069,16 @@
                           <!-- Plataforma -->
                           <span 
                             class="font-bold px-1.5 py-0.5 rounded border tracking-wider uppercase inline-flex items-center gap-1"
-                            :class="getPlatformBadgeColor(game.platform)"
+                            :class="[getPlatformBadgeColor(game.platform), getPlatformCustomIcon(game.platform) ? 'badge-icon-only' : '']"
+                            :title="game.platform"
                           >
-                            <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                            <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                            <template v-if="getPlatformCustomIcon(game.platform)">
+                              <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                            </template>
+                            <template v-else>
+                              <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                              <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                            </template>
                           </span>
 
                           <!-- Tempo -->
@@ -5432,10 +5522,16 @@
                         <span 
                           v-if="bGame.platform"
                           class="text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase inline-flex items-center gap-1"
-                          :class="getPlatformBadgeColor(bGame.platform)"
+                          :class="[getPlatformBadgeColor(bGame.platform), getPlatformCustomIcon(bGame.platform) ? 'badge-icon-only' : '']"
+                          :title="bGame.platform"
                         >
-                          <i :data-lucide="getPlatformIcon(bGame.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                          <span>{{ bGame.platform }}</span>
+                          <template v-if="getPlatformCustomIcon(bGame.platform)">
+                            <img :src="getPlatformCustomIcon(bGame.platform)" :alt="bGame.platform" class="platform-badge-icon" loading="lazy" />
+                          </template>
+                          <template v-else>
+                            <i :data-lucide="getPlatformIcon(bGame.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                            <span>{{ bGame.platform }}</span>
+                          </template>
                         </span>
                       </div>
 
@@ -5607,6 +5703,7 @@
                       <span class="w-5 h-5 rounded-md bg-slate-800 text-[10px] font-bold text-slate-400 flex items-center justify-center font-mono">
                         {{ pIdx + 1 }}
                       </span>
+                      <img v-if="getPlatformCustomIcon(pItem.platform)" :src="getPlatformCustomIcon(pItem.platform)" :alt="pItem.platform" class="platform-badge-icon h-4 w-auto max-w-[24px] object-contain flex-shrink-0" loading="lazy" />
                       <strong class="text-white font-semibold">{{ pItem.platform }}</strong>
                     </div>
                     <div class="flex items-center gap-2">
@@ -5851,9 +5948,18 @@
                   </div>
 
                   <div class="flex items-center gap-1.5 flex-wrap text-[10px]">
-                    <span class="px-1.5 py-0.5 rounded border uppercase font-bold inline-flex items-center gap-1" :class="getPlatformBadgeColor(mGame.platform)">
-                      <i :data-lucide="getPlatformIcon(mGame.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                      <span>{{ mGame.platform }}</span>
+                    <span 
+                      class="px-1.5 py-0.5 rounded border uppercase font-bold inline-flex items-center gap-1" 
+                      :class="[getPlatformBadgeColor(mGame.platform), getPlatformCustomIcon(mGame.platform) ? 'badge-icon-only' : '']"
+                      :title="mGame.platform"
+                    >
+                      <template v-if="getPlatformCustomIcon(mGame.platform)">
+                        <img :src="getPlatformCustomIcon(mGame.platform)" :alt="mGame.platform" class="platform-badge-icon" loading="lazy" />
+                      </template>
+                      <template v-else>
+                        <i :data-lucide="getPlatformIcon(mGame.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                        <span>{{ mGame.platform }}</span>
+                      </template>
                     </span>
                     <span v-if="mGame.genre" class="badge-genre px-1.5 py-0.5 rounded font-medium truncate max-w-[120px] inline-flex items-center gap-1">
                       <i data-lucide="tag" class="w-2 h-2 opacity-70 flex-shrink-0"></i>
@@ -7188,8 +7294,10 @@
                 <span 
                   class="text-[10px] font-bold px-2 py-0.5 rounded-md border tracking-wider uppercase inline-flex items-center gap-1.5"
                   :class="getPlatformBadgeColor(detailGame.platform)"
+                  :title="detailGame.platform"
                 >
-                  <i :data-lucide="getPlatformIcon(detailGame.platform)" class="w-3 h-3 flex-shrink-0"></i>
+                  <img v-if="getPlatformCustomIcon(detailGame.platform)" :src="getPlatformCustomIcon(detailGame.platform)" :alt="detailGame.platform" class="platform-badge-icon" loading="lazy" />
+                  <i v-else :data-lucide="getPlatformIcon(detailGame.platform)" class="w-3 h-3 flex-shrink-0"></i>
                   <span>{{ detailGame.platform }}</span>
                 </span>
                 <span 
@@ -8252,9 +8360,14 @@
                   {{ game.title }}
                 </h5>
                 <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span class="text-slate-300 font-semibold truncate max-w-[90px] inline-flex items-center gap-1">
-                    <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 text-slate-400 flex-shrink-0"></i>
-                    <span class="truncate">{{ game.platform }}</span>
+                  <span class="text-slate-300 font-semibold truncate max-w-[90px] inline-flex items-center gap-1" :title="game.platform">
+                    <template v-if="getPlatformCustomIcon(game.platform)">
+                      <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                    </template>
+                    <template v-else>
+                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 text-slate-400 flex-shrink-0"></i>
+                      <span class="truncate">{{ game.platform }}</span>
+                    </template>
                   </span>
                   <span class="font-mono text-cyan-300 font-medium">{{ formatPlaytime(game) }}</span>
                 </div>
@@ -8778,9 +8891,14 @@
                   </span>
                 </div>
                 <div class="flex items-center gap-2 text-[10px] text-slate-400 flex-wrap">
-                  <span class="text-slate-300 font-semibold inline-flex items-center gap-1">
-                    <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 text-slate-400"></i>
-                    {{ game.platform }}
+                  <span class="text-slate-300 font-semibold inline-flex items-center gap-1" :title="game.platform">
+                    <template v-if="getPlatformCustomIcon(game.platform)">
+                      <img :src="getPlatformCustomIcon(game.platform)" :alt="game.platform" class="platform-badge-icon" loading="lazy" />
+                    </template>
+                    <template v-else>
+                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 text-slate-400"></i>
+                      <span>{{ game.platform }}</span>
+                    </template>
                   </span>
                   <span v-if="game.completionYear" class="font-mono">({{ game.completionYear }})</span>
                   <span v-if="game.rating === 11" class="text-amber-400 font-bold">★ 11</span>
@@ -9122,6 +9240,7 @@
                           <div class="flex items-center justify-between text-[11px]">
                             <span class="text-white font-semibold flex items-center gap-1.5">
                               <span class="w-4 h-4 rounded bg-slate-800 text-[9px] font-bold text-slate-400 flex items-center justify-center font-mono">{{ pIdx + 1 }}</span>
+                              <img v-if="getPlatformCustomIcon(p.platform)" :src="getPlatformCustomIcon(p.platform)" :alt="p.platform" class="platform-badge-icon h-3.5 w-auto max-w-[22px] object-contain flex-shrink-0" loading="lazy" />
                               <span>{{ p.platform }}</span>
                             </span>
                             <span class="text-slate-300 font-mono text-[10px]">

@@ -32,6 +32,7 @@ Copy-Item -Force "index.html" "wwwroot\index.html"
 Copy-Item -Recurse -Force "css" "wwwroot\"
 Copy-Item -Recurse -Force "js" "wwwroot\"
 Copy-Item -Recurse -Force "vendor" "wwwroot\"
+Copy-Item -Recurse -Force "icones" "wwwroot\"
 
 if (Test-Path "bin\ReleasePackage") {
     Remove-Item -Recurse -Force "bin\ReleasePackage" -ErrorAction SilentlyContinue
