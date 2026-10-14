@@ -277,10 +277,10 @@
                 <i :data-lucide="isToolsMenuOpen ? 'chevron-up' : 'chevron-down'" class="w-3.5 h-3.5 text-slate-400 hidden sm:inline"></i>
               </button>
 
-              <!-- Dropdown Menu (Desktop) -->
+              <!-- Dropdown Menu (Desktop: Sempre ancorado abaixo do botão no canto direito) -->
               <div 
                 v-if="isToolsMenuOpen" 
-                class="hidden md:block tools-menu-dropdown absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-[#12141c]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2 text-xs"
+                class="tools-menu-dropdown-desktop rounded-2xl bg-[#12141c]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2 text-xs"
                 @click.stop
               >
                 <div class="px-2 py-1.5 border-b border-slate-800/80 flex items-center justify-between">
@@ -1087,7 +1087,7 @@
                 @dragover.prevent="onGameDragOver($event, game, shelf.id)"
                 @drop.prevent="onGameDrop($event, game, shelf.id)"
                 @dragend="onGameDragEnd"
-                class="nowplaying-list-row p-2.5 sm:p-3 flex items-center justify-between gap-3 select-none cursor-pointer group"
+                class="nowplaying-list-row p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 select-none cursor-pointer group"
                 :class="{
                   'drag-row-source': draggedGameId === game.id,
                   'drag-row-target': dragOverGameId === game.id && draggedGameId !== game.id
@@ -1095,7 +1095,7 @@
                 @click="openDetail(game)"
               >
                 <!-- Bloco Esquerdo: Drag Handle, Capa e Título -->
-                <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                <div class="list-row-main flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full sm:w-auto sm:flex-1">
                   <!-- Puxador de Arraste e Posição -->
                   <div class="flex items-center gap-1 flex-shrink-0 text-slate-500 group-hover:text-slate-400" @click.stop>
                     <i data-lucide="grip-vertical" class="w-4 h-4 cursor-grab active:cursor-grabbing"></i>
@@ -1185,35 +1185,38 @@
                 </div>
 
                 <!-- Bloco Central / Direito: Prioridade, Tempo e Ações -->
-                <div class="flex items-center gap-2 sm:gap-3.5 flex-shrink-0" @click.stop>
-                  <!-- Prioridade Rápida -->
-                  <button 
-                    v-if="getPriorityMeta(game.priority)"
-                    @click="cycleGamePriority(game)"
-                    class="text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider inline-flex items-center gap-1 shadow-sm border backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                    :class="getPriorityMeta(game.priority).badgeClass"
-                    :title="'Prioridade: ' + getPriorityMeta(game.priority).label + ' (Clique para alternar)'"
-                  >
-                    <i :data-lucide="getPriorityMeta(game.priority).icon" class="w-3 h-3 flex-shrink-0"></i>
-                    <span class="hidden sm:inline">{{ getPriorityMeta(game.priority).label }}</span>
-                    <span class="sm:hidden">{{ getPriorityMeta(game.priority).shortLabel }}</span>
-                  </button>
-                  <button 
-                    v-else
-                    @click="cycleGamePriority(game)"
-                    class="text-[10px] font-medium px-2 py-1 rounded-lg text-slate-400 hover:text-slate-200 bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all inline-flex items-center gap-1"
-                    title="Definir prioridade"
-                  >
-                    <i data-lucide="flag" class="w-3 h-3 flex-shrink-0"></i>
-                    <span class="hidden sm:inline">Prioridade</span>
-                  </button>
+                <div class="list-row-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3.5 w-full sm:w-auto flex-wrap sm:flex-nowrap border-t border-slate-800/60 sm:border-0 pt-2 sm:pt-0 mt-0.5 sm:mt-0 flex-shrink-0" @click.stop>
+                  <!-- Metadados de Telemetria (Prioridade + Tempo) -->
+                  <div class="flex items-center gap-2">
+                    <!-- Prioridade Rápida -->
+                    <button 
+                      v-if="getPriorityMeta(game.priority)"
+                      @click="cycleGamePriority(game)"
+                      class="text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider inline-flex items-center gap-1 shadow-sm border backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      :class="getPriorityMeta(game.priority).badgeClass"
+                      :title="'Prioridade: ' + getPriorityMeta(game.priority).label + ' (Clique para alternar)'"
+                    >
+                      <i :data-lucide="getPriorityMeta(game.priority).icon" class="w-3 h-3 flex-shrink-0"></i>
+                      <span class="hidden sm:inline">{{ getPriorityMeta(game.priority).label }}</span>
+                      <span class="sm:hidden">{{ getPriorityMeta(game.priority).shortLabel }}</span>
+                    </button>
+                    <button 
+                      v-else
+                      @click="cycleGamePriority(game)"
+                      class="text-[10px] font-medium px-2 py-1 rounded-lg text-slate-400 hover:text-slate-200 bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all inline-flex items-center gap-1"
+                      title="Definir prioridade"
+                    >
+                      <i data-lucide="flag" class="w-3 h-3 flex-shrink-0"></i>
+                      <span class="hidden sm:inline">Prioridade</span>
+                    </button>
 
-                  <!-- Tempo de Jogo -->
-                  <div class="text-right whitespace-nowrap min-w-[55px] sm:min-w-[75px]">
-                    <span class="inline-flex items-center gap-1 font-mono font-bold text-cyan-300 text-xs sm:text-sm">
-                      <i data-lucide="clock" class="w-3 h-3 text-cyan-400 flex-shrink-0"></i>
-                      {{ formatPlaytime(game) }}
-                    </span>
+                    <!-- Tempo de Jogo -->
+                    <div class="text-right whitespace-nowrap min-w-[50px] sm:min-w-[75px]">
+                      <span class="inline-flex items-center gap-1 font-mono font-bold text-cyan-300 text-xs sm:text-sm">
+                        <i data-lucide="clock" class="w-3 h-3 text-cyan-400 flex-shrink-0"></i>
+                        {{ formatPlaytime(game) }}
+                      </span>
+                    </div>
                   </div>
 
                   <div v-if="!isPublicViewMode" class="flex items-center gap-1 sm:gap-2">
@@ -1561,7 +1564,7 @@
             @dragover.prevent="onGameDragOver($event, game)"
             @drop.prevent="onGameDrop($event, game)"
             @dragend="onGameDragEnd"
-            class="nowplaying-list-row p-2.5 sm:p-3 flex items-center justify-between gap-3 select-none cursor-pointer group"
+            class="nowplaying-list-row p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 select-none cursor-pointer group"
             :class="{
               'drag-row-source': draggedGameId === game.id,
               'drag-row-target': dragOverGameId === game.id && draggedGameId !== game.id
@@ -1569,7 +1572,7 @@
             @click="openDetail(game)"
           >
             <!-- Bloco Esquerdo: Drag Handle, Capa e Título -->
-            <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+            <div class="list-row-main flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full sm:w-auto sm:flex-1">
               <!-- Puxador de Arraste e Posição -->
               <div class="flex items-center gap-1 flex-shrink-0 text-slate-500 group-hover:text-slate-400" @click.stop>
                 <i data-lucide="grip-vertical" class="w-4 h-4 cursor-grab active:cursor-grabbing"></i>
@@ -1669,39 +1672,42 @@
             </div>
 
             <!-- Bloco Central / Direito: Prioridade, Tempo e Ações -->
-            <div class="flex items-center gap-2 sm:gap-3.5 flex-shrink-0" @click.stop>
-              <!-- Prioridade Rápida -->
-              <button 
-                v-if="getPriorityMeta(game.priority)"
-                @click="cycleGamePriority(game)"
-                class="text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider inline-flex items-center gap-1 shadow-sm border backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                :class="getPriorityMeta(game.priority).badgeClass"
-                :title="'Prioridade: ' + getPriorityMeta(game.priority).label + ' (Clique para alternar)'"
-              >
-                <i :data-lucide="getPriorityMeta(game.priority).icon" class="w-3 h-3 flex-shrink-0"></i>
-                <span class="hidden sm:inline">{{ getPriorityMeta(game.priority).label }}</span>
-                <span class="sm:hidden">{{ getPriorityMeta(game.priority).shortLabel }}</span>
-              </button>
-              <button 
-                v-else-if="!isPublicViewMode"
-                @click="cycleGamePriority(game)"
-                class="text-[10px] font-medium px-2 py-1 rounded-lg text-slate-400 hover:text-slate-200 bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all inline-flex items-center gap-1"
-                title="Definir prioridade"
-              >
-                <i data-lucide="flag" class="w-3 h-3 flex-shrink-0"></i>
-                <span class="hidden sm:inline">Prioridade</span>
-              </button>
+            <div class="list-row-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3.5 w-full sm:w-auto flex-wrap sm:flex-nowrap border-t border-slate-800/60 sm:border-0 pt-2 sm:pt-0 mt-0.5 sm:mt-0 flex-shrink-0" @click.stop>
+              <!-- Metadados de Telemetria (Prioridade + Tempo) -->
+              <div class="flex items-center gap-2">
+                <!-- Prioridade Rápida -->
+                <button 
+                  v-if="getPriorityMeta(game.priority)"
+                  @click="cycleGamePriority(game)"
+                  class="text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider inline-flex items-center gap-1 shadow-sm border backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  :class="getPriorityMeta(game.priority).badgeClass"
+                  :title="'Prioridade: ' + getPriorityMeta(game.priority).label + ' (Clique para alternar)'"
+                >
+                  <i :data-lucide="getPriorityMeta(game.priority).icon" class="w-3 h-3 flex-shrink-0"></i>
+                  <span class="hidden sm:inline">{{ getPriorityMeta(game.priority).label }}</span>
+                  <span class="sm:hidden">{{ getPriorityMeta(game.priority).shortLabel }}</span>
+                </button>
+                <button 
+                  v-else-if="!isPublicViewMode"
+                  @click="cycleGamePriority(game)"
+                  class="text-[10px] font-medium px-2 py-1 rounded-lg text-slate-400 hover:text-slate-200 bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all inline-flex items-center gap-1"
+                  title="Definir prioridade"
+                >
+                  <i data-lucide="flag" class="w-3 h-3 flex-shrink-0"></i>
+                  <span class="hidden sm:inline">Prioridade</span>
+                </button>
 
-              <!-- Tempo de Jogo -->
-              <div class="text-right whitespace-nowrap min-w-[55px] sm:min-w-[75px]">
-                <span class="inline-flex items-center gap-1 font-mono font-bold text-cyan-300 text-xs sm:text-sm">
-                  <i data-lucide="clock" class="w-3 h-3 text-cyan-400 flex-shrink-0"></i>
-                  {{ formatPlaytime(game) }}
-                </span>
+                <!-- Tempo de Jogo -->
+                <div class="text-right whitespace-nowrap min-w-[50px] sm:min-w-[75px]">
+                  <span class="inline-flex items-center gap-1 font-mono font-bold text-cyan-300 text-xs sm:text-sm">
+                    <i data-lucide="clock" class="w-3 h-3 text-cyan-400 flex-shrink-0"></i>
+                    {{ formatPlaytime(game) }}
+                  </span>
+                </div>
               </div>
 
               <!-- Ações da Linha (Apenas Modo Dono) -->
-              <div v-if="!isPublicViewMode" class="flex items-center gap-1 sm:gap-2">
+              <div v-if="!isPublicViewMode" class="flex items-center gap-1.5 sm:gap-2">
                 <!-- Botões Subir/Descer Posição -->
                 <div v-if="nowPlayingGames.length > 1" class="hidden md:flex items-center gap-0.5 text-slate-400">
                   <button 
@@ -2103,7 +2109,7 @@
               @dragover.prevent="onGameDragOver($event, game, null)"
               @drop.prevent="onGameDrop($event, game, null)"
               @dragend="onGameDragEnd"
-              class="nowplaying-list-row p-2.5 sm:p-3 flex items-center justify-between gap-3 select-none cursor-pointer group hover:bg-slate-900/60 transition-colors"
+              class="nowplaying-list-row p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 select-none cursor-pointer group hover:bg-slate-900/60 transition-colors"
               :class="{
                 'drag-row-source': draggedGameId === game.id,
                 'drag-row-target': dragOverGameId === game.id && draggedGameId !== game.id
@@ -2111,7 +2117,7 @@
               @click="openDetail(game)"
             >
               <!-- Bloco Esquerdo: Drag Handle, Capa e Título -->
-              <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+              <div class="list-row-main flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full sm:w-auto sm:flex-1">
                 <!-- Puxador de Arraste e Posição -->
                 <div class="flex items-center gap-1 flex-shrink-0 text-slate-500 group-hover:text-amber-400" @click.stop>
                   <i data-lucide="grip-vertical" class="w-4 h-4 cursor-grab active:cursor-grabbing"></i>
@@ -2176,50 +2182,53 @@
               </div>
 
               <!-- Bloco Direito: Prioridade + HLTB + Botão "▶️ Jogar Agora" + Reordenação + Ações -->
-              <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0" @click.stop>
-                <!-- Prioridade Rápida -->
-                <button 
-                  v-if="getPriorityMeta(game.priority)"
-                  @click="cycleGamePriority(game)"
-                  class="text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider inline-flex items-center gap-1 shadow-sm border backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer badge-tag"
-                  :class="getPriorityMeta(game.priority).badgeClass"
-                  :title="'Prioridade: ' + getPriorityMeta(game.priority).label + ' (Clique para alternar)'"
-                >
-                  <i :data-lucide="getPriorityMeta(game.priority).icon" class="w-3 h-3 flex-shrink-0"></i>
-                  <span class="hidden sm:inline">{{ getPriorityMeta(game.priority).label }}</span>
-                  <span class="sm:hidden">{{ getPriorityMeta(game.priority).shortLabel }}</span>
-                </button>
-                <button 
-                  v-else-if="!isPublicViewMode"
-                  @click="cycleGamePriority(game)"
-                  class="text-[10px] font-medium px-2 py-1 rounded-lg text-slate-400 hover:text-slate-200 bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all inline-flex items-center gap-1 cursor-pointer"
-                  title="Definir prioridade"
-                >
-                  <i data-lucide="flag" class="w-3 h-3 flex-shrink-0"></i>
-                  <span class="hidden sm:inline">Prioridade</span>
-                </button>
-
-                <!-- Tempo Estimado HLTB -->
-                <div class="text-right whitespace-nowrap min-w-[55px] sm:min-w-[80px]">
-                  <span v-if="hasPlaytime(game)" class="inline-flex items-center gap-1 font-mono font-bold text-amber-300 text-xs sm:text-sm" :title="'Estimativa HLTB ' + ((game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos') ? '100% Platina' : 'História Principal')">
-                    <i data-lucide="clock" class="w-3 h-3 text-amber-400 flex-shrink-0"></i>
-                    ~{{ formatPlaytime(game) }}
-                  </span>
+              <div class="list-row-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3.5 w-full sm:w-auto flex-wrap sm:flex-nowrap border-t border-slate-800/60 sm:border-0 pt-2 sm:pt-0 mt-0.5 sm:mt-0 flex-shrink-0" @click.stop>
+                <!-- Metadados de Telemetria (Prioridade + HLTB) -->
+                <div class="flex items-center gap-2">
+                  <!-- Prioridade Rápida -->
+                  <button 
+                    v-if="getPriorityMeta(game.priority)"
+                    @click="cycleGamePriority(game)"
+                    class="text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider inline-flex items-center gap-1 shadow-sm border backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer badge-tag"
+                    :class="getPriorityMeta(game.priority).badgeClass"
+                    :title="'Prioridade: ' + getPriorityMeta(game.priority).label + ' (Clique para alternar)'"
+                  >
+                    <i :data-lucide="getPriorityMeta(game.priority).icon" class="w-3 h-3 flex-shrink-0"></i>
+                    <span class="hidden sm:inline">{{ getPriorityMeta(game.priority).label }}</span>
+                    <span class="sm:hidden">{{ getPriorityMeta(game.priority).shortLabel }}</span>
+                  </button>
                   <button 
                     v-else-if="!isPublicViewMode"
-                    type="button" 
-                    @click="fetchHltbForBacklogGame(game)" 
-                    class="inline-flex items-center gap-1 text-amber-400/80 hover:text-amber-300 font-mono text-xs hover:underline cursor-pointer"
-                    title="Buscar estimativa no HowLongToBeat"
+                    @click="cycleGamePriority(game)"
+                    class="text-[10px] font-medium px-2 py-1 rounded-lg text-slate-400 hover:text-slate-200 bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all inline-flex items-center gap-1 cursor-pointer"
+                    title="Definir prioridade"
                   >
-                    <i data-lucide="timer" class="w-3 h-3"></i>
-                    <span>Buscar HLTB</span>
+                    <i data-lucide="flag" class="w-3 h-3 flex-shrink-0"></i>
+                    <span class="hidden sm:inline">Prioridade</span>
                   </button>
-                  <span v-else class="text-slate-600 font-mono text-xs">-</span>
+
+                  <!-- Tempo Estimado HLTB -->
+                  <div class="text-right whitespace-nowrap min-w-[50px] sm:min-w-[80px]">
+                    <span v-if="hasPlaytime(game)" class="inline-flex items-center gap-1 font-mono font-bold text-amber-300 text-xs sm:text-sm" :title="'Estimativa HLTB ' + ((game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos') ? '100% Platina' : 'História Principal')">
+                      <i data-lucide="clock" class="w-3 h-3 text-amber-400 flex-shrink-0"></i>
+                      ~{{ formatPlaytime(game) }}
+                    </span>
+                    <button 
+                      v-else-if="!isPublicViewMode"
+                      type="button" 
+                      @click="fetchHltbForBacklogGame(game)" 
+                      class="inline-flex items-center gap-1 text-amber-400/80 hover:text-amber-300 font-mono text-xs hover:underline cursor-pointer"
+                      title="Buscar estimativa no HowLongToBeat"
+                    >
+                      <i data-lucide="timer" class="w-3 h-3"></i>
+                      <span>Buscar HLTB</span>
+                    </button>
+                    <span v-else class="text-slate-600 font-mono text-xs">-</span>
+                  </div>
                 </div>
 
                 <!-- Ações do Backlog (Apenas Modo Dono) -->
-                <div v-if="!isPublicViewMode" class="flex items-center gap-1 sm:gap-2">
+                <div v-if="!isPublicViewMode" class="flex items-center gap-1.5 sm:gap-2">
                   <!-- Botão Destaque: Jogar Agora (Coloca no Jogando Agora) -->
                   <button 
                     type="button" 
@@ -3065,7 +3074,7 @@
           v-else-if="currentGrouping === 'all' && currentLayout === 'table' && filteredFinishedGames.length > 0" 
           class="bg-[#12141c] rounded-2xl border border-slate-800/80 overflow-hidden shadow-xl w-full"
         >
-          <div class="overflow-x-auto w-full">
+          <div class="overflow-x-auto w-full game-table-container">
             <table class="w-full text-left text-xs sm:text-sm text-slate-300">
               <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                 <tr>
@@ -3772,7 +3781,7 @@
               v-else-if="currentLayout === 'table'"
               class="bg-[#12141c] rounded-2xl border border-slate-800/80 overflow-hidden shadow-xl w-full"
             >
-              <div class="overflow-x-auto w-full">
+              <div class="overflow-x-auto w-full game-table-container">
                 <table class="w-full text-left text-xs sm:text-sm text-slate-300">
                   <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                     <tr>
@@ -4351,7 +4360,7 @@
                 v-else-if="currentLayout === 'table'"
                 class="bg-[#12141c] rounded-2xl border border-slate-800/80 overflow-hidden shadow-xl w-full"
               >
-                <div class="overflow-x-auto w-full">
+                <div class="overflow-x-auto w-full game-table-container">
                   <table class="w-full text-left text-xs sm:text-sm text-slate-300">
                     <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                       <tr>
@@ -10150,7 +10159,7 @@
          ==================================================================== -->
     <div 
       v-if="isToolsMenuOpen" 
-      class="md:hidden fixed inset-0 z-50 select-none"
+      class="mobile-tools-sheet-wrapper fixed inset-0 z-50 select-none"
       role="dialog"
       aria-modal="true"
       aria-label="Menu de opções e ferramentas"
