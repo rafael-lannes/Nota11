@@ -1123,11 +1123,10 @@
                       </strong>
                       <span 
                         v-if="isGameReplay(game)" 
-                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center gap-1 flex-shrink-0"
-                        title="Rejogatina registrada"
+                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                        title="Rejogatina registrada (Rejogando)"
                       >
                         <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400 flex-shrink-0"></i>
-                        Rejogando
                       </span>
                     </div>
 
@@ -1170,11 +1169,10 @@
                       <!-- Early Access -->
                       <span 
                         v-if="game.isEarlyAccess" 
-                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1"
-                        title="Jogado / Zerado em Acesso Antecipado"
+                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                        title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                       >
                         <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
-                        Early Access
                       </span>
 
                       <!-- Possível Duplicado -->
@@ -1360,11 +1358,10 @@
                     </div>
                     <div 
                       v-else-if="isGameReplay(game)"
-                      class="px-1.5 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-sm flex items-center gap-1 badge-tag"
+                      class="px-1.5 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-sm inline-flex items-center justify-center badge-tag"
                       title="Você já jogou/zerou este título anteriormente (Rejogando)"
                     >
                       <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                      <span>Rejogando</span>
                     </div>
                     <div 
                       v-else
@@ -1444,11 +1441,10 @@
                       </span>
                       <span 
                         v-if="game.isEarlyAccess" 
-                        class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1 badge-tag"
+                        class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0 badge-tag"
                         title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                       >
                         <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
-                        <span>Early Access</span>
                       </span>
                       <span 
                         v-if="isGameDuplicate(game)" 
@@ -1612,11 +1608,10 @@
                   </strong>
                   <span 
                     v-if="isGameReplay(game)" 
-                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center gap-1 flex-shrink-0"
-                    title="Rejogatina registrada"
+                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                    title="Rejogatina registrada (Rejogando)"
                   >
                     <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400 flex-shrink-0"></i>
-                    Rejogando
                   </span>
                 </div>
 
@@ -1669,11 +1664,10 @@
                   <!-- Early Access -->
                   <span 
                     v-if="game.isEarlyAccess" 
-                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1"
-                    title="Jogado / Zerado em Acesso Antecipado"
+                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                    title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                   >
                     <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
-                    Early Access
                   </span>
 
                   <!-- Possível Duplicado -->
@@ -1860,11 +1854,10 @@
                 </div>
                 <div 
                   v-else-if="isGameReplay(game)"
-                  class="px-1.5 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-sm flex items-center gap-1 badge-tag"
+                  class="px-1.5 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-sm inline-flex items-center justify-center badge-tag"
                   title="Você já jogou/zerou este título anteriormente (Rejogando)"
                 >
                   <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                  <span>Rejogando</span>
                 </div>
                 <div 
                   v-else
@@ -1952,11 +1945,10 @@
                   </span>
                   <span 
                     v-if="game.isEarlyAccess" 
-                    class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1 badge-tag"
+                    class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0 badge-tag"
                     title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                   >
                     <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
-                    <span>Early Access</span>
                   </span>
                   <span 
                     v-if="isGameDuplicate(game)" 
@@ -3033,11 +3025,10 @@
                   </span>
                   <span 
                     v-if="isGameReplay(game)" 
-                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/90 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center gap-1"
-                    title="Rejogatina registrada"
+                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/90 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                    title="Rejogatina registrada (Rejogado)"
                   >
                     <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                    <span>Rejogado</span>
                   </span>
                   <span 
                     v-if="isGameHandheld(game)" 
@@ -3049,11 +3040,10 @@
                   </span>
                   <span 
                     v-if="game.isEarlyAccess" 
-                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1"
+                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
                     title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                   >
                     <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300"></i>
-                    <span>Early Access</span>
                   </span>
                   <span 
                     v-if="isGameDuplicate(game)" 
@@ -3299,11 +3289,10 @@
                           </span>
                           <span 
                             v-if="isGameReplay(game)" 
-                            class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-1 flex-shrink-0"
-                            title="Rejogatina registrada"
+                            class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                            title="Rejogatina registrada (Rejogado)"
                           >
                             <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                            Rejogado
                           </span>
                         </div>
                       </div>
@@ -3336,11 +3325,10 @@
                       </span>
                       <span 
                         v-if="game.isEarlyAccess" 
-                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1"
+                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
                         title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                       >
                         <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
-                        Early Access
                       </span>
                       <span 
                         v-if="isGameDuplicate(game)" 
@@ -3507,10 +3495,8 @@
                     <span v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="text-amber-400 flex-shrink-0" title="Platinado">
                       <i data-lucide="award" class="w-3.5 h-3.5"></i>
                     </span>
-                    <!-- Rejogando / Rejogado -->
-                    <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-0.5 flex-shrink-0">
+                    <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0" title="Rejogatina registrada (Rejogado)">
                       <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                      <span>Rejogado</span>
                     </span>
                   </div>
 
@@ -3881,10 +3867,10 @@
                       </span>
                       <span 
                         v-if="isGameReplay(game)" 
-                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/90 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center gap-1"
+                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/90 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                        title="Rejogatina registrada (Rejogado)"
                       >
-                        <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                        <span>Rejogado</span>
+                        <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400 flex-shrink-0"></i>
                       </span>
                       <span 
                         v-if="isGameHandheld(game)" 
@@ -3896,11 +3882,10 @@
                       </span>
                       <span 
                         v-if="game.isEarlyAccess" 
-                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider flex items-center gap-1"
+                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
                         title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                       >
-                        <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300"></i>
-                        <span>Early Access</span>
+                        <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
                       </span>
                       <span 
                         v-if="isGameDuplicate(game)" 
@@ -4142,11 +4127,10 @@
                               </span>
                               <span 
                                 v-if="isGameReplay(game)" 
-                                class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-1 flex-shrink-0"
-                                title="Rejogatina registrada"
+                                class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                                title="Rejogatina registrada (Rejogado)"
                               >
-                                <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                                Rejogado
+                                <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400 flex-shrink-0"></i>
                               </span>
                             </div>
                           </div>
@@ -4179,11 +4163,10 @@
                           </span>
                           <span 
                             v-if="game.isEarlyAccess" 
-                            class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1"
+                            class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
                             title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                           >
                             <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
-                            Early Access
                           </span>
                           <span 
                             v-if="isGameDuplicate(game)" 
@@ -4351,9 +4334,8 @@
                           <i data-lucide="award" class="w-3.5 h-3.5"></i>
                         </span>
                         <!-- Rejogando / Rejogado -->
-                        <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-0.5 flex-shrink-0">
+                        <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0" title="Rejogatina registrada (Rejogado)">
                           <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                          <span>Rejogado</span>
                         </span>
                       </div>
 
@@ -4596,10 +4578,10 @@
                         </span>
                         <span 
                           v-if="isGameReplay(game)" 
-                          class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/90 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center gap-1"
+                          class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/90 text-amber-300 border border-amber-500/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                          title="Rejogatina registrada (Rejogado)"
                         >
                           <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400 flex-shrink-0"></i>
-                          Rejogado
                         </span>
                         <span 
                           v-if="isGameHandheld(game)" 
@@ -4611,11 +4593,10 @@
                         </span>
                         <span 
                           v-if="game.isEarlyAccess" 
-                          class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1"
+                          class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
                           title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                         >
                           <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
-                          Early Access
                         </span>
                         <span 
                           v-if="isGameDuplicate(game)" 
@@ -4849,11 +4830,10 @@
                                 </span>
                                 <span 
                                   v-if="isGameReplay(game)" 
-                                  class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-1 flex-shrink-0"
-                                  title="Rejogatina registrada"
+                                  class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                                  title="Rejogatina registrada (Rejogado)"
                                 >
-                                  <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                                  Rejogado
+                                  <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400 flex-shrink-0"></i>
                                 </span>
                               </div>
                             </div>
@@ -4886,11 +4866,10 @@
                             </span>
                             <span 
                               v-if="game.isEarlyAccess" 
-                              class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center gap-1"
+                              class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-early-access uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
                               title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                             >
                               <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
-                              Early Access
                             </span>
                             <span 
                               v-if="isGameDuplicate(game)" 
@@ -5058,9 +5037,8 @@
                             <i data-lucide="award" class="w-3.5 h-3.5"></i>
                           </span>
                           <!-- Rejogando / Rejogado -->
-                          <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-0.5 flex-shrink-0">
+                          <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0" title="Rejogatina registrada (Rejogado)">
                             <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
-                            <span>Rejogado</span>
                           </span>
                         </div>
 
