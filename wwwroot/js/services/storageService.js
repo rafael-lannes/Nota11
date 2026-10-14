@@ -357,6 +357,7 @@ class StorageService {
         const isZerado = status === 'Zerado';
         const year = isZerado ? this.extractCompletionYear(game.completionDate, game.completionYear) : null;
         const isHandheldFinal = isPcPlatform(platform) ? (Boolean(game.isHandheld) || platform === 'PC - Steam Deck' || platform === 'PC - Rog Ally') : false;
+        const formattedPlaytime = this.formatPlaytimeToHHMMSS(game.playtime || game.playtimeHours || 0);
 
         return {
           ...game,

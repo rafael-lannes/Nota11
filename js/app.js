@@ -688,7 +688,7 @@ function initApp() {
 
             // Conecta listener de alterações locais para auto-sync com Supabase
             StorageService.onDataChanged = () => {
-              if (cloudUser.value && cloudAutoSyncEnabled.value && !isCloudSyncing.value) {
+              if (cloudUser.value && cloudAutoSyncEnabled.value && !isCloudSyncing.value && games.value && games.value.length > 0) {
                 debouncedCloudSync();
               }
             };
@@ -4458,6 +4458,26 @@ function initApp() {
           if (user) {
             cloudUser.value = user;
             lastCloudSync.value = window.SupabaseService.getLastSyncTime();
+
+            // Se o usuário está autenticado e a lista local estiver vazia, restaura os dados da nuvem
+            if (games.value.length === 0) {
+              const cloudData = await window.SupabaseService.loadUserData(user.id);
+              if (cloudData && Array.isArray(cloudData.games) && cloudData.games.length > 0) {
+                if (StorageService) {
+                  StorageService.saveGames(cloudData.games);
+                  if (cloudData.profile) StorageService.saveUserProfile(cloudData.profile);
+                  if (cloudData.settings) StorageService.saveSettings(cloudData.settings);
+                  if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(cloudData.playingCategories);
+                  loadActiveProfileData();
+                } else {
+                  games.value = cloudData.games;
+                  if (cloudData.profile) userProfile.value = cloudData.profile;
+                  if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
+                  if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
+                }
+                refreshStorageInfo();
+              }
+            }
           }
 
           window.SupabaseService.onAuthStateChange(async (event, session) => {
@@ -4470,6 +4490,24 @@ function initApp() {
             } else if (event === 'SIGNED_IN') {
               cloudUser.value = session ? session.user : null;
               lastCloudSync.value = window.SupabaseService.getLastSyncTime();
+              if (cloudUser.value && games.value.length === 0) {
+                const cloudData = await window.SupabaseService.loadUserData(cloudUser.value.id);
+                if (cloudData && Array.isArray(cloudData.games) && cloudData.games.length > 0) {
+                  if (StorageService) {
+                    StorageService.saveGames(cloudData.games);
+                    if (cloudData.profile) StorageService.saveUserProfile(cloudData.profile);
+                    if (cloudData.settings) StorageService.saveSettings(cloudData.settings);
+                    if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(cloudData.playingCategories);
+                    loadActiveProfileData();
+                  } else {
+                    games.value = cloudData.games;
+                    if (cloudData.profile) userProfile.value = cloudData.profile;
+                    if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
+                    if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
+                  }
+                  refreshStorageInfo();
+                }
+              }
               refreshLucideIcons();
             } else if (event === 'SIGNED_OUT') {
               cloudUser.value = null;
@@ -4484,6 +4522,7 @@ function initApp() {
       let _cloudSyncDebounceTimer = null;
       const debouncedCloudSync = () => {
         if (!cloudUser.value || !cloudAutoSyncEnabled.value) return;
+        if (!games.value || games.value.length === 0) return;
         if (_cloudSyncDebounceTimer) clearTimeout(_cloudSyncDebounceTimer);
         _cloudSyncDebounceTimer = setTimeout(() => {
           syncToCloud(false);
@@ -4516,15 +4555,17 @@ function initApp() {
           // Carrega dados da nuvem se existirem, ou sincroniza os dados locais
           const cloudData = await window.SupabaseService.loadUserData();
           if (cloudData && Array.isArray(cloudData.games) && cloudData.games.length > 0 && games.value.length === 0) {
-            games.value = cloudData.games;
-            if (cloudData.profile) userProfile.value = cloudData.profile;
-            if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
-            if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
             if (StorageService) {
-              StorageService.saveGames(games.value);
+              StorageService.saveGames(cloudData.games);
               if (cloudData.profile) StorageService.saveUserProfile(cloudData.profile);
-              if (cloudData.settings) StorageService.saveSettings(settings.value);
-              if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(playingCategories.value);
+              if (cloudData.settings) StorageService.saveSettings(cloudData.settings);
+              if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(cloudData.playingCategories);
+              loadActiveProfileData();
+            } else {
+              games.value = cloudData.games;
+              if (cloudData.profile) userProfile.value = cloudData.profile;
+              if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
+              if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
             }
             refreshStorageInfo();
             showToast('Coleção restaurada da nuvem com sucesso!', 'success');
@@ -4745,6 +4786,17 @@ function initApp() {
           return;
         }
 
+        // SEGURANÇA CRÍTICA: Previne que o auto-sync em segundo plano envie lista vazia e apague o banco na nuvem
+        if (!isManual && (!games.value || games.value.length === 0)) {
+          console.warn('[Supabase] Auto-sync evitado: lista local vazia para proteger os dados na nuvem.');
+          return;
+        }
+
+        if (isManual && (!games.value || games.value.length === 0)) {
+          const confirmEmpty = confirm('Sua biblioteca local está vazia. Tem certeza que deseja enviar uma lista vazia para a nuvem? Isso apagará os jogos salvos no banco de dados.');
+          if (!confirmEmpty) return;
+        }
+
         isCloudSyncing.value = true;
         try {
           const payload = {
@@ -4787,16 +4839,17 @@ function initApp() {
         try {
           const cloudData = await window.SupabaseService.loadUserData();
           if (cloudData) {
-            if (Array.isArray(cloudData.games)) games.value = cloudData.games;
-            if (cloudData.profile) userProfile.value = cloudData.profile;
-            if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
-            if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
-
             if (StorageService) {
-              StorageService.saveGames(games.value);
+              if (Array.isArray(cloudData.games)) StorageService.saveGames(cloudData.games);
               if (cloudData.profile) StorageService.saveUserProfile(cloudData.profile);
-              if (cloudData.settings) StorageService.saveSettings(settings.value);
-              if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(playingCategories.value);
+              if (cloudData.settings) StorageService.saveSettings(cloudData.settings);
+              if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(cloudData.playingCategories);
+              loadActiveProfileData();
+            } else {
+              if (Array.isArray(cloudData.games)) games.value = cloudData.games;
+              if (cloudData.profile) userProfile.value = cloudData.profile;
+              if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
+              if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
             }
             refreshStorageInfo();
             lastCloudSync.value = new Date().toISOString();
