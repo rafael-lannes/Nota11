@@ -2,7 +2,12 @@
 <html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#090a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="app.png">
   <title>Nota 11 - Rastreador de Jogos, Gêneros & Masterpieces</title>
   
   <!-- Proteção Anti-Flicker / Ocultação Imediata antes da inicialização do Vue -->
@@ -33,7 +38,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%2312141c'/><rect x='3' y='3' width='94' height='94' rx='22' fill='none' stroke='%23f59e0b' stroke-width='6'/><text x='50%' y='69%' font-family='system-ui, -apple-system, sans-serif' font-weight='900' font-size='56' fill='%23f59e0b' text-anchor='middle'>11</text></svg>">
 
   <!-- Estilos Customizados -->
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=1.2.7">
 </head>
 <body class="bg-[#090a0f] text-slate-200 min-h-screen antialiased selection:bg-purple-600 selection:text-white">
 
@@ -132,8 +137,8 @@
             </button>
           </div>
 
-          <!-- Bloco Centro-Esquerda: Navegação Principal entre Telas -->
-          <nav class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800/80 flex-shrink-0">
+          <!-- Bloco Centro-Esquerda: Navegação Principal entre Telas (Desktop: no header | Mobile: na barra inferior) -->
+          <nav class="hidden md:flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800/80 flex-shrink-0">
             <button 
               @click="setActivePage('library')"
               :class="activePage === 'library' ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium'"
@@ -244,16 +249,16 @@
               <span class="hidden md:inline">Compartilhar</span>
             </button>
 
-            <!-- Botão Novo Jogo -->
+            <!-- Botão Novo Jogo (Desktop: visível no header | Mobile: via botão FAB flutuante) -->
             <button 
               v-if="!isPublicViewMode"
               @click="openAddGame('Zerado')" 
               title="Novo Jogo (Atalho: N)"
               aria-label="Adicionar novo jogo (Atalho: N)"
-              class="flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
+              class="hidden md:flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm whitespace-nowrap transition-all shadow-sm active:scale-95 cursor-pointer"
             >
               <i data-lucide="plus" class="w-4 h-4"></i>
-              <span class="hidden md:inline">Novo Jogo</span>
+              <span>Novo Jogo</span>
             </button>
 
             <!-- Menu Dropdown Unificado: Dados & Ferramentas -->
@@ -273,7 +278,7 @@
               <!-- Dropdown Menu -->
               <div 
                 v-if="isToolsMenuOpen" 
-                class="absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-[#12141c]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2 text-xs"
+                class="tools-menu-dropdown absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-[#12141c]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2 text-xs"
               >
                 <div class="px-2 py-1.5 border-b border-slate-800/80 flex items-center justify-between">
                   <span class="font-bold text-white text-[11px] uppercase tracking-wider">Gerenciamento da Coleção</span>
@@ -654,7 +659,7 @@
         <div class="flex items-center justify-between flex-wrap gap-2.5">
           
           <!-- Seletor de Abas Hero (Jogando Agora, Jogos Zerados, Backlog) -->
-          <div class="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-2xl border border-slate-800/80 shadow-sm flex-shrink-0 flex-wrap">
+          <div class="flex items-center gap-1 sm:gap-1.5 bg-slate-900/90 p-1 rounded-2xl border border-slate-800/80 shadow-sm w-full sm:w-auto overflow-x-auto">
             <!-- 1. Aba Jogando Agora -->
             <button 
               type="button" 
@@ -666,11 +671,11 @@
                 heroTab === 'nowPlaying' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium',
                 dragOverHeroTab === 'nowPlaying' ? 'ring-2 ring-emerald-400 bg-emerald-700/60 scale-105' : ''
               ]"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer select-none"
+              class="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer select-none flex-1 sm:flex-initial whitespace-nowrap"
               title="Ver jogos em andamento no momento (ou arraste um jogo para cá para Jogar Agora)"
             >
               <span class="w-2 h-2 rounded-full bg-emerald-400" :class="{ 'animate-pulse': heroTab === 'nowPlaying' }"></span>
-              <span>Jogando Agora</span>
+              <span>Jogando</span>
               <span 
                 class="text-[10px] font-mono px-1.5 py-0.2 rounded-full" 
                 :class="heroTab === 'nowPlaying' ? 'bg-white/20 text-white font-bold' : 'bg-slate-800 text-slate-400'"
@@ -683,12 +688,12 @@
             <button 
               type="button" 
               @click="setHeroTab('finished')"
-              :class="heroTab === 'finished' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium'"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer select-none"
+              :class="heroTab === 'finished' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium'",
+              class="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer select-none flex-1 sm:flex-initial whitespace-nowrap"
               title="Ver biblioteca completa de jogos zerados e histórico"
             >
               <i data-lucide="trophy" class="w-3.5 h-3.5" :class="heroTab === 'finished' ? 'text-white' : 'text-indigo-400'"></i>
-              <span>Jogos Zerados</span>
+              <span>Zerados</span>
               <span 
                 class="text-[10px] font-mono px-1.5 py-0.2 rounded-full" 
                 :class="heroTab === 'finished' ? 'bg-white/20 text-white font-bold' : 'bg-slate-800 text-slate-400'"
@@ -708,7 +713,7 @@
                 heroTab === 'backlog' ? 'bg-amber-600 text-white font-bold shadow-md shadow-amber-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium',
                 dragOverHeroTab === 'backlog' ? 'ring-2 ring-amber-400 bg-amber-700/60 scale-105' : ''
               ]"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer select-none"
+              class="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer select-none flex-1 sm:flex-initial whitespace-nowrap"
               title="Ver lista de jogos no Backlog (ou arraste um jogo para cá para mover para o Backlog)"
             >
               <i data-lucide="bookmark" class="w-3.5 h-3.5" :class="heroTab === 'backlog' ? 'text-white' : 'text-amber-400'"></i>
@@ -751,10 +756,10 @@
               </button>
             </div>
 
-            <!-- Barra de Zoom Dinâmica (Apenas no modo Grade) -->
+            <!-- Barra de Zoom Dinâmica (Apenas no modo Grade e telas sm+) -->
             <div 
               v-if="nowPlayingLayout === 'grid'" 
-              class="zoom-slider-container animate-in fade-in duration-150"
+              class="zoom-slider-container hidden sm:inline-flex animate-in fade-in duration-150"
               title="Barra de Zoom: Arraste para diminuir ou aumentar o tamanho dos jogos"
             >
               <i data-lucide="minimize-2" class="w-3 h-3 text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer" @click="cardZoom = Math.max(95, cardZoom - 20)" title="Diminuir tamanho dos jogos"></i>
@@ -918,10 +923,10 @@
               </button>
             </div>
 
-            <!-- Barra de Zoom Dinâmica (Apenas no modo Grade) -->
+            <!-- Barra de Zoom Dinâmica (Apenas no modo Grade e telas sm+) -->
             <div 
               v-if="backlogLayout === 'grid'" 
-              class="zoom-slider-container zoom-slider-amber animate-in fade-in duration-150"
+              class="zoom-slider-container zoom-slider-amber hidden sm:inline-flex animate-in fade-in duration-150"
               title="Barra de Zoom: Arraste para diminuir ou aumentar o tamanho dos jogos do backlog"
             >
               <i data-lucide="minimize-2" class="w-3 h-3 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer" @click="cardZoom = Math.max(95, cardZoom - 20)" title="Diminuir tamanho dos jogos"></i>
@@ -2481,28 +2486,46 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-2.5 sm:gap-3">
               
               <!-- Busca por Nome / Texto / Gênero / Ano / Condição -->
-              <div class="lg:col-span-3 relative">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input 
-                  type="text" 
-                  v-model="searchQuery" 
-                  placeholder="Buscar jogo, plataforma, gênero, ano..."
-                  title="Buscar jogos (Atalho: / ou Ctrl+K)"
-                  aria-label="Buscar jogo na lista"
-                  class="w-full pl-9 pr-8 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-                />
+              <div class="lg:col-span-3 flex items-center gap-2">
+                <div class="relative flex-1">
+                  <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                  <input 
+                    type="text" 
+                    v-model="searchQuery" 
+                    placeholder="Buscar jogo, plataforma, gênero, ano..."
+                    title="Buscar jogos (Atalho: / ou Ctrl+K)"
+                    aria-label="Buscar jogo na lista"
+                    class="w-full pl-9 pr-8 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  <button 
+                    v-if="searchQuery" 
+                    @click="searchQuery = ''" 
+                    aria-label="Limpar busca"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  >
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+
+                <!-- Botão Mobile para Alternar Filtros Avançados -->
                 <button 
-                  v-if="searchQuery" 
-                  @click="searchQuery = ''" 
-                  aria-label="Limpar busca"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  type="button"
+                  @click="isMobileFilterOpen = !isMobileFilterOpen" 
+                  class="sm:hidden px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
+                  :class="activeFiltersCount > 0 ? 'bg-indigo-950/80 text-indigo-300 border-indigo-500/60' : 'bg-slate-900 text-slate-300 border-slate-700'"
+                  title="Abrir/fechar filtros avançados"
+                  aria-label="Alternar filtros no mobile"
                 >
-                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                  <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+                  <span v-if="activeFiltersCount > 0" class="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[9px] font-bold">
+                    {{ activeFiltersCount }}
+                  </span>
+                  <i :data-lucide="isMobileFilterOpen ? 'chevron-up' : 'chevron-down'" class="w-3 h-3 text-slate-400"></i>
                 </button>
               </div>
 
               <!-- Filtro de Plataforma -->
-              <div class="lg:col-span-2">
+              <div class="lg:col-span-2" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
                 <select 
                   v-model="platformFilter" 
                   aria-label="Filtrar por plataforma"
@@ -2516,7 +2539,7 @@
               </div>
 
               <!-- Filtro de Gênero -->
-              <div class="lg:col-span-2">
+              <div class="lg:col-span-2" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
                 <select 
                   v-model="genreFilter" 
                   aria-label="Filtrar por gênero"
@@ -2530,7 +2553,7 @@
               </div>
 
               <!-- Filtro de Condição de Zerar -->
-              <div class="lg:col-span-1">
+              <div class="lg:col-span-1" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
                 <select 
                   v-model="conditionFilter" 
                   aria-label="Filtrar por condição de conclusão"
@@ -2545,7 +2568,7 @@
               </div>
 
               <!-- Filtro de Ano -->
-              <div class="lg:col-span-1">
+              <div class="lg:col-span-1" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
                 <select 
                   v-model="yearFilter" 
                   aria-label="Filtrar por ano de conclusão"
@@ -2557,7 +2580,7 @@
               </div>
 
               <!-- Filtro de Nota -->
-              <div class="lg:col-span-1">
+              <div class="lg:col-span-1" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
                 <select 
                   v-model="ratingFilter" 
                   aria-label="Filtrar por nota"
@@ -2572,7 +2595,7 @@
               </div>
 
               <!-- Ordenação -->
-              <div class="lg:col-span-2">
+              <div class="lg:col-span-2" :class="isMobileFilterOpen ? 'block' : 'hidden sm:block'">
                 <select 
                   v-model="sortBy" 
                   aria-label="Ordenar biblioteca"
@@ -2598,7 +2621,10 @@
               </div>
 
               <!-- Botões de Filtros Especiais (Portáteis & Platinados) + Alternador Grid/Tabela -->
-              <div class="lg:col-span-12 flex items-center justify-between pt-1 border-t border-slate-800 flex-wrap gap-2">
+              <div 
+                class="lg:col-span-12 items-center justify-between pt-1 border-t border-slate-800 flex-wrap gap-2"
+                :class="isMobileFilterOpen ? 'flex' : 'hidden sm:flex'"
+              >
                 <div class="flex items-center gap-2 flex-wrap">
                   <!-- Toggle Platinados -->
                   <button 
@@ -2750,10 +2776,10 @@
                     </button>
                   </div>
 
-                  <!-- Barra de Zoom Dinâmica na Biblioteca -->
+                  <!-- Barra de Zoom Dinâmica na Biblioteca (Apenas em telas sm+) -->
                   <div 
                     v-if="currentLayout === 'grid'" 
-                    class="zoom-slider-container animate-in fade-in duration-150"
+                    class="zoom-slider-container hidden sm:inline-flex animate-in fade-in duration-150"
                     title="Barra de Zoom: Arraste para diminuir ou aumentar o tamanho dos cards na biblioteca"
                   >
                     <i data-lucide="minimize-2" class="w-3 h-3 text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer" @click="cardZoom = Math.max(95, cardZoom - 20)" title="Diminuir tamanho dos jogos"></i>
@@ -4823,7 +4849,7 @@
             </div>
 
             <!-- Card 7: Early Access (Acesso Antecipado) -->
-            <div class="p-4 rounded-3xl bg-[#12141c] border border-purple-500/30 shadow-lg space-y-2 relative overflow-hidden group hover:border-purple-500/60 transition-all">
+            <div class="col-span-2 sm:col-span-1 p-4 rounded-3xl bg-[#12141c] border border-purple-500/30 shadow-lg space-y-2 relative overflow-hidden group hover:border-purple-500/60 transition-all">
               <div class="flex items-center justify-between text-slate-400">
                 <span class="text-xs font-semibold">Early Access</span>
                 <div class="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
@@ -10068,6 +10094,85 @@
     </div>
 
     <!-- ====================================================================
+         BOTÃO FLUTUANTE MOBILE (FAB): NOVO JOGO (Apenas em telas < md)
+         ==================================================================== -->
+    <button 
+      v-if="!isPublicViewMode"
+      @click="openAddGame('Zerado')" 
+      class="mobile-fab-btn md:hidden w-13 h-13 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 text-white flex items-center justify-center shadow-2xl border border-indigo-400/50 cursor-pointer active:scale-90"
+      title="Adicionar Novo Jogo (Toque Rápido)"
+      aria-label="Adicionar Novo Jogo"
+    >
+      <i data-lucide="plus" class="w-6 h-6 stroke-[2.5]"></i>
+    </button>
+
+    <!-- ====================================================================
+         BARRA DE NAVEGAÇÃO INFERIOR MOBILE (BOTTOM NAV BAR) - md:hidden
+         ==================================================================== -->
+    <nav class="mobile-bottom-nav md:hidden flex items-center justify-around px-2 pt-1.5 text-[10px] select-none">
+      <!-- 1. Biblioteca -->
+      <button 
+        type="button"
+        @click="setActivePage('library')" 
+        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
+        :class="activePage === 'library' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+      >
+        <i data-lucide="gamepad-2" class="w-5 h-5" :class="{ 'stroke-[2.5]': activePage === 'library' }"></i>
+        <span>Biblioteca</span>
+      </button>
+
+      <!-- 2. Estatísticas -->
+      <button 
+        type="button"
+        @click="setActivePage('stats')" 
+        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
+        :class="activePage === 'stats' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+      >
+        <i data-lucide="bar-chart-3" class="w-5 h-5" :class="{ 'stroke-[2.5]': activePage === 'stats' }"></i>
+        <span>Métricas</span>
+      </button>
+
+      <!-- 3. Nuvem / Supabase -->
+      <button 
+        v-if="!isPublicViewMode"
+        type="button"
+        @click="openCloudModal()" 
+        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1 relative"
+        :class="cloudUser ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+      >
+        <i :data-lucide="cloudUser ? 'cloud' : 'cloud-off'" class="w-5 h-5"></i>
+        <span class="flex items-center gap-1">
+          <span>Nuvem</span>
+          <span v-if="cloudUser" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        </span>
+      </button>
+
+      <!-- 4. Perfil -->
+      <button 
+        v-if="!isPublicViewMode"
+        type="button"
+        @click="openProfileModal()" 
+        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
+        :class="isProfileOpen ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+      >
+        <i data-lucide="user" class="w-5 h-5"></i>
+        <span>Perfil</span>
+      </button>
+
+      <!-- 5. Ferramentas -->
+      <button 
+        v-if="!isPublicViewMode"
+        type="button"
+        @click="toggleToolsMenu()" 
+        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
+        :class="isToolsMenuOpen ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+      >
+        <i data-lucide="database" class="w-5 h-5"></i>
+        <span>Opções</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
          TOAST CONTAINER (NOTIFICAÇÕES FLUTUANTES)
          ==================================================================== -->
     <div class="toast-container" aria-live="polite" role="status">
@@ -10106,7 +10211,7 @@
   <script src="js/services/igdbService.js?v=1.2.6"></script>
   <script src="js/services/hltbService.js?v=1.2.6"></script>
   <script src="js/services/supabaseService.js?v=1.2.6"></script>
-  <script src="js/services/storageService.js?v=1.2.6"></script>
-  <script src="js/app.js?v=1.2.6"></script>
+  <script src="js/services/storageService.js?v=1.2.7"></script>
+  <script src="js/app.js?v=1.2.7"></script>
 </body>
 </html>

@@ -1,0 +1,18 @@
+{
+  "name": "Nota 11 - Game Tracker",
+  "short_name": "Nota 11",
+  "description": "O game tracker desenhado para te ajudar a vencer o backlog e zerar mais jogos.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "app.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

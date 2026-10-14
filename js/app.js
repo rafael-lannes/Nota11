@@ -90,6 +90,36 @@ function initApp() {
       const onlyReplayFilter = ref(false);
       const onlyEarlyAccessFilter = ref(false);
       const onlyDuplicatesFilter = ref(false);
+      const isMobileFilterOpen = ref(false);
+
+      const activeFiltersCount = computed(() => {
+        let count = 0;
+        if (platformFilter.value !== 'ALL') count++;
+        if (genreFilter.value !== 'ALL') count++;
+        if (ratingFilter.value !== 'ALL') count++;
+        if (conditionFilter.value !== 'ALL') count++;
+        if (yearFilter.value !== 'ALL') count++;
+        if (onlyHandheldFilter.value) count++;
+        if (onlyPlatinumFilter.value) count++;
+        if (onlyReplayFilter.value) count++;
+        if (onlyEarlyAccessFilter.value) count++;
+        if (onlyDuplicatesFilter.value) count++;
+        return count;
+      });
+
+      const resetAllFilters = () => {
+        searchQuery.value = '';
+        platformFilter.value = 'ALL';
+        genreFilter.value = 'ALL';
+        ratingFilter.value = 'ALL';
+        conditionFilter.value = 'ALL';
+        yearFilter.value = 'ALL';
+        onlyHandheldFilter.value = false;
+        onlyPlatinumFilter.value = false;
+        onlyReplayFilter.value = false;
+        onlyEarlyAccessFilter.value = false;
+        onlyDuplicatesFilter.value = false;
+      };
 
       // Categorias Customizadas, Layouts (Grade vs Tabela) e Barra de Zoom Dinâmica
       const heroTab = ref(localStorage.getItem('nota11_hero_tab') || 'nowPlaying'); // 'nowPlaying' | 'finished' | 'backlog'
@@ -4813,6 +4843,9 @@ function initApp() {
         conditionFilter,
         yearFilter,
         sortBy,
+        isMobileFilterOpen,
+        activeFiltersCount,
+        resetAllFilters,
         toasts,
         lastSavedText,
         isSaving,
