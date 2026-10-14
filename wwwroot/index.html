@@ -1087,7 +1087,7 @@
                 @dragover.prevent="onGameDragOver($event, game, shelf.id)"
                 @drop.prevent="onGameDrop($event, game, shelf.id)"
                 @dragend="onGameDragEnd"
-                class="nowplaying-list-row p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 select-none cursor-pointer group"
+                class="nowplaying-list-row select-none cursor-pointer group"
                 :class="{
                   'drag-row-source': draggedGameId === game.id,
                   'drag-row-target': dragOverGameId === game.id && draggedGameId !== game.id
@@ -1095,7 +1095,7 @@
                 @click="openDetail(game)"
               >
                 <!-- Bloco Esquerdo: Drag Handle, Capa e Título -->
-                <div class="list-row-main flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full sm:w-auto sm:flex-1">
+                <div class="list-row-main min-w-0">
                   <!-- Puxador de Arraste e Posição -->
                   <div class="flex items-center gap-1 flex-shrink-0 text-slate-500 group-hover:text-slate-400" @click.stop>
                     <i data-lucide="grip-vertical" class="w-4 h-4 cursor-grab active:cursor-grabbing"></i>
@@ -1185,9 +1185,9 @@
                 </div>
 
                 <!-- Bloco Central / Direito: Prioridade, Tempo e Ações -->
-                <div class="list-row-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3.5 w-full sm:w-auto flex-wrap sm:flex-nowrap border-t border-slate-800/60 sm:border-0 pt-2 sm:pt-0 mt-0.5 sm:mt-0 flex-shrink-0" @click.stop>
+                <div class="list-row-actions flex-shrink-0" @click.stop>
                   <!-- Metadados de Telemetria (Prioridade + Tempo) -->
-                  <div class="flex items-center gap-2">
+                  <div class="list-row-telemetry">
                     <!-- Prioridade Rápida -->
                     <button 
                       v-if="getPriorityMeta(game.priority)"
@@ -1219,7 +1219,7 @@
                     </div>
                   </div>
 
-                  <div v-if="!isPublicViewMode" class="flex items-center gap-1 sm:gap-2">
+                  <div v-if="!isPublicViewMode" class="list-row-buttons">
                     <!-- Botões Subir/Descer Posição -->
                     <div v-if="shelf.games.length > 1" class="hidden md:flex items-center gap-0.5 text-slate-400">
                       <button 
@@ -1564,7 +1564,7 @@
             @dragover.prevent="onGameDragOver($event, game)"
             @drop.prevent="onGameDrop($event, game)"
             @dragend="onGameDragEnd"
-            class="nowplaying-list-row p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 select-none cursor-pointer group"
+            class="nowplaying-list-row select-none cursor-pointer group"
             :class="{
               'drag-row-source': draggedGameId === game.id,
               'drag-row-target': dragOverGameId === game.id && draggedGameId !== game.id
@@ -1572,7 +1572,7 @@
             @click="openDetail(game)"
           >
             <!-- Bloco Esquerdo: Drag Handle, Capa e Título -->
-            <div class="list-row-main flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full sm:w-auto sm:flex-1">
+            <div class="list-row-main min-w-0">
               <!-- Puxador de Arraste e Posição -->
               <div class="flex items-center gap-1 flex-shrink-0 text-slate-500 group-hover:text-slate-400" @click.stop>
                 <i data-lucide="grip-vertical" class="w-4 h-4 cursor-grab active:cursor-grabbing"></i>
@@ -1672,9 +1672,9 @@
             </div>
 
             <!-- Bloco Central / Direito: Prioridade, Tempo e Ações -->
-            <div class="list-row-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3.5 w-full sm:w-auto flex-wrap sm:flex-nowrap border-t border-slate-800/60 sm:border-0 pt-2 sm:pt-0 mt-0.5 sm:mt-0 flex-shrink-0" @click.stop>
+            <div class="list-row-actions flex-shrink-0" @click.stop>
               <!-- Metadados de Telemetria (Prioridade + Tempo) -->
-              <div class="flex items-center gap-2">
+              <div class="list-row-telemetry">
                 <!-- Prioridade Rápida -->
                 <button 
                   v-if="getPriorityMeta(game.priority)"
@@ -1707,7 +1707,7 @@
               </div>
 
               <!-- Ações da Linha (Apenas Modo Dono) -->
-              <div v-if="!isPublicViewMode" class="flex items-center gap-1.5 sm:gap-2">
+              <div v-if="!isPublicViewMode" class="list-row-buttons">
                 <!-- Botões Subir/Descer Posição -->
                 <div v-if="nowPlayingGames.length > 1" class="hidden md:flex items-center gap-0.5 text-slate-400">
                   <button 
@@ -2109,7 +2109,7 @@
               @dragover.prevent="onGameDragOver($event, game, null)"
               @drop.prevent="onGameDrop($event, game, null)"
               @dragend="onGameDragEnd"
-              class="nowplaying-list-row p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 select-none cursor-pointer group hover:bg-slate-900/60 transition-colors"
+              class="nowplaying-list-row select-none cursor-pointer group hover:bg-slate-900/60 transition-colors"
               :class="{
                 'drag-row-source': draggedGameId === game.id,
                 'drag-row-target': dragOverGameId === game.id && draggedGameId !== game.id
@@ -2117,7 +2117,7 @@
               @click="openDetail(game)"
             >
               <!-- Bloco Esquerdo: Drag Handle, Capa e Título -->
-              <div class="list-row-main flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full sm:w-auto sm:flex-1">
+              <div class="list-row-main min-w-0">
                 <!-- Puxador de Arraste e Posição -->
                 <div class="flex items-center gap-1 flex-shrink-0 text-slate-500 group-hover:text-amber-400" @click.stop>
                   <i data-lucide="grip-vertical" class="w-4 h-4 cursor-grab active:cursor-grabbing"></i>
@@ -2182,9 +2182,9 @@
               </div>
 
               <!-- Bloco Direito: Prioridade + HLTB + Botão "▶️ Jogar Agora" + Reordenação + Ações -->
-              <div class="list-row-actions flex items-center justify-between sm:justify-end gap-2 sm:gap-3.5 w-full sm:w-auto flex-wrap sm:flex-nowrap border-t border-slate-800/60 sm:border-0 pt-2 sm:pt-0 mt-0.5 sm:mt-0 flex-shrink-0" @click.stop>
+              <div class="list-row-actions flex-shrink-0" @click.stop>
                 <!-- Metadados de Telemetria (Prioridade + HLTB) -->
-                <div class="flex items-center gap-2">
+                <div class="list-row-telemetry">
                   <!-- Prioridade Rápida -->
                   <button 
                     v-if="getPriorityMeta(game.priority)"
@@ -2228,7 +2228,7 @@
                 </div>
 
                 <!-- Ações do Backlog (Apenas Modo Dono) -->
-                <div v-if="!isPublicViewMode" class="flex items-center gap-1.5 sm:gap-2">
+                <div v-if="!isPublicViewMode" class="list-row-buttons">
                   <!-- Botão Destaque: Jogar Agora (Coloca no Jogando Agora) -->
                   <button 
                     type="button" 
@@ -3074,7 +3074,7 @@
           v-else-if="currentGrouping === 'all' && currentLayout === 'table' && filteredFinishedGames.length > 0" 
           class="bg-[#12141c] rounded-2xl border border-slate-800/80 overflow-hidden shadow-xl w-full"
         >
-          <div class="overflow-x-auto w-full game-table-container">
+          <div class="zerados-table-desktop overflow-x-auto w-full">
             <table class="w-full text-left text-xs sm:text-sm text-slate-300">
               <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                 <tr>
@@ -3413,6 +3413,124 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- 2. LISTA COMPACTA (MOBILE / LARGURA REDUZIDA < 768px) - Sem barra de rolagem -->
+          <div class="zerados-compact-list-mobile divide-y divide-slate-800/70">
+            <div 
+              v-for="(game, index) in filteredFinishedGames" 
+              :key="'m-all-' + game.id"
+              class="zerados-compact-row p-2.5 flex items-center justify-between gap-2.5 select-none cursor-pointer hover:bg-slate-800/40 active:bg-slate-800/60 transition-colors"
+              :class="{
+                'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
+                'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+              }"
+              @click="openDetail(game)"
+            >
+              <!-- Esquerda: Miniatura + Info Principal -->
+              <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <!-- Índice # -->
+                <span class="font-mono text-xs font-bold text-slate-500 w-5 text-center flex-shrink-0">#{{ index + 1 }}</span>
+
+                <!-- Mini Capa -->
+                <div 
+                  v-if="!hideTableCovers" 
+                  class="w-10 h-13 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900 border"
+                  :class="game.isPlatinum ? 'border-amber-500/60 shadow-sm' : 'border-slate-800'"
+                >
+                  <img 
+                    :src="game.coverUrl" 
+                    :alt="game.title" 
+                    @error="handleImageError($event, game)" 
+                    class="w-full h-full object-cover pointer-events-none" 
+                    loading="lazy" 
+                    decoding="async"
+                  />
+                </div>
+
+                <!-- Detalhes do Jogo -->
+                <div class="min-w-0 flex-1 space-y-1">
+                  <!-- Título + Badges de Destaque -->
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <strong class="text-white font-bold text-xs truncate max-w-[170px] sm:max-w-xs block">
+                      {{ game.title }}
+                    </strong>
+                    <!-- Platina -->
+                    <span v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="text-amber-400 flex-shrink-0" title="Platinado">
+                      <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                    </span>
+                    <!-- Rejogando / Rejogado -->
+                    <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-0.5 flex-shrink-0">
+                      <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
+                      <span>Rejogado</span>
+                    </span>
+                  </div>
+
+                  <!-- Metadados em linha: Plataforma + Tempo + Data -->
+                  <div class="flex items-center gap-2 flex-wrap text-[10px] text-slate-400">
+                    <!-- Plataforma -->
+                    <span 
+                      class="font-bold px-1.5 py-0.5 rounded border tracking-wider uppercase inline-flex items-center gap-1"
+                      :class="getPlatformBadgeColor(game.platform)"
+                    >
+                      <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                      <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                    </span>
+
+                    <!-- Tempo -->
+                    <span class="inline-flex items-center gap-1 font-mono font-semibold text-cyan-300">
+                      <i data-lucide="clock" class="w-2.5 h-2.5 text-cyan-400"></i>
+                      {{ formatPlaytime(game) }}
+                    </span>
+
+                    <!-- Data de Conclusão / Ano -->
+                    <span v-if="game.completionDate" class="font-mono text-slate-400">
+                      {{ formatDate(game.completionDate) }}
+                    </span>
+                    <span v-else-if="game.completionYear" class="font-mono text-slate-400">
+                      {{ game.completionYear }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Direita: Nota em Destaque + Ações -->
+              <div class="flex items-center gap-2 flex-shrink-0" @click.stop>
+                <!-- Nota -->
+                <div 
+                  v-if="game.rating === 11" 
+                  class="inline-flex items-center gap-1 badge-nota-11 px-2 py-1 rounded-lg text-xs font-black shadow-sm"
+                >
+                  <span>★ 11</span>
+                </div>
+                <div 
+                  v-else-if="game.rating !== null && game.rating !== undefined" 
+                  class="inline-block px-2 py-0.5 rounded-md font-bold text-xs"
+                  :class="getRatingBadgeClass(game.rating)"
+                >
+                  {{ game.rating }}/10
+                </div>
+
+                <!-- Ações Rápidas (Modo Dono) -->
+                <div v-if="!isPublicViewMode" class="flex items-center gap-0.5">
+                  <button 
+                    @click="toggleNowPlayingStatus(game)" 
+                    :title="game.isNowPlaying ? 'Remover de Jogando Agora' : 'Incluir no Jogando Agora'"
+                    :class="game.isNowPlaying ? 'text-indigo-400 bg-indigo-950/60 border border-indigo-500/40' : 'text-slate-400 hover:text-white'"
+                    class="p-1.5 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <i data-lucide="gamepad-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button 
+                    @click="openEditGame(game)" 
+                    title="Editar Jogo"
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -3781,7 +3899,7 @@
               v-else-if="currentLayout === 'table'"
               class="bg-[#12141c] rounded-2xl border border-slate-800/80 overflow-hidden shadow-xl w-full"
             >
-              <div class="overflow-x-auto w-full game-table-container">
+              <div class="zerados-table-desktop overflow-x-auto w-full">
                 <table class="w-full text-left text-xs sm:text-sm text-slate-300">
                   <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                     <tr>
@@ -4121,6 +4239,124 @@
                   </tbody>
                 </table>
               </div>
+
+              <!-- 2. LISTA COMPACTA (MOBILE / LARGURA REDUZIDA < 768px) - Sem barra de rolagem -->
+              <div class="zerados-compact-list-mobile divide-y divide-slate-800/70">
+                <div 
+                  v-for="(game, index) in selectedYearGames" 
+                  :key="'m-year-' + game.id"
+                  class="zerados-compact-row p-2.5 flex items-center justify-between gap-2.5 select-none cursor-pointer hover:bg-slate-800/40 active:bg-slate-800/60 transition-colors"
+                  :class="{
+                    'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
+                    'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+                  }"
+                  @click="openDetail(game)"
+                >
+                  <!-- Esquerda: Miniatura + Info Principal -->
+                  <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <!-- Índice # -->
+                    <span class="font-mono text-xs font-bold text-slate-500 w-5 text-center flex-shrink-0">#{{ index + 1 }}</span>
+
+                    <!-- Mini Capa -->
+                    <div 
+                      v-if="!hideTableCovers" 
+                      class="w-10 h-13 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900 border"
+                      :class="game.isPlatinum ? 'border-amber-500/60 shadow-sm' : 'border-slate-800'"
+                    >
+                      <img 
+                        :src="game.coverUrl" 
+                        :alt="game.title" 
+                        @error="handleImageError($event, game)" 
+                        class="w-full h-full object-cover pointer-events-none" 
+                        loading="lazy" 
+                        decoding="async"
+                      />
+                    </div>
+
+                    <!-- Detalhes do Jogo -->
+                    <div class="min-w-0 flex-1 space-y-1">
+                      <!-- Título + Badges de Destaque -->
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <strong class="text-white font-bold text-xs truncate max-w-[170px] sm:max-w-xs block">
+                          {{ game.title }}
+                        </strong>
+                        <!-- Platina -->
+                        <span v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="text-amber-400 flex-shrink-0" title="Platinado">
+                          <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <!-- Rejogando / Rejogado -->
+                        <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-0.5 flex-shrink-0">
+                          <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
+                          <span>Rejogado</span>
+                        </span>
+                      </div>
+
+                      <!-- Metadados em linha: Plataforma + Tempo + Data -->
+                      <div class="flex items-center gap-2 flex-wrap text-[10px] text-slate-400">
+                        <!-- Plataforma -->
+                        <span 
+                          class="font-bold px-1.5 py-0.5 rounded border tracking-wider uppercase inline-flex items-center gap-1"
+                          :class="getPlatformBadgeColor(game.platform)"
+                        >
+                          <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                          <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                        </span>
+
+                        <!-- Tempo -->
+                        <span class="inline-flex items-center gap-1 font-mono font-semibold text-cyan-300">
+                          <i data-lucide="clock" class="w-2.5 h-2.5 text-cyan-400"></i>
+                          {{ formatPlaytime(game) }}
+                        </span>
+
+                        <!-- Data de Conclusão / Ano -->
+                        <span v-if="game.completionDate" class="font-mono text-slate-400">
+                          {{ formatDate(game.completionDate) }}
+                        </span>
+                        <span v-else-if="game.completionYear" class="font-mono text-slate-400">
+                          {{ game.completionYear }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Direita: Nota em Destaque + Ações -->
+                  <div class="flex items-center gap-2 flex-shrink-0" @click.stop>
+                    <!-- Nota -->
+                    <div 
+                      v-if="game.rating === 11" 
+                      class="inline-flex items-center gap-1 badge-nota-11 px-2 py-1 rounded-lg text-xs font-black shadow-sm"
+                    >
+                      <span>★ 11</span>
+                    </div>
+                    <div 
+                      v-else-if="game.rating !== null && game.rating !== undefined" 
+                      class="inline-block px-2 py-0.5 rounded-md font-bold text-xs"
+                      :class="getRatingBadgeClass(game.rating)"
+                    >
+                      {{ game.rating }}/10
+                    </div>
+
+                    <!-- Ações Rápidas (Modo Dono) -->
+                    <div v-if="!isPublicViewMode" class="flex items-center gap-0.5">
+                      <button 
+                        @click="toggleNowPlayingStatus(game)" 
+                        :title="game.isNowPlaying ? 'Remover de Jogando Agora' : 'Incluir no Jogando Agora'"
+                        :class="game.isNowPlaying ? 'text-indigo-400 bg-indigo-950/60 border border-indigo-500/40' : 'text-slate-400 hover:text-white'"
+                        class="p-1.5 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <i data-lucide="gamepad-2" class="w-3.5 h-3.5"></i>
+                      </button>
+                      <button 
+                        @click="openEditGame(game)" 
+                        title="Editar Jogo"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -4360,7 +4596,8 @@
                 v-else-if="currentLayout === 'table'"
                 class="bg-[#12141c] rounded-2xl border border-slate-800/80 overflow-hidden shadow-xl w-full"
               >
-                <div class="overflow-x-auto w-full game-table-container">
+                <!-- 1. TABELA COMPLETA (DESKTOP >= 768px) -->
+                <div class="zerados-table-desktop overflow-x-auto w-full">
                   <table class="w-full text-left text-xs sm:text-sm text-slate-300">
                     <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                       <tr>
@@ -4690,6 +4927,124 @@
                       </tr>
                     </tbody>
                   </table>
+                </div>
+
+                <!-- 2. LISTA COMPACTA (MOBILE / LARGURA REDUZIDA < 768px) - Sem barra de rolagem -->
+                <div class="zerados-compact-list-mobile divide-y divide-slate-800/70">
+                  <div 
+                    v-for="(game, index) in yearGroup.games" 
+                    :key="'m-yg-' + game.id"
+                    class="zerados-compact-row p-2.5 flex items-center justify-between gap-2.5 select-none cursor-pointer hover:bg-slate-800/40 active:bg-slate-800/60 transition-colors"
+                    :class="{
+                      'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
+                      'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+                    }"
+                    @click="openDetail(game)"
+                  >
+                    <!-- Esquerda: Miniatura + Info Principal -->
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                      <!-- Índice # -->
+                      <span class="font-mono text-xs font-bold text-slate-500 w-5 text-center flex-shrink-0">#{{ index + 1 }}</span>
+
+                      <!-- Mini Capa -->
+                      <div 
+                        v-if="!hideTableCovers" 
+                        class="w-10 h-13 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900 border" 
+                        :class="game.isPlatinum ? 'border-amber-500/60 shadow-sm' : 'border-slate-800'"
+                      >
+                        <img 
+                          :src="game.coverUrl" 
+                          :alt="game.title" 
+                          @error="handleImageError($event, game)" 
+                          class="w-full h-full object-cover pointer-events-none" 
+                          loading="lazy" 
+                          decoding="async"
+                        />
+                      </div>
+
+                      <!-- Detalhes do Jogo -->
+                      <div class="min-w-0 flex-1 space-y-1">
+                        <!-- Título + Badges de Destaque -->
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <strong class="text-white font-bold text-xs truncate max-w-[170px] sm:max-w-xs block">
+                            {{ game.title }}
+                          </strong>
+                          <!-- Platina -->
+                          <span v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="text-amber-400 flex-shrink-0" title="Platinado">
+                            <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                          </span>
+                          <!-- Rejogando / Rejogado -->
+                          <span v-if="isGameReplay(game)" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50 uppercase tracking-wider inline-flex items-center gap-0.5 flex-shrink-0">
+                            <i data-lucide="repeat" class="w-2.5 h-2.5 text-amber-400"></i>
+                            <span>Rejogado</span>
+                          </span>
+                        </div>
+
+                        <!-- Metadados em linha: Plataforma + Tempo + Data -->
+                        <div class="flex items-center gap-2 flex-wrap text-[10px] text-slate-400">
+                          <!-- Plataforma -->
+                          <span 
+                            class="font-bold px-1.5 py-0.5 rounded border tracking-wider uppercase inline-flex items-center gap-1"
+                            :class="getPlatformBadgeColor(game.platform)"
+                          >
+                            <i :data-lucide="getPlatformIcon(game.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                            <span class="truncate max-w-[80px]">{{ game.platform }}</span>
+                          </span>
+
+                          <!-- Tempo -->
+                          <span class="inline-flex items-center gap-1 font-mono font-semibold text-cyan-300">
+                            <i data-lucide="clock" class="w-2.5 h-2.5 text-cyan-400"></i>
+                            {{ formatPlaytime(game) }}
+                          </span>
+
+                          <!-- Data de Conclusão / Ano -->
+                          <span v-if="game.completionDate" class="font-mono text-slate-400">
+                            {{ formatDate(game.completionDate) }}
+                          </span>
+                          <span v-else-if="game.completionYear" class="font-mono text-slate-400">
+                            {{ game.completionYear }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Direita: Nota em Destaque + Ações -->
+                    <div class="flex items-center gap-2 flex-shrink-0" @click.stop>
+                      <!-- Nota -->
+                      <div 
+                        v-if="game.rating === 11" 
+                        class="inline-flex items-center gap-1 badge-nota-11 px-2 py-1 rounded-lg text-xs font-black shadow-sm"
+                      >
+                        <span>★ 11</span>
+                      </div>
+                      <div 
+                        v-else-if="game.rating !== null && game.rating !== undefined" 
+                        class="inline-block px-2 py-0.5 rounded-md font-bold text-xs"
+                        :class="getRatingBadgeClass(game.rating)"
+                      >
+                        {{ game.rating }}/10
+                      </div>
+
+                      <!-- Ações Rápidas (Modo Dono) -->
+                      <div v-if="!isPublicViewMode" class="flex items-center gap-0.5">
+                        <button 
+                          @click="toggleNowPlayingStatus(game)" 
+                          :title="game.isNowPlaying ? 'Remover de Jogando Agora' : 'Incluir no Jogando Agora'"
+                          :class="game.isNowPlaying ? 'text-indigo-400 bg-indigo-950/60 border border-indigo-500/40' : 'text-slate-400 hover:text-white'"
+                          class="p-1.5 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <i data-lucide="gamepad-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button 
+                          @click="openEditGame(game)" 
+                          title="Editar Jogo"
+                          class="p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

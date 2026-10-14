@@ -91,6 +91,7 @@ function initApp() {
       const onlyEarlyAccessFilter = ref(false);
       const onlyDuplicatesFilter = ref(false);
       const isMobileFilterOpen = ref(false);
+      const isNarrowScreen = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
       const activeFiltersCount = computed(() => {
         let count = 0;
@@ -703,6 +704,9 @@ function initApp() {
         }
 
         refreshLucideIcons();
+        window.addEventListener('resize', () => {
+          isNarrowScreen.value = window.innerWidth < 768;
+        });
 
         // Global Keyboard Shortcuts (Escape, /, Ctrl+K, N)
         window.addEventListener('keydown', (e) => {
@@ -4941,6 +4945,7 @@ function initApp() {
         yearFilter,
         sortBy,
         isMobileFilterOpen,
+        isNarrowScreen,
         activeFiltersCount,
         resetAllFilters,
         toasts,

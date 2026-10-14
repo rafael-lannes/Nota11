@@ -778,12 +778,79 @@ tr.game-row, .game-table-row {
   overflow: hidden;
 }
 
+/* DESKTOP (padrão): Linha horizontal limpa e perfeita de nível único */
 .nowplaying-list-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+  padding: 0.625rem 0.85rem !important;
   transition: background-color 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.nowplaying-list-row .list-row-main {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  min-width: 0 !important;
+  flex: 1 1 0% !important;
+  width: auto !important;
+}
+
+.nowplaying-list-row .list-row-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.75rem !important;
+  flex-shrink: 0 !important;
+  width: auto !important;
+  border-top: none !important;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+.nowplaying-list-row .list-row-telemetry {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.nowplaying-list-row .list-row-buttons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.375rem !important;
 }
 
 .nowplaying-list-row:hover {
   background-color: rgba(30, 35, 52, 0.5);
+}
+
+/* MOBILE (< 768px): Card compacto com 2 níveis para evitar sobreposições e corte de botões */
+@media (max-width: 767px) {
+  .nowplaying-list-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+    padding: 0.625rem !important;
+  }
+
+  .nowplaying-list-row .list-row-main {
+    width: 100% !important;
+    flex: none !important;
+    gap: 0.5rem !important;
+  }
+
+  .nowplaying-list-row .list-row-actions {
+    width: 100% !important;
+    justify-content: space-between !important;
+    border-top: 1px solid rgba(34, 39, 56, 0.7) !important;
+    padding-top: 0.45rem !important;
+    margin-top: 0.1rem !important;
+    flex-wrap: wrap !important;
+  }
 }
 
 .drag-row-source {
@@ -1092,22 +1159,40 @@ tr.game-row, .game-table-row {
 }
 
 /* ==========================================================================
-   TABELAS DE JOGOS ZERADOS - ROLAGEM HORIZONTAL SUAVE NO MOBILE
+   BIBLIOTECA DE ZERADOS - MODO TABELA DESKTOP vs LISTA COMPACTA MOBILE
    ========================================================================== */
-.game-table-container {
-  overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch;
+.zerados-table-desktop {
+  display: block;
+  width: 100%;
 }
 
-@media (max-width: 768px) {
-  .game-table-container table {
-    min-width: 680px !important;
+.zerados-compact-list-mobile {
+  display: none;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.zerados-compact-row {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .zerados-table-desktop {
+    display: none !important;
   }
-  .game-table-container th,
-  .game-table-container td {
-    white-space: nowrap !important;
-    padding: 0.6rem 0.5rem !important;
-    font-size: 0.75rem !important;
+  .zerados-compact-list-mobile {
+    display: block !important;
   }
 }
+
+@media (min-width: 768px) {
+  .zerados-table-desktop {
+    display: block !important;
+  }
+  .zerados-compact-list-mobile {
+    display: none !important;
+  }
+}
+
 
