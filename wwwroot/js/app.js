@@ -434,6 +434,7 @@ function initApp() {
         nickname: 'Gamer Master',
         avatarUrl: '',
         bannerUrl: '',
+        bannerPositionY: 50,
         bio: 'Registro pessoal de jogos concluídos, tempos e avaliações.',
         favoritePlatform: 'PC',
         favoriteGenre: '',
@@ -455,6 +456,7 @@ function initApp() {
         nickname: userProfile.value.nickname || '',
         avatarUrl: userProfile.value.avatarUrl || '',
         bannerUrl: userProfile.value.bannerUrl || '',
+        bannerPositionY: userProfile.value.bannerPositionY ?? 50,
         bio: userProfile.value.bio || '',
         favoritePlatform: userProfile.value.favoritePlatform || 'PC',
         favoriteGenre: userProfile.value.favoriteGenre || '',
@@ -717,6 +719,7 @@ function initApp() {
           nickname: userProfile.value.nickname || '',
           avatarUrl: userProfile.value.avatarUrl || '',
           bannerUrl: userProfile.value.bannerUrl || '',
+          bannerPositionY: userProfile.value.bannerPositionY ?? 50,
           bio: userProfile.value.bio || '',
           favoritePlatform: userProfile.value.favoritePlatform || 'PC',
           favoriteGenre: userProfile.value.favoriteGenre || '',
@@ -3475,6 +3478,7 @@ function initApp() {
           nickname: userProfile.value.nickname || '',
           avatarUrl: userProfile.value.avatarUrl || '',
           bannerUrl: userProfile.value.bannerUrl || '',
+          bannerPositionY: userProfile.value.bannerPositionY ?? 50,
           bio: userProfile.value.bio || '',
           favoritePlatform: userProfile.value.favoritePlatform || 'PC - Computador',
           favoriteGenre: userProfile.value.favoriteGenre || '',
@@ -3906,9 +3910,49 @@ Headset / Áudio: `;
         const reader = new FileReader();
         reader.onload = (e) => {
           editProfileForm.value.bannerUrl = e.target.result;
-          showToast('Capa de perfil carregada com sucesso!', 'info');
+          editProfileForm.value.bannerPositionY = 50;
+          showToast('Capa carregada! Ajuste o enquadramento abaixo se desejar.', 'info');
         };
         reader.readAsDataURL(file);
+      };
+
+      // Reposicionamento Interativo da Capa / Banner
+      let isDraggingBanner = false;
+      let bannerDragStartY = 0;
+      let bannerDragInitialPos = 50;
+
+      const startBannerDrag = (event) => {
+        if (!editProfileForm.value.bannerUrl) return;
+        isDraggingBanner = true;
+        const clientY = event.clientY ?? (event.touches && event.touches[0] ? event.touches[0].clientY : 0);
+        bannerDragStartY = clientY;
+        bannerDragInitialPos = typeof editProfileForm.value.bannerPositionY === 'number' ? editProfileForm.value.bannerPositionY : 50;
+
+        const onDragMove = (e) => {
+          if (!isDraggingBanner) return;
+          const currentY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : bannerDragStartY);
+          const deltaY = currentY - bannerDragStartY;
+          // Arrastar para baixo move a imagem para baixo (revelando topo, ou seja, diminui Y)
+          const newPos = Math.round(bannerDragInitialPos - (deltaY * 0.45));
+          editProfileForm.value.bannerPositionY = Math.max(0, Math.min(100, newPos));
+        };
+
+        const onDragEnd = () => {
+          isDraggingBanner = false;
+          window.removeEventListener('mousemove', onDragMove);
+          window.removeEventListener('mouseup', onDragEnd);
+          window.removeEventListener('touchmove', onDragMove);
+          window.removeEventListener('touchend', onDragEnd);
+        };
+
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchmove', onDragMove);
+        window.addEventListener('touchend', onDragEnd);
+      };
+
+      const setBannerPositionPreset = (val) => {
+        editProfileForm.value.bannerPositionY = Math.max(0, Math.min(100, Math.round(val)));
       };
 
       const openResetProfileConfirm = () => {
@@ -3927,6 +3971,7 @@ Headset / Áudio: `;
             nickname: 'Gamer Master',
             avatarUrl: '',
             bannerUrl: '',
+            bannerPositionY: 50,
             bio: 'Registro pessoal de jogos concluídos, tempos e avaliações.',
             favoritePlatform: 'PC',
             favoriteGenre: ''
@@ -3937,6 +3982,7 @@ Headset / Áudio: `;
           nickname: userProfile.value.nickname || '',
           avatarUrl: userProfile.value.avatarUrl || '',
           bannerUrl: userProfile.value.bannerUrl || '',
+          bannerPositionY: 50,
           bio: userProfile.value.bio || '',
           favoritePlatform: userProfile.value.favoritePlatform || 'PC',
           favoriteGenre: userProfile.value.favoriteGenre || ''
@@ -5608,6 +5654,8 @@ Headset / Áudio: `;
         saveProfile,
         handleAvatarUpload,
         handleBannerUpload,
+        startBannerDrag,
+        setBannerPositionPreset,
         getSocialUrl,
         getSocialDisplay,
         hasSocialLinks,
