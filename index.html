@@ -6211,18 +6211,18 @@
 
           <!-- Top Row: Avatar, Nome, Nickname, Bio e Ações do Dono -->
           <div class="relative flex flex-col md:flex-row items-center md:items-start justify-between gap-6 pb-6 border-b border-slate-800/80">
-            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 text-center sm:text-left flex-1 min-w-0">
-              <!-- Avatar com Borda e Badge Nota 11 (Tamanho Padrão & Bem Enquadrado) -->
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left flex-1 min-w-0">
+              <!-- Avatar com Borda e Badge Nota 11 (Estilo Crachá: Proporcional & Alinhado à Bio) -->
               <div class="relative group flex-shrink-0 self-center sm:self-start">
-                <div class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl overflow-hidden bg-slate-900 border-2 border-amber-500/50 p-1 shadow-xl shadow-amber-500/15 transition-transform group-hover:scale-105">
-                  <div class="w-full h-full rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center">
+                <div class="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl overflow-hidden bg-slate-900 border-2 border-amber-500/60 p-0.5 sm:p-1 shadow-lg shadow-amber-500/10 transition-transform group-hover:scale-105">
+                  <div class="w-full h-full rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center">
                     <img v-if="userProfile.avatarUrl" :src="userProfile.avatarUrl" :alt="userProfile.nickname || userProfile.name" class="w-full h-full object-cover" />
-                    <span v-else class="text-3xl sm:text-4xl font-black text-amber-400">
+                    <span v-else class="text-2xl sm:text-3xl font-black text-amber-400">
                       {{ (userProfile.nickname || userProfile.name || 'J').charAt(0).toUpperCase() }}
                     </span>
                   </div>
                 </div>
-                <span class="absolute -bottom-1 -right-1 badge-nota-11 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-lg shadow-md" title="Membro Nota 11">
+                <span class="absolute -bottom-1 -right-1 badge-nota-11 text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-md" title="Membro Nota 11">
                   ★ 11
                 </span>
               </div>
@@ -6452,55 +6452,26 @@
             </div>
           </div>
 
-          <!-- Card de Compartilhamento do Link Público (Apenas para o Dono) - Compacto & Sem Exibição de Link Longo -->
-          <div v-if="!isPublicViewMode && publicProfileShareUrl" class="px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl bg-indigo-950/25 border border-indigo-500/25 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0 w-full sm:w-auto">
-              <div class="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0 shadow-sm">
-                <i data-lucide="share-2" class="w-4 h-4"></i>
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="text-xs sm:text-sm font-bold text-white">Link Público do seu Perfil</span>
-                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                    <span>ATIVO NA NUVEM</span>
-                  </span>
-                </div>
-                <p class="text-[11px] text-slate-400 truncate">Compartilhe seu perfil e seus nichos com outros jogadores</p>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto justify-end flex-shrink-0">
-              <button 
-                type="button"
-                @click="syncToCloud(true)"
-                :disabled="isCloudSyncing"
-                class="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                title="Sincronizar dados e nichos com a nuvem agora"
-              >
-                <i data-lucide="cloud" class="w-3.5 h-3.5" :class="{ 'animate-pulse text-cyan-400': isCloudSyncing }"></i>
-                <span>{{ isCloudSyncing ? 'Sincronizando...' : 'Sincronizar Nuvem' }}</span>
-              </button>
-
-              <button 
-                type="button"
-                @click="copyPublicProfileUrl" 
-                class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
-                title="Copiar link do perfil público"
-              >
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                <span>Copiar Link</span>
-              </button>
-
-              <button 
-                type="button" 
-                @click="openExternalUrl(publicProfileShareUrl)" 
-                class="p-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition-colors cursor-pointer" 
-                title="Visualizar como visitante em nova aba"
-              >
-                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
+          <!-- Ações do Link Público: Apenas Botão de Copiar Link e Ver em Nova Aba -->
+          <div v-if="!isPublicViewMode && publicProfileShareUrl" class="flex items-center justify-end gap-2.5 pt-1">
+            <button 
+              type="button"
+              @click="copyPublicProfileUrl" 
+              class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+              title="Copiar link do perfil público"
+            >
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>Copiar Link</span>
+            </button>
+            <button 
+              type="button" 
+              @click="openExternalUrl(publicProfileShareUrl)" 
+              class="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer" 
+              title="Visualizar perfil como visitante em nova aba"
+            >
+              <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>Ver em Nova Aba</span>
+            </button>
           </div>
         </div>
 
@@ -11961,8 +11932,8 @@
   <script src="js/services/screenScraperService.js?v=1.2.6"></script>
   <script src="js/services/igdbService.js?v=1.2.6"></script>
   <script src="js/services/hltbService.js?v=1.2.6"></script>
-  <script src="js/services/supabaseService.js?v=1.3.3"></script>
-  <script src="js/services/storageService.js?v=1.3.3"></script>
-  <script src="js/app.js?v=1.3.3"></script>
+  <script src="js/services/supabaseService.js?v=1.3.4"></script>
+  <script src="js/services/storageService.js?v=1.3.4"></script>
+  <script src="js/app.js?v=1.3.4"></script>
 </body>
 </html>
