@@ -196,8 +196,8 @@ function initApp() {
       const isSetupModalOpen = ref(false);
       const isResetProfileConfirmOpen = ref(false);
       const isAboutOpen = ref(false);
-      const appVersion = ref('beta web 1.0');
-      const appVersionDisplay = ref('beta web 1.0');
+      const appVersion = ref('beta Web 1.2');
+      const appVersionDisplay = ref('beta Web 1.2');
       const isToolsMenuOpen = ref(false);
       const isNowPlayingMenuOpen = ref(false);
       const isShareModalOpen = ref(false);

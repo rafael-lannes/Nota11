@@ -12,10 +12,10 @@
     <AssemblyTitle>Nota 11 - Game Tracker &amp; Masterpieces</AssemblyTitle>
     <Company>Nota 11</Company>
     <Product>Nota 11 Game Tracker</Product>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <InformationalVersion>1.0.0</InformationalVersion>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <InformationalVersion>1.2.0-beta</InformationalVersion>
     <Authors>Rafael Lannes</Authors>
     <Copyright>Copyright © 2026 Rafael Lannes</Copyright>
     <Description>Rastreador de Jogos, Gêneros, Masterpieces e Analytics</Description>
