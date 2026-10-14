@@ -91,6 +91,11 @@ function initApp() {
       const onlyEarlyAccessFilter = ref(false);
       const onlyDuplicatesFilter = ref(false);
       const isMobileFilterOpen = ref(false);
+      const isZeradosControlsOpen = ref(false);
+      const toggleZeradosControls = () => {
+        isZeradosControlsOpen.value = !isZeradosControlsOpen.value;
+        nextTick(() => refreshLucideIcons());
+      };
       const isNarrowScreen = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
       const activeFiltersCount = computed(() => {
@@ -5058,6 +5063,8 @@ function initApp() {
         yearFilter,
         sortBy,
         isMobileFilterOpen,
+        isZeradosControlsOpen,
+        toggleZeradosControls,
         isNarrowScreen,
         activeFiltersCount,
         resetAllFilters,

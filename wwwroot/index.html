@@ -2559,8 +2559,38 @@
               <p class="text-xs sm:text-sm text-slate-400">Histórico completo de jogos finalizados, platinas e avaliações.</p>
             </div>
 
-            <div></div>
+            <!-- Botão de Abertura do Menu Colapsável "Visão e busca" -->
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+              <button 
+                type="button"
+                @click="toggleZeradosControls"
+                class="px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all cursor-pointer shadow-md active:scale-95 select-none"
+                :class="isZeradosControlsOpen 
+                  ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-600/30' 
+                  : 'bg-[#12141c] hover:bg-slate-800 text-slate-200 border-slate-700/80 hover:border-slate-600'"
+                title="Abrir ou recolher visão, busca, filtros, anos e estatísticas"
+                aria-label="Abrir ou recolher visão e busca"
+              >
+                <i data-lucide="sliders-horizontal" class="w-4 h-4" :class="isZeradosControlsOpen ? 'text-white' : 'text-indigo-400'"></i>
+                <span>Visão e busca</span>
+                <span v-if="currentGrouping === 'year'" class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-mono font-bold border border-slate-700">
+                  {{ selectedYearTab === 'ALL' ? 'Todos os Anos' : selectedYearTab }}
+                </span>
+                <span v-if="activeFiltersCount > 0" class="px-1.5 py-0.2 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">
+                  {{ activeFiltersCount }}
+                </span>
+                <i :data-lucide="isZeradosControlsOpen ? 'chevron-up' : 'chevron-down'" class="w-4 h-4 text-slate-400"></i>
+              </button>
+            </div>
           </div>
+
+          <!-- ============================================================
+               NICHO COLAPSÁVEL: VISÃO, BUSCA, FILTROS, ANOS E ESTATÍSTICAS
+               ============================================================ -->
+          <div 
+            v-show="isZeradosControlsOpen" 
+            class="space-y-4 animate-in fade-in duration-200"
+          >
 
           <!-- Barra de Filtros, Busca e Alternador de Visão -->
           <div class="bg-[#12141c] p-3 sm:p-4 rounded-2xl border border-slate-800 shadow-sm space-y-3">
@@ -2885,7 +2915,268 @@
             </div>
 
           </div>
-        </div>
+
+          <!-- Seletor de Anos e Banner de Estatísticas (se currentGrouping === 'year') -->
+          <div v-if="currentGrouping === 'year' && filteredFinishedGames.length > 0" class="space-y-4">
+            <!-- Seletor de Abas de Anos (Pills de Navegação Rápida - Anos em Destaque, Todos os Anos Secundário) -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800/80 scrollbar-thin">
+              <!-- Pills para cada Ano Individual Disponível (Ordem Cronológica Mais Recente Primeiro) -->
+              <button 
+                v-for="yItem in yearlyStatsList" 
+                :key="yItem.year"
+                @click="selectYearTab(yItem.year)"
+                :class="selectedYearTab === yItem.year ? 'bg-indigo-600 text-white font-semibold shadow-sm border-indigo-500' : 'bg-slate-900/90 text-slate-400 hover:text-white hover:bg-slate-800 border-slate-800'"
+                class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm border transition-all whitespace-nowrap flex-shrink-0"
+                :title="'Ver jogos concluídos em ' + yItem.year"
+              >
+                <i data-lucide="calendar" class="w-3.5 h-3.5" :class="selectedYearTab === yItem.year ? 'text-white' : 'text-slate-500'"></i>
+                <span>{{ yItem.year }}</span>
+                <span 
+                  v-if="isCurrentYear(yItem.year)"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-tight bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                >
+                  Atual
+                </span>
+                <span 
+                  class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                  :class="selectedYearTab === yItem.year ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'"
+                >
+                  {{ yItem.totalGames }}
+                </span>
+              </button>
+
+              <!-- Divisor sutil antes da visão secundária consolidada -->
+              <div v-if="yearlyStatsList.length > 0" class="h-6 w-px bg-slate-800/80 flex-shrink-0 mx-1"></div>
+
+              <!-- Botão Todos os Anos (Secundário / Consolidado ao Final) -->
+              <button 
+                @click="selectYearTab('ALL')"
+                :class="selectedYearTab === 'ALL' ? 'bg-indigo-600 text-white font-semibold shadow-sm border-indigo-500' : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border-slate-800/90'"
+                class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm border transition-all whitespace-nowrap flex-shrink-0"
+                title="Exibir todos os anos agrupados de forma consolidada"
+              >
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                <span>Todos os Anos</span>
+                <span 
+                  class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                  :class="selectedYearTab === 'ALL' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'"
+                >
+                  {{ finishedGames.length }}
+                </span>
+              </button>
+            </div>
+
+            <!-- Banner Resumo de Desempenho do Ano Selecionado -->
+            <div class="p-4 sm:p-5 rounded-3xl bg-[#12141c] border border-slate-800/80 shadow-md space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-2xl bg-indigo-600/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-heading font-extrabold text-lg sm:text-xl text-white flex items-center gap-2">
+                      <span>{{ selectedYearStats.title }}</span>
+                      <span v-if="!selectedYearStats.isAll" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                        {{ selectedYearStats.totalGames }} {{ selectedYearStats.totalGames === 1 ? 'jogo concluído' : 'jogos concluídos' }}
+                      </span>
+                    </h3>
+                    <p class="text-xs text-slate-400">
+                      <span v-if="selectedYearStats.isAll">Visão consolidada de todas as jogatinas distribuídas por ano.</span>
+                      <span v-else>Estatísticas e jogos finalizados exclusivamente no ano de {{ selectedYearStats.year }}.</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Ações do Ano: Compartilhar Snapshot + Voltar a Todos os Anos -->
+                <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                  <button 
+                    @click="openShareModal('year', selectedYearStats.year)" 
+                    class="text-xs text-purple-300 hover:text-white flex items-center gap-1.5 font-semibold transition-all px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 border border-purple-500/35 shadow-sm active:scale-95 cursor-pointer"
+                    title="Gerar imagem (.PNG) das conquistas deste ano"
+                  >
+                    <i data-lucide="share-2" class="w-3.5 h-3.5 text-purple-400"></i>
+                    <span>Compartilhar {{ selectedYearStats.isAll ? 'Tudo' : selectedYearStats.year }}</span>
+                  </button>
+
+                  <button 
+                    v-if="!selectedYearStats.isAll"
+                    @click="selectYearTab('ALL')" 
+                    class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 font-medium transition-colors px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 shadow-sm cursor-pointer"
+                  >
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                    <span>Ver Todos os Anos</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Métricas Resumo do Ano -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3 pt-1">
+                <!-- Jogos Zerados -->
+                <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                  <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                    <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>Zerados</span>
+                  </span>
+                  <strong class="text-base sm:text-lg text-white font-extrabold block">{{ selectedYearStats.totalGames }}</strong>
+                </div>
+
+                <!-- Tempo Total -->
+                <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                  <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>Tempo Jogado</span>
+                  </span>
+                  <strong class="text-base sm:text-lg text-cyan-300 font-extrabold block">{{ selectedYearStats.totalPlaytimeFormatted }}</strong>
+                </div>
+
+                <!-- Média de Notas -->
+                <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                  <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                    <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Média Notas</span>
+                  </span>
+                  <strong class="text-base sm:text-lg text-amber-300 font-extrabold block">{{ selectedYearStats.averageRating }}<span class="text-xs text-slate-500 font-normal">/11</span></strong>
+                </div>
+
+                <!-- Platinas -->
+                <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-1">
+                  <span class="text-[11px] text-amber-300 block flex items-center justify-center gap-1">
+                    <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Platinas</span>
+                  </span>
+                  <strong class="text-base sm:text-lg text-amber-200 font-extrabold block">{{ selectedYearStats.platinumCount }}</strong>
+                </div>
+
+                <!-- Nota 11 Masterpieces -->
+                <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-1">
+                  <span class="text-[11px] text-amber-300 block flex items-center justify-center gap-1">
+                    <span>★</span>
+                    <span>Nota 11</span>
+                  </span>
+                  <strong class="text-base sm:text-lg text-amber-300 font-extrabold block">{{ selectedYearStats.masterpiecesCount }}</strong>
+                </div>
+
+                <!-- Portáteis -->
+                <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                  <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                    <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>Portáteis</span>
+                  </span>
+                  <strong class="text-base sm:text-lg text-slate-200 font-extrabold block">{{ selectedYearStats.handheldCount }}</strong>
+                </div>
+
+                <!-- Early Access -->
+                <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                  <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                    <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-purple-400"></i>
+                    <span>Early Access</span>
+                  </span>
+                  <strong class="text-base sm:text-lg text-purple-300 font-extrabold block">{{ selectedYearStats.earlyAccessCount }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Banner Resumo Geral de Estatísticas (se currentGrouping === 'all') -->
+          <div v-else-if="currentGrouping === 'all' && filteredFinishedGames.length > 0" class="p-4 sm:p-5 rounded-3xl bg-[#12141c] border border-slate-800/80 shadow-md space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                  <i data-lucide="layers" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h3 class="font-heading font-extrabold text-lg sm:text-xl text-white flex items-center gap-2">
+                    <span>Biblioteca Geral de Zerados</span>
+                    <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                      {{ finishedGames.length }} {{ finishedGames.length === 1 ? 'jogo concluído' : 'jogos concluídos' }}
+                    </span>
+                  </h3>
+                  <p class="text-xs text-slate-400">Métricas consolidadas de todos os jogos finalizados na história da sua conta.</p>
+                </div>
+              </div>
+
+              <!-- Ações Gerais: Compartilhar Biblioteca -->
+              <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                <button 
+                  @click="openShareModal('year', null)" 
+                  class="text-xs text-purple-300 hover:text-white flex items-center gap-1.5 font-semibold transition-all px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 border border-purple-500/35 shadow-sm active:scale-95 cursor-pointer"
+                  title="Gerar imagem (.PNG) das conquistas de toda a biblioteca"
+                >
+                  <i data-lucide="share-2" class="w-3.5 h-3.5 text-purple-400"></i>
+                  <span>Compartilhar Biblioteca</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Métricas Resumo Geral -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3 pt-1">
+              <!-- Jogos Zerados -->
+              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                  <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>Zerados</span>
+                </span>
+                <strong class="text-base sm:text-lg text-white font-extrabold block">{{ statsOverview.totalFinished }}</strong>
+              </div>
+
+              <!-- Tempo Total -->
+              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                  <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i>
+                  <span>Tempo Jogado</span>
+                </span>
+                <strong class="text-base sm:text-lg text-cyan-300 font-extrabold block">{{ statsOverview.totalPlaytimeFormatted }}</strong>
+              </div>
+
+              <!-- Média de Notas -->
+              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                  <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span>Média Notas</span>
+                </span>
+                <strong class="text-base sm:text-lg text-amber-300 font-extrabold block">{{ statsOverview.averageRating }}<span class="text-xs text-slate-500 font-normal">/11</span></strong>
+              </div>
+
+              <!-- Platinas -->
+              <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-1">
+                <span class="text-[11px] text-amber-300 block flex items-center justify-center gap-1">
+                  <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span>Platinas</span>
+                </span>
+                <strong class="text-base sm:text-lg text-amber-200 font-extrabold block">{{ statsOverview.platinumCount }}</strong>
+              </div>
+
+              <!-- Nota 11 Masterpieces -->
+              <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-1">
+                <span class="text-[11px] text-amber-300 block flex items-center justify-center gap-1">
+                  <span>★</span>
+                  <span>Nota 11</span>
+                </span>
+                <strong class="text-base sm:text-lg text-amber-300 font-extrabold block">{{ statsOverview.masterpiecesCount }}</strong>
+              </div>
+
+              <!-- Portáteis -->
+              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                  <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+                  <span>Portáteis</span>
+                </span>
+                <strong class="text-base sm:text-lg text-slate-200 font-extrabold block">{{ statsOverview.handheldCount }}</strong>
+              </div>
+
+              <!-- Early Access -->
+              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
+                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
+                  <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-purple-400"></i>
+                  <span>Early Access</span>
+                </span>
+                <strong class="text-base sm:text-lg text-purple-300 font-extrabold block">{{ statsOverview.earlyAccessCount }}</strong>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- Fim de v-show="isZeradosControlsOpen" -->
+      </div> <!-- Fim de Cabeçalho da Biblioteca e Toolbar -->
 
         <!-- ================================================================
              VISÃO 1: MODO CARDS (GRID - GERAL)
@@ -3575,170 +3866,12 @@
         </div>
 
         <!-- ================================================================
-             VISÃO 3: MODO POR ANO (SELETOR DE ANO + BANNER ANUAL + GRID/TABELA)
+             VISÃO 3: MODO POR ANO (LISTA / GRADE DE JOGOS)
              ================================================================ -->
         <div 
           v-else-if="currentGrouping === 'year' && filteredFinishedGames.length > 0" 
           class="space-y-6"
         >
-          <!-- Seletor de Abas de Anos (Pills de Navegação Rápida - Anos em Destaque, Todos os Anos Secundário) -->
-          <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800/80 scrollbar-thin">
-            <!-- Pills para cada Ano Individual Disponível (Ordem Cronológica Mais Recente Primeiro) -->
-            <button 
-              v-for="yItem in yearlyStatsList" 
-              :key="yItem.year"
-              @click="selectYearTab(yItem.year)"
-              :class="selectedYearTab === yItem.year ? 'bg-indigo-600 text-white font-semibold shadow-sm border-indigo-500' : 'bg-slate-900/90 text-slate-400 hover:text-white hover:bg-slate-800 border-slate-800'"
-              class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm border transition-all whitespace-nowrap flex-shrink-0"
-              :title="'Ver jogos concluídos em ' + yItem.year"
-            >
-              <i data-lucide="calendar" class="w-3.5 h-3.5" :class="selectedYearTab === yItem.year ? 'text-white' : 'text-slate-500'"></i>
-              <span>{{ yItem.year }}</span>
-              <span 
-                v-if="isCurrentYear(yItem.year)"
-                class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-tight bg-amber-500/20 text-amber-300 border border-amber-500/40"
-              >
-                Atual
-              </span>
-              <span 
-                class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold"
-                :class="selectedYearTab === yItem.year ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'"
-              >
-                {{ yItem.totalGames }}
-              </span>
-            </button>
-
-            <!-- Divisor sutil antes da visão secundária consolidada -->
-            <div v-if="yearlyStatsList.length > 0" class="h-6 w-px bg-slate-800/80 flex-shrink-0 mx-1"></div>
-
-            <!-- Botão Todos os Anos (Secundário / Consolidado ao Final) -->
-            <button 
-              @click="selectYearTab('ALL')"
-              :class="selectedYearTab === 'ALL' ? 'bg-indigo-600 text-white font-semibold shadow-sm border-indigo-500' : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border-slate-800/90'"
-              class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm border transition-all whitespace-nowrap flex-shrink-0"
-              title="Exibir todos os anos agrupados de forma consolidada"
-            >
-              <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-              <span>Todos os Anos</span>
-              <span 
-                class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold"
-                :class="selectedYearTab === 'ALL' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'"
-              >
-                {{ finishedGames.length }}
-              </span>
-            </button>
-          </div>
-
-          <!-- Banner Resumo de Desempenho do Ano Selecionado -->
-          <div class="p-4 sm:p-5 rounded-3xl bg-[#12141c] border border-slate-800/80 shadow-md space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-indigo-600/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0">
-                  <i data-lucide="calendar" class="w-5 h-5"></i>
-                </div>
-                <div>
-                  <h3 class="font-heading font-extrabold text-lg sm:text-xl text-white flex items-center gap-2">
-                    <span>{{ selectedYearStats.title }}</span>
-                    <span v-if="!selectedYearStats.isAll" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-                      {{ selectedYearStats.totalGames }} {{ selectedYearStats.totalGames === 1 ? 'jogo concluído' : 'jogos concluídos' }}
-                    </span>
-                  </h3>
-                  <p class="text-xs text-slate-400">
-                    <span v-if="selectedYearStats.isAll">Visão consolidada de todas as jogatinas distribuídas por ano.</span>
-                    <span v-else>Estatísticas e jogos finalizados exclusivamente no ano de {{ selectedYearStats.year }}.</span>
-                  </p>
-                </div>
-              </div>
-
-              <!-- Ações do Ano: Compartilhar Snapshot + Voltar a Todos os Anos -->
-              <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-                <button 
-                  @click="openShareModal('year', selectedYearStats.year)" 
-                  class="text-xs text-purple-300 hover:text-white flex items-center gap-1.5 font-semibold transition-all px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 border border-purple-500/35 shadow-sm active:scale-95 cursor-pointer"
-                  title="Gerar imagem (.PNG) das conquistas deste ano"
-                >
-                  <i data-lucide="share-2" class="w-3.5 h-3.5 text-purple-400"></i>
-                  <span>Compartilhar {{ selectedYearStats.isAll ? 'Tudo' : selectedYearStats.year }}</span>
-                </button>
-
-                <button 
-                  v-if="!selectedYearStats.isAll"
-                  @click="selectYearTab('ALL')" 
-                  class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 font-medium transition-colors px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 shadow-sm cursor-pointer"
-                >
-                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-                  <span>Ver Todos os Anos</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Métricas Resumo do Ano -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3 pt-1">
-              <!-- Jogos Zerados -->
-              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
-                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
-                  <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-400"></i>
-                  <span>Zerados</span>
-                </span>
-                <strong class="text-base sm:text-lg text-white font-extrabold block">{{ selectedYearStats.totalGames }}</strong>
-              </div>
-
-              <!-- Tempo Total -->
-              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
-                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
-                  <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i>
-                  <span>Tempo Jogado</span>
-                </span>
-                <strong class="text-base sm:text-lg text-cyan-300 font-extrabold block">{{ selectedYearStats.totalPlaytimeFormatted }}</strong>
-              </div>
-
-              <!-- Média de Notas -->
-              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
-                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
-                  <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span>Média Notas</span>
-                </span>
-                <strong class="text-base sm:text-lg text-amber-300 font-extrabold block">{{ selectedYearStats.averageRating }}<span class="text-xs text-slate-500 font-normal">/11</span></strong>
-              </div>
-
-              <!-- Platinas -->
-              <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-1">
-                <span class="text-[11px] text-amber-300 block flex items-center justify-center gap-1">
-                  <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span>Platinas</span>
-                </span>
-                <strong class="text-base sm:text-lg text-amber-200 font-extrabold block">{{ selectedYearStats.platinumCount }}</strong>
-              </div>
-
-              <!-- Nota 11 Masterpieces -->
-              <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-1">
-                <span class="text-[11px] text-amber-300 block flex items-center justify-center gap-1">
-                  <span>★</span>
-                  <span>Nota 11</span>
-                </span>
-                <strong class="text-base sm:text-lg text-amber-300 font-extrabold block">{{ selectedYearStats.masterpiecesCount }}</strong>
-              </div>
-
-              <!-- Portáteis -->
-              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
-                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
-                  <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-cyan-400"></i>
-                  <span>Portáteis</span>
-                </span>
-                <strong class="text-base sm:text-lg text-slate-200 font-extrabold block">{{ selectedYearStats.handheldCount }}</strong>
-              </div>
-
-              <!-- Early Access -->
-              <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800/80 text-center space-y-1">
-                <span class="text-[11px] text-slate-400 block flex items-center justify-center gap-1">
-                  <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-purple-400"></i>
-                  <span>Early Access</span>
-                </span>
-                <strong class="text-base sm:text-lg text-purple-300 font-extrabold block">{{ selectedYearStats.earlyAccessCount }}</strong>
-              </div>
-            </div>
-          </div>
-
           <!-- Caso 1: Ano Específico Selecionado (Exclusivo daquele ano) -->
           <div v-if="selectedYearTab !== 'ALL'">
             <!-- Visualização em Grade / Cards para o Ano Selecionado -->
@@ -10593,18 +10726,7 @@
       </div>
     </div>
 
-    <!-- ====================================================================
-         BOTÃO FLUTUANTE MOBILE (FAB): NOVO JOGO (Apenas em telas < md)
-         ==================================================================== -->
-    <button 
-      v-if="!isPublicViewMode"
-      @click="openAddGame('Zerado')" 
-      class="mobile-fab-btn md:hidden w-13 h-13 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 text-white flex items-center justify-center shadow-2xl border border-indigo-400/50 cursor-pointer active:scale-90"
-      title="Adicionar Novo Jogo (Toque Rápido)"
-      aria-label="Adicionar Novo Jogo"
-    >
-      <i data-lucide="plus" class="w-6 h-6 stroke-[2.5]"></i>
-    </button>
+
 
     <!-- ====================================================================
          GAVETA / BOTTOM SHEET MOBILE DE OPÇÕES & FERRAMENTAS (md:hidden)
@@ -10808,48 +10930,60 @@
     <!-- ====================================================================
          BARRA DE NAVEGAÇÃO INFERIOR MOBILE (BOTTOM NAV BAR) - md:hidden
          ==================================================================== -->
-    <nav class="mobile-bottom-nav md:hidden flex items-center justify-around px-2 pt-1.5 text-[10px] select-none">
-      <!-- 1. Biblioteca -->
+    <nav class="mobile-bottom-nav md:hidden flex items-center justify-around px-2 pt-1 text-[10px] select-none">
+      <!-- 1. Jogando -->
       <button 
         type="button"
-        @click="setActivePage('library')" 
-        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
-        :class="activePage === 'library' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+        @click="setActivePage('library'); setHeroTab('nowPlaying')" 
+        class="flex flex-col items-center justify-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer flex-1"
+        :class="activePage === 'library' && heroTab === 'nowPlaying' ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
       >
-        <i data-lucide="gamepad-2" class="w-5 h-5" :class="{ 'stroke-[2.5]': activePage === 'library' }"></i>
-        <span>Biblioteca</span>
+        <i data-lucide="gamepad-2" class="w-5 h-5" :class="{ 'stroke-[2.5]': activePage === 'library' && heroTab === 'nowPlaying' }"></i>
+        <span>Jogando</span>
       </button>
 
-      <!-- 2. Estatísticas -->
+      <!-- 2. Zerados -->
       <button 
         type="button"
-        @click="setActivePage('stats')" 
-        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
-        :class="activePage === 'stats' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+        @click="setActivePage('library'); setHeroTab('finished')" 
+        class="flex flex-col items-center justify-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer flex-1"
+        :class="activePage === 'library' && heroTab === 'finished' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
       >
-        <i data-lucide="bar-chart-3" class="w-5 h-5" :class="{ 'stroke-[2.5]': activePage === 'stats' }"></i>
-        <span>Métricas</span>
+        <i data-lucide="trophy" class="w-5 h-5" :class="{ 'stroke-[2.5]': activePage === 'library' && heroTab === 'finished' }"></i>
+        <span>Zerados</span>
       </button>
 
-      <!-- 3. Perfil -->
+      <!-- 3. Botão Centralizado "+" (Verde) -->
+      <div v-if="!isPublicViewMode" class="flex flex-col items-center justify-center px-1 flex-shrink-0 -mt-4">
+        <button 
+          type="button"
+          @click="openAddGame(heroTab === 'nowPlaying' ? 'Jogando' : (heroTab === 'backlog' ? 'Backlog' : 'Zerado'))" 
+          class="w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40 border-2 border-[#0e1018] active:scale-90 transition-all cursor-pointer"
+          title="Adicionar Novo Jogo (+)"
+          aria-label="Adicionar Novo Jogo"
+        >
+          <i data-lucide="plus" class="w-6 h-6 stroke-[3]"></i>
+        </button>
+      </div>
+
+      <!-- 4. Backlog -->
       <button 
-        v-if="!isPublicViewMode"
         type="button"
-        @click="openProfileModal()" 
-        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
-        :class="isProfileOpen ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
+        @click="setActivePage('library'); setHeroTab('backlog')" 
+        class="flex flex-col items-center justify-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer flex-1"
+        :class="activePage === 'library' && heroTab === 'backlog' ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
       >
-        <i data-lucide="user" class="w-5 h-5"></i>
-        <span>Perfil</span>
+        <i data-lucide="bookmark" class="w-5 h-5" :class="{ 'stroke-[2.5]': activePage === 'library' && heroTab === 'backlog' }"></i>
+        <span>Backlog</span>
       </button>
 
-      <!-- 4. Ferramentas / Opções -->
+      <!-- 5. Ferramentas / Opções -->
       <button 
         v-if="!isPublicViewMode"
         type="button"
         data-mobile-tools-btn
         @click.stop="toggleToolsMenu" 
-        class="flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer flex-1"
+        class="flex flex-col items-center justify-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer flex-1"
         :class="isToolsMenuOpen ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200 font-medium'"
         aria-label="Opções e ferramentas da biblioteca"
         :aria-expanded="isToolsMenuOpen ? 'true' : 'false'"
