@@ -27,6 +27,18 @@ function initApp() {
   const IgdbService = window.IgdbService || window.IGDBService;
   const ScreenScraperService = window.ScreenScraperService;
   const SAMPLE_GAMES = window.SAMPLE_GAMES || [];
+  const DEFAULT_PROFILE = (typeof window !== 'undefined' && window.DEFAULT_PROFILE) || (StorageService && StorageService.DEFAULT_PROFILE) || {
+    name: 'Jogador',
+    nickname: 'Gamer Master',
+    avatarUrl: '',
+    bio: 'Registro pessoal de jogos concluídos, tempos e avaliações.',
+    favoritePlatform: 'PC - Computador',
+    favoriteGenre: '',
+    top5GameIds: [],
+    top5Games: [],
+    myConsoles: [],
+    mySetup: ''
+  };
 
   const app = createApp({
     setup() {
@@ -238,28 +250,17 @@ function initApp() {
 
         const nick = (userProfile.value && userProfile.value.nickname ? userProfile.value.nickname : '').trim();
         const nm = (userProfile.value && userProfile.value.name ? userProfile.value.name : '').trim();
-        const slug = nick || nm;
-        if (!slug) return '';
+        const rawSlug = nick || nm || (cloudUser.value ? cloudUser.value.id : '');
+        if (!rawSlug) return '';
 
         const origin = window.location.origin;
         let path = window.location.pathname.replace(/\/(index|404)\.html$/i, '');
         if (!path.endsWith('/')) path += '/';
-        return `${origin}${path}${encodeURIComponent(slug)}`;
+        return `${origin}${path}?u=${encodeURIComponent(rawSlug)}&page=profile`;
       });
 
       const publicProfileQueryUrl = computed(() => {
-        const hasSync = Boolean(lastCloudSync.value || (window.SupabaseService && window.SupabaseService.getLastSyncTime()));
-        if (!hasSync) return '';
-
-        const nick = (userProfile.value && userProfile.value.nickname ? userProfile.value.nickname : '').trim();
-        const nm = (userProfile.value && userProfile.value.name ? userProfile.value.name : '').trim();
-        const slug = nick || nm;
-        if (!slug) return '';
-
-        const origin = window.location.origin;
-        let path = window.location.pathname.replace(/\/(index|404)\.html$/i, '');
-        if (!path.endsWith('/')) path += '/';
-        return `${origin}${path}?u=${encodeURIComponent(slug)}`;
+        return publicProfileShareUrl.value;
       });
 
       const copyPublicProfileUrl = async () => {
@@ -3438,7 +3439,7 @@ function initApp() {
         refreshLucideIcons();
       };
 
-      const saveProfile = () => {
+      const saveProfile = async () => {
         if (isPublicViewMode.value) return;
         userProfile.value = {
           ...userProfile.value,
@@ -3451,6 +3452,14 @@ function initApp() {
         refreshStorageInfo();
         showToast('Perfil atualizado com sucesso!', 'success');
         refreshLucideIcons();
+
+        if (cloudUser.value && window.SupabaseService) {
+          try {
+            await syncToCloud(false);
+          } catch (e) {
+            console.warn('Falha no upload do perfil:', e);
+          }
+        }
       };
 
       // =======================================================================
@@ -3469,23 +3478,34 @@ function initApp() {
       });
 
       const top5SelectedGames = computed(() => {
-        return top5SelectedIds.value.map(id => games.value.find(g => g.id === id)).filter(Boolean);
+        return top5SelectedIds.value.map(id => games.value.find(g => String(g.id) === String(id))).filter(Boolean);
       });
 
       const profileTop5Games = computed(() => {
         const ids = Array.isArray(userProfile.value?.top5GameIds) ? userProfile.value.top5GameIds : [];
+        const snapshots = Array.isArray(userProfile.value?.top5Games) ? userProfile.value.top5Games : [];
+
         if (ids.length > 0) {
-          const resolved = ids.map(id => games.value.find(g => g.id === id || g.title === id)).filter(Boolean);
+          const resolved = ids.map(id => {
+            const found = games.value.find(g => String(g.id) === String(id) || (g.title && String(g.title).toLowerCase() === String(id).toLowerCase()));
+            if (found) return found;
+            const snap = snapshots.find(s => s && (String(s.id) === String(id) || (s.title && String(s.title).toLowerCase() === String(id).toLowerCase())));
+            if (snap) return snap;
+            return null;
+          }).filter(Boolean);
+
           if (resolved.length > 0) return resolved;
         }
-        if (Array.isArray(userProfile.value?.top5Games) && userProfile.value.top5Games.length > 0) {
-          return userProfile.value.top5Games.map(item => {
+
+        if (snapshots.length > 0) {
+          return snapshots.map(item => {
             if (typeof item === 'string') {
-              return games.value.find(g => g.id === item || g.title === item);
+              return games.value.find(g => String(g.id) === String(item) || g.title === item) || { id: item, title: item, coverUrl: '' };
             }
             return item;
           }).filter(Boolean);
         }
+
         return [];
       });
 
@@ -3539,10 +3559,10 @@ function initApp() {
         nextTick(() => refreshLucideIcons());
       };
 
-      const saveTop5Modal = () => {
+      const saveTop5Modal = async () => {
         if (isPublicViewMode.value) return;
         userProfile.value.top5GameIds = [...top5SelectedIds.value];
-        const snapshots = top5SelectedIds.value.map(id => games.value.find(g => g.id === id)).filter(Boolean).map(g => ({
+        const snapshots = top5SelectedIds.value.map(id => games.value.find(g => String(g.id) === String(id))).filter(Boolean).map(g => ({
           id: g.id,
           title: g.title,
           coverUrl: g.coverUrl,
@@ -3557,6 +3577,14 @@ function initApp() {
         isTop5ModalOpen.value = false;
         showToast('Top 5 de jogos da vida atualizado com sucesso!', 'success');
         refreshLucideIcons();
+
+        if (cloudUser.value && window.SupabaseService) {
+          try {
+            await syncToCloud(false);
+          } catch (e) {
+            console.warn('Falha no upload do Top 5:', e);
+          }
+        }
       };
 
       // 2. MEUS CONSOLES (Plataformas que Possui)
@@ -3598,7 +3626,7 @@ function initApp() {
         return consolesSelectedList.value.includes(consoleName);
       };
 
-      const saveConsolesModal = () => {
+      const saveConsolesModal = async () => {
         if (isPublicViewMode.value) return;
         userProfile.value.myConsoles = [...consolesSelectedList.value];
         if (StorageService) {
@@ -3607,6 +3635,14 @@ function initApp() {
         isConsolesModalOpen.value = false;
         showToast('Lista de consoles atualizada com sucesso!', 'success');
         refreshLucideIcons();
+
+        if (cloudUser.value && window.SupabaseService) {
+          try {
+            await syncToCloud(false);
+          } catch (e) {
+            console.warn('Falha no upload de consoles:', e);
+          }
+        }
       };
 
       // 3. MEU PC / MEU SETUP
@@ -3640,7 +3676,7 @@ Headset / Áudio: `;
         }
       };
 
-      const saveSetupModal = () => {
+      const saveSetupModal = async () => {
         if (isPublicViewMode.value) return;
         userProfile.value.mySetup = setupFormText.value.trim();
         if (StorageService) {
@@ -3649,6 +3685,14 @@ Headset / Áudio: `;
         isSetupModalOpen.value = false;
         showToast('Configuração do PC atualizada com sucesso!', 'success');
         refreshLucideIcons();
+
+        if (cloudUser.value && window.SupabaseService) {
+          try {
+            await syncToCloud(false);
+          } catch (e) {
+            console.warn('Falha no upload do setup:', e);
+          }
+        }
       };
 
       const formattedSetupLines = computed(() => {
@@ -4932,26 +4976,26 @@ Headset / Áudio: `;
             cloudUser.value = user;
             lastCloudSync.value = window.SupabaseService.getLastSyncTime();
 
-            // Se o usuário está autenticado e a lista local estiver vazia, restaura os dados da nuvem
-            if (games.value.length === 0) {
-              const cloudData = await window.SupabaseService.loadUserData(user.id);
-              if (cloudData && Array.isArray(cloudData.games) && cloudData.games.length > 0) {
+            // Se o usuário está autenticado, sincroniza os dados da nuvem para o navegador
+            const cloudData = await window.SupabaseService.loadUserData(user.id);
+            if (cloudData) {
+              const hasCloudProfile = Boolean(cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0) || cloudData.profile.mySetup));
+              if (games.value.length === 0 || hasCloudProfile) {
                 if (StorageService) {
-                  StorageService.saveGames(cloudData.games);
-                  if (cloudData.profile) StorageService.saveUserProfile(cloudData.profile);
-                  if (cloudData.settings) StorageService.saveSettings(cloudData.settings);
-                  if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(cloudData.playingCategories);
+                  if (games.value.length === 0 && Array.isArray(cloudData.games)) StorageService.saveGames(cloudData.games);
+                  if (hasCloudProfile) StorageService.saveUserProfile(cloudData.profile);
+                  if (cloudData.settings && games.value.length === 0) StorageService.saveSettings(cloudData.settings);
+                  if (Array.isArray(cloudData.playingCategories) && games.value.length === 0) StorageService.savePlayingCategories(cloudData.playingCategories);
                   loadActiveProfileData();
                 } else {
-                  games.value = cloudData.games;
-                  if (cloudData.profile) userProfile.value = cloudData.profile;
-                  if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
-                  if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
+                  if (games.value.length === 0 && Array.isArray(cloudData.games)) games.value = cloudData.games;
+                  if (hasCloudProfile) userProfile.value = cloudData.profile;
+                  if (cloudData.settings && games.value.length === 0) settings.value = { ...settings.value, ...cloudData.settings };
+                  if (Array.isArray(cloudData.playingCategories) && games.value.length === 0) playingCategories.value = cloudData.playingCategories;
                 }
                 refreshStorageInfo();
               }
             } else if (games.value.length > 0 && cloudAutoSyncEnabled.value && !isCloudSyncing.value) {
-              // Garante que adições locais (como Backlog) sejam sincronizadas com o banco na nuvem
               debouncedCloudSync();
             }
           }
@@ -4966,25 +5010,26 @@ Headset / Áudio: `;
             } else if (event === 'SIGNED_IN') {
               cloudUser.value = session ? session.user : null;
               lastCloudSync.value = window.SupabaseService.getLastSyncTime();
-              if (cloudUser.value && games.value.length === 0) {
+              if (cloudUser.value) {
                 const cloudData = await window.SupabaseService.loadUserData(cloudUser.value.id);
-                if (cloudData && Array.isArray(cloudData.games) && cloudData.games.length > 0) {
-                  if (StorageService) {
-                    StorageService.saveGames(cloudData.games);
-                    if (cloudData.profile) StorageService.saveUserProfile(cloudData.profile);
-                    if (cloudData.settings) StorageService.saveSettings(cloudData.settings);
-                    if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(cloudData.playingCategories);
-                    loadActiveProfileData();
-                  } else {
-                    games.value = cloudData.games;
-                    if (cloudData.profile) userProfile.value = cloudData.profile;
-                    if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
-                    if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
+                if (cloudData) {
+                  const hasCloudProfile = Boolean(cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0) || cloudData.profile.mySetup));
+                  if (games.value.length === 0 || hasCloudProfile) {
+                    if (StorageService) {
+                      if (games.value.length === 0 && Array.isArray(cloudData.games)) StorageService.saveGames(cloudData.games);
+                      if (hasCloudProfile) StorageService.saveUserProfile(cloudData.profile);
+                      if (cloudData.settings && games.value.length === 0) StorageService.saveSettings(cloudData.settings);
+                      if (Array.isArray(cloudData.playingCategories) && games.value.length === 0) StorageService.savePlayingCategories(cloudData.playingCategories);
+                      loadActiveProfileData();
+                    } else {
+                      if (games.value.length === 0 && Array.isArray(cloudData.games)) games.value = cloudData.games;
+                      if (hasCloudProfile) userProfile.value = cloudData.profile;
+                      if (cloudData.settings && games.value.length === 0) settings.value = { ...settings.value, ...cloudData.settings };
+                      if (Array.isArray(cloudData.playingCategories) && games.value.length === 0) playingCategories.value = cloudData.playingCategories;
+                    }
+                    refreshStorageInfo();
                   }
-                  refreshStorageInfo();
                 }
-              } else if (cloudUser.value && games.value.length > 0 && cloudAutoSyncEnabled.value && !isCloudSyncing.value) {
-                debouncedCloudSync();
               }
               refreshLucideIcons();
             } else if (event === 'SIGNED_OUT') {
@@ -5032,23 +5077,30 @@ Headset / Áudio: `;
 
           // Carrega dados da nuvem se existirem, ou sincroniza os dados locais
           const cloudData = await window.SupabaseService.loadUserData();
-          if (cloudData && Array.isArray(cloudData.games) && cloudData.games.length > 0 && games.value.length === 0) {
+          const hasCloudContent = Boolean(
+            cloudData && (
+              (Array.isArray(cloudData.games) && cloudData.games.length > 0) ||
+              (cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0) || cloudData.profile.mySetup))
+            )
+          );
+
+          if (hasCloudContent) {
             if (StorageService) {
-              StorageService.saveGames(cloudData.games);
+              if (Array.isArray(cloudData.games)) StorageService.saveGames(cloudData.games);
               if (cloudData.profile) StorageService.saveUserProfile(cloudData.profile);
               if (cloudData.settings) StorageService.saveSettings(cloudData.settings);
               if (Array.isArray(cloudData.playingCategories)) StorageService.savePlayingCategories(cloudData.playingCategories);
               loadActiveProfileData();
             } else {
-              games.value = cloudData.games;
+              if (Array.isArray(cloudData.games)) games.value = cloudData.games;
               if (cloudData.profile) userProfile.value = cloudData.profile;
               if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
               if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
             }
             refreshStorageInfo();
-            showToast('Coleção restaurada da nuvem com sucesso!', 'success');
+            showToast('Coleção e perfil sincronizados da nuvem com sucesso!', 'success');
           } else if (games.value.length > 0) {
-            // Sincroniza dados locais para a nuvem
+            // Nuvem estava vazia, envia dados locais
             await syncToCloud(false);
           }
 

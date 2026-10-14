@@ -442,6 +442,19 @@
           if (data) row = data;
         }
 
+        // 4b. Se veio com hífens, busca por profile->>name substituindo hífens por espaços
+        if (!row && cleanId.includes('-')) {
+          const spaced = cleanId.replace(/-/g, ' ');
+          const { data } = await client
+            .from('user_data')
+            .select('user_id, games, profile, playing_categories, updated_at')
+            .filter('profile->>name', 'ilike', spaced)
+            .limit(1)
+            .maybeSingle();
+
+          if (data) row = data;
+        }
+
         // 5. Se não encontrou por filtro exato no PostgREST, faz varredura flexível das primeiras linhas públicas
         if (!row) {
           const { data } = await client

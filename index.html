@@ -6201,7 +6201,7 @@
       <!-- ==================================================================
            VISÃO 3: PÁGINA DE PERFIL DO USUÁRIO & NICHOS (activePage === 'profile')
            ================================================================== -->
-      <section v-else-if="activePage === 'profile'" class="space-y-8 animate-in fade-in duration-200">
+      <section v-else-if="activePage === 'profile'" class="max-w-5xl 2xl:max-w-6xl mx-auto w-full space-y-6 sm:space-y-8 animate-in fade-in duration-200">
 
         <!-- 1. HERO DO PERFIL (Avatar, Bio, Plataformas & KPIs) -->
         <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl space-y-6 relative overflow-hidden">
@@ -6347,10 +6347,22 @@
                   <span class="text-[10px] text-slate-400">Compartilhe este link para que qualquer pessoa possa ver seu perfil e sua coleção</span>
                 </div>
               </div>
-              <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span>ATIVO NA NUVEM</span>
-              </span>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button"
+                  @click="syncToCloud(true)"
+                  :disabled="isCloudSyncing"
+                  class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                  title="Enviar dados e nichos para a nuvem agora"
+                >
+                  <i data-lucide="cloud" class="w-3.5 h-3.5" :class="{ 'animate-pulse text-cyan-400': isCloudSyncing }"></i>
+                  <span>{{ isCloudSyncing ? 'Sincronizando...' : 'Sincronizar Nuvem' }}</span>
+                </button>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>ATIVO NA NUVEM</span>
+                </span>
+              </div>
             </div>
 
             <div class="flex items-center gap-2">
@@ -6652,7 +6664,7 @@
             </div>
 
             <!-- Grade da Vitrine Nota 11 -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
               <div 
                 v-for="game in masterpieceGames" 
                 :key="game.id"
@@ -11720,8 +11732,8 @@
   <script src="js/services/screenScraperService.js?v=1.2.6"></script>
   <script src="js/services/igdbService.js?v=1.2.6"></script>
   <script src="js/services/hltbService.js?v=1.2.6"></script>
-  <script src="js/services/supabaseService.js?v=1.2.6"></script>
-  <script src="js/services/storageService.js?v=1.3.0"></script>
-  <script src="js/app.js?v=1.3.0"></script>
+  <script src="js/services/supabaseService.js?v=1.3.1"></script>
+  <script src="js/services/storageService.js?v=1.3.1"></script>
+  <script src="js/app.js?v=1.3.1"></script>
 </body>
 </html>

@@ -1307,6 +1307,7 @@ class StorageService {
 }
 
 // Expõe no escopo global
+StorageService.DEFAULT_PROFILE = DEFAULT_PROFILE;
 window.StorageService = StorageService;
 window.SAMPLE_GAMES = SAMPLE_GAMES;
 window.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
