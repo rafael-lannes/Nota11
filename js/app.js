@@ -433,6 +433,7 @@ function initApp() {
         name: 'Jogador',
         nickname: 'Gamer Master',
         avatarUrl: '',
+        bannerUrl: '',
         bio: 'Registro pessoal de jogos concluídos, tempos e avaliações.',
         favoritePlatform: 'PC',
         favoriteGenre: '',
@@ -453,6 +454,7 @@ function initApp() {
         name: userProfile.value.name || '',
         nickname: userProfile.value.nickname || '',
         avatarUrl: userProfile.value.avatarUrl || '',
+        bannerUrl: userProfile.value.bannerUrl || '',
         bio: userProfile.value.bio || '',
         favoritePlatform: userProfile.value.favoritePlatform || 'PC',
         favoriteGenre: userProfile.value.favoriteGenre || '',
@@ -714,6 +716,7 @@ function initApp() {
           name: userProfile.value.name || '',
           nickname: userProfile.value.nickname || '',
           avatarUrl: userProfile.value.avatarUrl || '',
+          bannerUrl: userProfile.value.bannerUrl || '',
           bio: userProfile.value.bio || '',
           favoritePlatform: userProfile.value.favoritePlatform || 'PC',
           favoriteGenre: userProfile.value.favoriteGenre || '',
@@ -809,6 +812,11 @@ function initApp() {
           if (StorageService) {
             await StorageService.initNativeStorage();
             loadActiveProfileData();
+
+            const pageParam = (urlParams.get('page') || urlParams.get('p') || '').toLowerCase();
+            if (pageParam === 'profile' || pageParam === 'perfil') {
+              setActivePage('profile');
+            }
 
             // Conecta listener de alterações locais para auto-sync com Supabase
             StorageService.onDataChanged = () => {
@@ -3466,6 +3474,7 @@ function initApp() {
           name: userProfile.value.name || '',
           nickname: userProfile.value.nickname || '',
           avatarUrl: userProfile.value.avatarUrl || '',
+          bannerUrl: userProfile.value.bannerUrl || '',
           bio: userProfile.value.bio || '',
           favoritePlatform: userProfile.value.favoritePlatform || 'PC - Computador',
           favoriteGenre: userProfile.value.favoriteGenre || '',
@@ -3886,6 +3895,22 @@ Headset / Áudio: `;
         reader.readAsDataURL(file);
       };
 
+      const handleBannerUpload = (event) => {
+        if (isPublicViewMode.value) return;
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 3 * 1024 * 1024) {
+          showToast('A imagem de capa/banner deve ter no máximo 3MB.', 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          editProfileForm.value.bannerUrl = e.target.result;
+          showToast('Capa de perfil carregada com sucesso!', 'info');
+        };
+        reader.readAsDataURL(file);
+      };
+
       const openResetProfileConfirm = () => {
         if (isPublicViewMode.value) return;
         isResetProfileConfirmOpen.value = true;
@@ -3901,6 +3926,7 @@ Headset / Áudio: `;
             name: 'Jogador',
             nickname: 'Gamer Master',
             avatarUrl: '',
+            bannerUrl: '',
             bio: 'Registro pessoal de jogos concluídos, tempos e avaliações.',
             favoritePlatform: 'PC',
             favoriteGenre: ''
@@ -3910,6 +3936,7 @@ Headset / Áudio: `;
           name: userProfile.value.name || '',
           nickname: userProfile.value.nickname || '',
           avatarUrl: userProfile.value.avatarUrl || '',
+          bannerUrl: userProfile.value.bannerUrl || '',
           bio: userProfile.value.bio || '',
           favoritePlatform: userProfile.value.favoritePlatform || 'PC',
           favoriteGenre: userProfile.value.favoriteGenre || ''
@@ -5580,6 +5607,7 @@ Headset / Áudio: `;
         confirmResetProfile,
         saveProfile,
         handleAvatarUpload,
+        handleBannerUpload,
         getSocialUrl,
         getSocialDisplay,
         hasSocialLinks,

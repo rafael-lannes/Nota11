@@ -32,6 +32,7 @@ const DEFAULT_PROFILE = {
   name: 'Jogador',
   nickname: 'Gamer Master',
   avatarUrl: '',
+  bannerUrl: '',
   bio: 'Registro pessoal de jogos concluídos, tempos e avaliações.',
   favoritePlatform: 'PC - Computador',
   favoriteGenre: '',
@@ -476,6 +477,7 @@ class StorageService {
         top5Games: Array.isArray(parsed.top5Games) ? parsed.top5Games : [],
         myConsoles: Array.isArray(parsed.myConsoles) ? parsed.myConsoles : [],
         mySetup: typeof parsed.mySetup === 'string' ? parsed.mySetup : '',
+        bannerUrl: typeof parsed.bannerUrl === 'string' ? parsed.bannerUrl.trim() : '',
         socialTwitter: typeof parsed.socialTwitter === 'string' ? parsed.socialTwitter.trim() : '',
         socialInstagram: typeof parsed.socialInstagram === 'string' ? parsed.socialInstagram.trim() : '',
         socialWebsite: typeof parsed.socialWebsite === 'string' ? parsed.socialWebsite.trim() : '',
@@ -782,6 +784,16 @@ class StorageService {
           avatarBytes = Math.max(0, Math.floor((base64Str.length * 3) / 4));
           coversBase64Bytes += avatarBytes;
           estimatedFilesBytes += avatarBytes;
+        }
+      }
+      if (userProf && userProf.bannerUrl) {
+        const bn = String(userProf.bannerUrl).trim();
+        if (bn.startsWith('data:image/')) {
+          const commaIdx = bn.indexOf(',');
+          const base64Str = commaIdx !== -1 ? bn.substring(commaIdx + 1) : bn;
+          const bannerBytes = Math.max(0, Math.floor((base64Str.length * 3) / 4));
+          coversBase64Bytes += bannerBytes;
+          estimatedFilesBytes += bannerBytes;
         }
       }
 
