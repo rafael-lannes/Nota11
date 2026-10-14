@@ -1215,7 +1215,7 @@
                     </button>
 
                     <!-- Tempo de Jogo -->
-                    <div class="text-right whitespace-nowrap min-w-[50px] sm:min-w-[75px]">
+                    <div v-if="hasPlaytime(game)" class="text-right whitespace-nowrap min-w-[50px] sm:min-w-[75px]">
                       <span class="inline-flex items-center gap-1 font-mono font-bold text-cyan-300 text-xs sm:text-sm">
                         <i data-lucide="clock" class="w-3 h-3 text-cyan-400 flex-shrink-0"></i>
                         {{ formatPlaytime(game) }}
@@ -1457,7 +1457,7 @@
                     </div>
 
                     <!-- Tempo de Jogo -->
-                    <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                    <div v-if="hasPlaytime(game)" class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
                       <span class="flex items-center gap-1 font-mono font-medium text-cyan-300">
                         <i data-lucide="clock" class="w-2.5 h-2.5 text-cyan-400 flex-shrink-0"></i>
                         <span>{{ formatPlaytime(game) }}</span>
@@ -1710,7 +1710,7 @@
                 </button>
 
                 <!-- Tempo de Jogo -->
-                <div class="text-right whitespace-nowrap min-w-[50px] sm:min-w-[75px]">
+                <div v-if="hasPlaytime(game)" class="text-right whitespace-nowrap min-w-[50px] sm:min-w-[75px]">
                   <span class="inline-flex items-center gap-1 font-mono font-bold text-cyan-300 text-xs sm:text-sm">
                     <i data-lucide="clock" class="w-3 h-3 text-cyan-400 flex-shrink-0"></i>
                     {{ formatPlaytime(game) }}
@@ -1961,7 +1961,7 @@
                 </div>
 
                 <!-- Tempo de Jogo -->
-                <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                <div v-if="hasPlaytime(game)" class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
                   <span class="flex items-center gap-1 font-mono font-medium text-cyan-300">
                     <i data-lucide="clock" class="w-2.5 h-2.5 text-cyan-400 flex-shrink-0"></i>
                     <span>{{ formatPlaytime(game) }}</span>

@@ -2855,9 +2855,9 @@ function initApp() {
       const hasPlaytime = (game) => {
         if (!game) return false;
         if (game.playtimeHours !== undefined && Number(game.playtimeHours) > 0) return true;
-        if (game.playtime && game.playtime !== '00:00:00' && game.playtime !== '0h' && game.playtime !== '0' && game.playtime !== '00h00m' && game.playtime !== '0m') {
+        if (game.playtime) {
           const pt = parsePlaytimeInput(game.playtime);
-          return pt.hours > 0;
+          return Boolean(pt && pt.hours > 0);
         }
         return false;
       };
