@@ -36,7 +36,7 @@ function initApp() {
     favoriteGenre: '',
     top5GameIds: [],
     top5Games: [],
-    myConsoles: [],
+    myConsoles: '',
     mySetup: '',
     socialTwitter: '',
     socialInstagram: '',
@@ -368,7 +368,7 @@ function initApp() {
               ...publicData.profile,
               top5GameIds: Array.isArray(publicData.profile.top5GameIds) ? publicData.profile.top5GameIds : (Array.isArray(publicData.profile.top5Games) ? publicData.profile.top5Games.map(g => typeof g === 'string' ? g : g?.id).filter(Boolean) : []),
               top5Games: Array.isArray(publicData.profile.top5Games) ? publicData.profile.top5Games : [],
-              myConsoles: Array.isArray(publicData.profile.myConsoles) ? publicData.profile.myConsoles : [],
+              myConsoles: typeof publicData.profile.myConsoles === 'string' ? publicData.profile.myConsoles : (Array.isArray(publicData.profile.myConsoles) ? publicData.profile.myConsoles.join('\n') : ''),
               mySetup: typeof publicData.profile.mySetup === 'string' ? publicData.profile.mySetup : '',
               socialTwitter: typeof publicData.profile.socialTwitter === 'string' ? publicData.profile.socialTwitter.trim() : '',
               socialInstagram: typeof publicData.profile.socialInstagram === 'string' ? publicData.profile.socialInstagram.trim() : '',
@@ -440,7 +440,7 @@ function initApp() {
         favoriteGenre: '',
         top5GameIds: [],
         top5Games: [],
-        myConsoles: [],
+        myConsoles: '',
         mySetup: '',
         socialTwitter: '',
         socialInstagram: '',
@@ -819,6 +819,14 @@ function initApp() {
             const pageParam = (urlParams.get('page') || urlParams.get('p') || '').toLowerCase();
             if (pageParam === 'profile' || pageParam === 'perfil') {
               setActivePage('profile');
+              const modalParam = (urlParams.get('modal') || urlParams.get('m') || '').toLowerCase();
+              if (modalParam === 'consoles') {
+                openConsolesModal();
+              } else if (modalParam === 'top5') {
+                openTop5Modal();
+              } else if (modalParam === 'setup') {
+                openSetupModal();
+              }
             }
 
             // Conecta listener de alterações locais para auto-sync com Supabase
@@ -3642,23 +3650,18 @@ function initApp() {
         }
       };
 
-      // 2. MEUS CONSOLES (Plataformas que Possui)
-      const consolesSelectedList = ref([]);
-      const consoleSearchQuery = ref('');
-
-      const filteredConsoleCategories = computed(() => {
-        const q = consoleSearchQuery.value.trim().toLowerCase();
-        if (!q) return platformCategories;
-        return platformCategories.map(cat => ({
-          group: cat.group,
-          items: cat.items.filter(item => item.toLowerCase().includes(q))
-        })).filter(cat => cat.items.length > 0);
-      });
+      // 2. MEUS CONSOLES (Plataformas e Videogames que Possui) - Idêntico ao Meu Setup
+      const consolesFormText = ref('');
 
       const openConsolesModal = () => {
         if (isPublicViewMode.value) return;
-        consolesSelectedList.value = [...(userProfile.value.myConsoles || [])];
-        consoleSearchQuery.value = '';
+        if (typeof userProfile.value.myConsoles === 'string') {
+          consolesFormText.value = userProfile.value.myConsoles;
+        } else if (Array.isArray(userProfile.value.myConsoles)) {
+          consolesFormText.value = userProfile.value.myConsoles.join('\n');
+        } else {
+          consolesFormText.value = '';
+        }
         isConsolesModalOpen.value = true;
         nextTick(() => refreshLucideIcons());
       };
@@ -3667,23 +3670,22 @@ function initApp() {
         isConsolesModalOpen.value = false;
       };
 
-      const toggleConsole = (consoleName) => {
-        if (!consoleName) return;
-        const idx = consolesSelectedList.value.indexOf(consoleName);
-        if (idx !== -1) {
-          consolesSelectedList.value.splice(idx, 1);
-        } else {
-          consolesSelectedList.value.push(consoleName);
+      const fillConsolesTemplate = () => {
+        const template = 
+`PlayStation: PlayStation 5
+Nintendo: Nintendo Switch OLED
+Xbox: Xbox Series X
+Portátil: Steam Deck
+Retrô: Super Nintendo
+Acessórios: DualSense Edge, Pro Controller`;
+        if (!consolesFormText.value || confirm('Preencher com o modelo padrão de consoles?')) {
+          consolesFormText.value = template;
         }
-      };
-
-      const isConsoleSelected = (consoleName) => {
-        return consolesSelectedList.value.includes(consoleName);
       };
 
       const saveConsolesModal = async () => {
         if (isPublicViewMode.value) return;
-        userProfile.value.myConsoles = [...consolesSelectedList.value];
+        userProfile.value.myConsoles = consolesFormText.value.trim();
         if (StorageService) {
           StorageService.saveUserProfile(userProfile.value);
         }
@@ -3699,6 +3701,29 @@ function initApp() {
           }
         }
       };
+
+      const formattedConsoleLines = computed(() => {
+        let text = '';
+        if (typeof userProfile.value?.myConsoles === 'string') {
+          text = userProfile.value.myConsoles.trim();
+        } else if (Array.isArray(userProfile.value?.myConsoles)) {
+          text = userProfile.value.myConsoles.join('\n');
+        }
+        if (!text) return [];
+        return text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+          const colonIdx = line.indexOf(':');
+          if (colonIdx > 0 && colonIdx < 35) {
+            return {
+              label: line.substring(0, colonIdx).trim(),
+              value: line.substring(colonIdx + 1).trim()
+            };
+          }
+          return {
+            label: null,
+            value: line
+          };
+        });
+      });
 
       // 3. MEU PC / MEU SETUP
       const setupFormText = ref('');
@@ -5185,7 +5210,7 @@ Headset / Áudio: `;
             // Se o usuário está autenticado, sincroniza os dados da nuvem para o navegador
             const cloudData = await window.SupabaseService.loadUserData(user.id);
             if (cloudData) {
-              const hasCloudProfile = Boolean(cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0) || cloudData.profile.mySetup));
+              const hasCloudProfile = Boolean(cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || ((typeof cloudData.profile.myConsoles === 'string' && cloudData.profile.myConsoles.trim()) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0)) || cloudData.profile.mySetup));
               if (games.value.length === 0 || hasCloudProfile) {
                 if (StorageService) {
                   if (games.value.length === 0 && Array.isArray(cloudData.games)) StorageService.saveGames(cloudData.games);
@@ -5219,7 +5244,7 @@ Headset / Áudio: `;
               if (cloudUser.value) {
                 const cloudData = await window.SupabaseService.loadUserData(cloudUser.value.id);
                 if (cloudData) {
-                  const hasCloudProfile = Boolean(cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0) || cloudData.profile.mySetup));
+                  const hasCloudProfile = Boolean(cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || ((typeof cloudData.profile.myConsoles === 'string' && cloudData.profile.myConsoles.trim()) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0)) || cloudData.profile.mySetup));
                   if (games.value.length === 0 || hasCloudProfile) {
                     if (StorageService) {
                       if (games.value.length === 0 && Array.isArray(cloudData.games)) StorageService.saveGames(cloudData.games);
@@ -5286,7 +5311,7 @@ Headset / Áudio: `;
           const hasCloudContent = Boolean(
             cloudData && (
               (Array.isArray(cloudData.games) && cloudData.games.length > 0) ||
-              (cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0) || cloudData.profile.mySetup))
+              (cloudData.profile && (cloudData.profile.nickname || (Array.isArray(cloudData.profile.top5Games) && cloudData.profile.top5Games.length > 0) || ((typeof cloudData.profile.myConsoles === 'string' && cloudData.profile.myConsoles.trim()) || (Array.isArray(cloudData.profile.myConsoles) && cloudData.profile.myConsoles.length > 0)) || cloudData.profile.mySetup))
             )
           );
 
@@ -5677,14 +5702,12 @@ Headset / Áudio: `;
         saveTop5Modal,
 
         isConsolesModalOpen,
-        consolesSelectedList,
-        consoleSearchQuery,
-        filteredConsoleCategories,
+        consolesFormText,
         openConsolesModal,
         closeConsolesModal,
-        toggleConsole,
-        isConsoleSelected,
+        fillConsolesTemplate,
         saveConsolesModal,
+        formattedConsoleLines,
 
         isSetupModalOpen,
         setupFormText,
