@@ -2574,53 +2574,111 @@ function initApp() {
       };
 
       // ----------------------------------------------------------------------
-      // BUSCA DE CAPA INDIVIDUAL (IGDB / SCREEN SCRAPER)
+      // BUSCA DE CAPA INDIVIDUAL (IGDB)
       // ----------------------------------------------------------------------
-      const searchSingleGameScreenScraper = async (overrideTitle = null) => {
-        const queryFromInput = (typeof overrideTitle === 'string' && overrideTitle.trim())
-          ? overrideTitle.trim()
-          : (singleScraperState.value.query || '').trim();
+      let scraperSearchDebounceTimer = null;
+      let scraperSearchSequence = 0;
 
-        const title = queryFromInput || (gameForm.value.title || '').trim();
-
-        // Sempre abre o modal do seletor
-        isScraperPickerOpen.value = true;
-        singleScraperState.value.query = title;
-        refreshLucideIcons();
-
-        if (!title) {
+      const executeScraperSearch = async (titleToSearch, isBackgroundLiveSearch = false) => {
+        const cleanTitle = (titleToSearch || '').trim();
+        if (!cleanTitle) {
           singleScraperState.value.candidates = [];
           return;
         }
 
+        const seq = ++scraperSearchSequence;
         singleScraperState.value.isSearching = true;
-        singleScraperState.value.candidates = [];
         refreshLucideIcons();
 
         const creds = getScraperCredentials();
 
         try {
-          let results = [];
           const igdbInstance = IgdbService || (typeof window !== 'undefined' && (window.IgdbService || window.IGDBService));
-          if (igdbInstance && typeof igdbInstance.searchGames === 'function') {
-            results = await igdbInstance.searchGames(title, gameForm.value.platform, creds);
-          } else {
+          if (!igdbInstance || typeof igdbInstance.searchGames !== 'function') {
             throw new Error('Serviço de busca do IGDB não disponível. Atualize a página.');
           }
 
+          const results = await igdbInstance.searchGames(cleanTitle, gameForm.value.platform, creds);
+
+          // Se outra pesquisa foi disparada enquanto esta estava em voo, descarta resultado obsoleto
+          if (seq !== scraperSearchSequence) return;
+
           if (results && results.length > 0) {
             singleScraperState.value.candidates = results;
-            showToast(`${results.length} jogos encontrados no IGDB!`, 'success');
+            if (!isBackgroundLiveSearch) {
+              showToast(`${results.length} jogos encontrados no IGDB!`, 'success');
+            }
           } else {
             singleScraperState.value.candidates = [];
-            showToast(`Nenhum resultado encontrado para "${title}".`, 'info');
+            if (!isBackgroundLiveSearch) {
+              showToast(`Nenhum resultado encontrado para "${cleanTitle}".`, 'info');
+            }
           }
         } catch (err) {
+          if (seq !== scraperSearchSequence) return;
           console.error('Erro na pesquisa de capa:', err);
-          showToast(err.message || 'Erro ao buscar dados do jogo', 'error');
+          if (!isBackgroundLiveSearch) {
+            showToast(err.message || 'Erro ao buscar dados do jogo', 'error');
+          }
         } finally {
+          if (seq === scraperSearchSequence) {
+            singleScraperState.value.isSearching = false;
+            refreshLucideIcons();
+          }
+        }
+      };
+
+      // Chamado a partir do formulário de Adicionar Jogo
+      const openAndSearchFromGameForm = () => {
+        const title = (gameForm.value.title || '').trim();
+        singleScraperState.value.query = title;
+        isScraperPickerOpen.value = true;
+        singleScraperState.value.candidates = [];
+        refreshLucideIcons();
+
+        if (title) {
+          executeScraperSearch(title, false);
+        }
+      };
+
+      // Disparado no evento @input do campo de busca do modal (debounced live search)
+      const onScraperQueryInput = () => {
+        if (scraperSearchDebounceTimer) {
+          clearTimeout(scraperSearchDebounceTimer);
+        }
+        const query = (singleScraperState.value.query || '').trim();
+        if (!query) {
+          scraperSearchSequence++;
           singleScraperState.value.isSearching = false;
-          refreshLucideIcons();
+          singleScraperState.value.candidates = [];
+          return;
+        }
+
+        scraperSearchDebounceTimer = setTimeout(() => {
+          executeScraperSearch(query, true);
+        }, 400);
+      };
+
+      // Disparado ao pressionar Enter ou clicar em "Buscar" no modal
+      const submitScraperModalSearch = () => {
+        if (scraperSearchDebounceTimer) {
+          clearTimeout(scraperSearchDebounceTimer);
+        }
+        const query = (singleScraperState.value.query || '').trim();
+        if (query) {
+          executeScraperSearch(query, false);
+        } else {
+          singleScraperState.value.candidates = [];
+        }
+      };
+
+      // Compatibilidade retroativa caso chamado como searchSingleGameScreenScraper
+      const searchSingleGameScreenScraper = (overrideTitle = null) => {
+        if (typeof overrideTitle === 'string' && overrideTitle.trim()) {
+          singleScraperState.value.query = overrideTitle.trim();
+          submitScraperModalSearch();
+        } else {
+          openAndSearchFromGameForm();
         }
       };
 
@@ -5914,6 +5972,9 @@ Headset / Áudio: `;
         startBatchScrape,
         cancelBatchScrape,
         searchSingleGameScreenScraper,
+        openAndSearchFromGameForm,
+        onScraperQueryInput,
+        submitScraperModalSearch,
         fetchFromIgdbById,
         isFetchingIgdbId,
         applyScraperCover,
