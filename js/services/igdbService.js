@@ -19,6 +19,7 @@
 
   let _isLocalProxyChecked = false;
   let _workingLocalProxyBase = null;
+  let _searchWebAbortController = null;
   const _searchCache = new Map();
 
   /**
@@ -645,8 +646,14 @@
       const jinaUrl = `https://r.jina.ai/${targetUrl}`;
 
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        if (_searchWebAbortController) {
+          try { _searchWebAbortController.abort(); } catch (e) {}
+        }
+        _searchWebAbortController = new AbortController();
+        const controller = _searchWebAbortController;
+        const timeoutId = setTimeout(() => {
+          try { controller.abort(); } catch (e) {}
+        }, 15000);
 
         const resp = await fetch(jinaUrl, {
           method: 'GET',
@@ -728,6 +735,7 @@
 
         return results;
       } catch (err) {
+        if (err.name === 'AbortError') return [];
         console.warn('[searchIgdbWeb] Falhou:', err);
         return [];
       }
@@ -755,6 +763,7 @@
         }
 
         for (const proxy of proxies) {
+          if (_searchWebAbortController && _searchWebAbortController.signal.aborted) return [];
           try {
             const finalUrl = proxy ? `${proxy}${encodeURIComponent(steamUrl)}` : steamUrl;
             const controller = new AbortController();
@@ -894,7 +903,11 @@
         console.warn('[IGDB Web Search] Falhou:', webErr);
       }
 
-      // 3. Fallback final: Steam Store Search API
+      // 3. Fallback final: Steam Store Search API (apenas se a busca não foi abortada por uma nova pesquisa)
+      if (_searchWebAbortController && _searchWebAbortController.signal.aborted) {
+        return [];
+      }
+
       try {
         const steamResults = await this.searchSteam(rawTitle, platformName);
         if (steamResults && steamResults.length > 0) {

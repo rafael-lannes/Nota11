@@ -2588,6 +2588,7 @@ function initApp() {
 
         const seq = ++scraperSearchSequence;
         singleScraperState.value.isSearching = true;
+        singleScraperState.value.candidates = [];
         refreshLucideIcons();
 
         const creds = getScraperCredentials();
