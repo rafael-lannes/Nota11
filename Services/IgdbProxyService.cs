@@ -424,6 +424,8 @@ namespace Nota11.Services
                         var libraryHero = $"https://cdn.akamai.steamstatic.com/steam/apps/{appId}/library_600x900_2x.jpg";
                         var libraryCover = $"https://cdn.akamai.steamstatic.com/steam/apps/{appId}/library_600x900.jpg";
 
+                        var capsuleImg = $"https://cdn.akamai.steamstatic.com/steam/apps/{appId}/capsule_616x353.jpg";
+
                         results.Add(new
                         {
                             id = $"steam_{appId}",
@@ -434,12 +436,14 @@ namespace Nota11.Services
                             genres = Array.Empty<string>(),
                             releaseYear = (int?)null,
                             coverUrl = libraryCover,
+                            fallbackCoverUrl = headerImg,
                             source = "Steam",
                             candidateCovers = new[]
                             {
-                                new { type = "cover-vertical-hd", url = libraryHero, label = "Capa Vertical HD (Steam)", priority = 1 },
-                                new { type = "cover-vertical", url = libraryCover, label = "Capa Vertical (Steam)", priority = 2 },
-                                new { type = "cover-header", url = headerImg, label = "Banner Horizontal (Steam)", priority = 3 }
+                                new { type = "cover-vertical-hd", url = libraryHero, label = "Capa Vertical HD (Steam)", priority = 1, fallbackUrl = headerImg },
+                                new { type = "cover-vertical", url = libraryCover, label = "Capa Vertical (Steam)", priority = 2, fallbackUrl = headerImg },
+                                new { type = "cover-header", url = headerImg, label = "Banner Horizontal (Steam)", priority = 3, fallbackUrl = headerImg },
+                                new { type = "cover-capsule", url = capsuleImg, label = "Cápsula Store (Steam)", priority = 4, fallbackUrl = headerImg }
                             }
                         });
                     }

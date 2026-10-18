@@ -17,49 +17,46 @@
     ]
   };
 
+  let _isLocalProxyChecked = false;
+  let _workingLocalProxyBase = null;
+
   /**
    * Helper para chamar endpoints locais no backend C# EmbeddedServer
-   * Testa URLs relativas e portas comuns locais para compatibilidade total em WebView2 e navegadores.
+   * Executado apenas em ambiente desktop local / WebView2, evitando timeouts na web.
    */
   async function callLocalProxy(endpoint, postData) {
-    const candidateBases = [
-      '' // 1. URL Relativa (funciona automaticamente em WebView2 e quando servido pelo EmbeddedServer)
-    ];
-
     if (typeof window !== 'undefined' && window.location) {
-      if (window.location.origin && window.location.origin !== 'null') {
-        candidateBases.push(window.location.origin);
-      }
-      if (window.location.port) {
-        candidateBases.push(`http://127.0.0.1:${window.location.port}`);
-        candidateBases.push(`http://localhost:${window.location.port}`);
+      const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const isWebView2 = Boolean(window.chrome && window.chrome.webview);
+      // Se estiver rodando na web HTTPS (GitHub Pages), não existe servidor local
+      if (!isLocalHost && !isWebView2 && window.location.protocol === 'https:') {
+        return null;
       }
     }
 
-    // Portas padrão candidatas do servidor local
-    candidateBases.push(
-      'http://127.0.0.1:3000',
-      'http://localhost:3000',
-      'http://127.0.0.1:3001',
-      'http://localhost:3001',
-      'http://127.0.0.1:3002',
-      'http://localhost:3002',
-      'http://127.0.0.1:8080',
-      'http://localhost:8080',
-      'http://127.0.0.1:8000',
-      'http://localhost:8000',
-      'http://127.0.0.1:5500',
-      'http://localhost:5500'
-    );
+    if (_isLocalProxyChecked && !_workingLocalProxyBase) {
+      return null;
+    }
 
-    const uniqueBases = Array.from(new Set(candidateBases));
+    const candidateBases = [];
+    if (_workingLocalProxyBase) {
+      candidateBases.push(_workingLocalProxyBase);
+    } else {
+      candidateBases.push('');
+      if (typeof window !== 'undefined' && window.location) {
+        if (window.location.origin && window.location.origin !== 'null') {
+          candidateBases.push(window.location.origin);
+        }
+      }
+      candidateBases.push('http://127.0.0.1:3000', 'http://localhost:3000');
+    }
 
-    for (const base of uniqueBases) {
+    for (const base of candidateBases) {
       try {
         const cleanBase = base ? base.replace(/\/+$/, '') : '';
         const url = `${cleanBase}${endpoint}`;
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const timeoutId = setTimeout(() => controller.abort(), 1200);
 
         const resp = await fetch(url, {
           method: 'POST',
@@ -77,8 +74,9 @@
           if (!rawText || rawText.trim() === '') continue;
           try {
             const parsed = JSON.parse(rawText);
-            // Verifica se a resposta não é um erro
             if (parsed && !parsed.error) {
+              _workingLocalProxyBase = base;
+              _isLocalProxyChecked = true;
               return parsed;
             }
           } catch (e) {}
@@ -88,6 +86,7 @@
       }
     }
 
+    _isLocalProxyChecked = true;
     return null;
   }
 
@@ -541,6 +540,264 @@
     }
 
     /**
+     * Ordena resultados de busca priorizando títulos exatos, correspondência de plataforma e capas válidas
+     * @param {Array} results
+     * @param {string} rawTitle
+     * @param {string} [platformName]
+     * @returns {Array}
+     */
+    static sortResults(results, rawTitle, platformName = '') {
+      if (!results || results.length === 0) return [];
+
+      const cleanTarget = this.cleanSearchTitle(rawTitle).toLowerCase();
+      const normTarget = this.normalizeDiacritics((rawTitle || '').toLowerCase());
+
+      const isPlatformMatch = (gamePlat, targetPlat) => {
+        if (!targetPlat) return false;
+        const p1 = (gamePlat || '').toLowerCase();
+        const p2 = targetPlat.toLowerCase();
+        if (p1.includes(p2)) return true;
+        if ((p2.includes('pc') || p2.includes('computador') || p2.includes('windows')) && 
+            (p1.includes('pc') || p1.includes('windows') || p1.includes('computador') || p1.includes('microsoft windows'))) return true;
+        if (p2.includes('ps5') || p2.includes('playstation 5')) return p1.includes('ps5') || p1.includes('playstation 5');
+        if (p2.includes('ps4') || p2.includes('playstation 4')) return p1.includes('ps4') || p1.includes('playstation 4');
+        if (p2.includes('ps3') || p2.includes('playstation 3')) return p1.includes('ps3') || p1.includes('playstation 3');
+        if (p2.includes('xbox')) {
+          if (p2.includes('series') && p1.includes('series')) return true;
+          if (p2.includes('one') && p1.includes('one')) return true;
+          if (p2.includes('360') && p1.includes('360')) return true;
+        }
+        if (p2.includes('switch') && p1.includes('switch')) return true;
+        return false;
+      };
+
+      return results.slice().sort((a, b) => {
+        const cleanA = this.cleanSearchTitle(a.title).toLowerCase();
+        const cleanB = this.cleanSearchTitle(b.title).toLowerCase();
+        const normA = this.normalizeDiacritics((a.title || '').toLowerCase());
+        const normB = this.normalizeDiacritics((b.title || '').toLowerCase());
+
+        // 1. Título limpo idêntico (ex: "Call of duty Modern Warfare 4" == "Call of Duty: Modern Warfare 4")
+        const exactCleanA = cleanA === cleanTarget ? 1 : 0;
+        const exactCleanB = cleanB === cleanTarget ? 1 : 0;
+        if (exactCleanA !== exactCleanB) return exactCleanB - exactCleanA;
+
+        // 2. Título exato original
+        const exactA = normA === normTarget ? 1 : 0;
+        const exactB = normB === normTarget ? 1 : 0;
+        if (exactA !== exactB) return exactB - exactA;
+
+        // 3. Inicia com o título pesquisado
+        const startsA = normA.startsWith(normTarget) || cleanA.startsWith(cleanTarget) ? 1 : 0;
+        const startsB = normB.startsWith(normTarget) || cleanB.startsWith(cleanTarget) ? 1 : 0;
+        if (startsA !== startsB) return startsB - startsA;
+
+        // 4. Possui capa oficial válida (não é placeholder ou sem capa)
+        const hasCoverA = a.coverUrl && !a.coverUrl.includes('nocover') ? 1 : 0;
+        const hasCoverB = b.coverUrl && !b.coverUrl.includes('nocover') ? 1 : 0;
+        if (hasCoverA !== hasCoverB) return hasCoverB - hasCoverA;
+
+        // 5. Correspondência com a plataforma selecionada no formulário
+        if (platformName) {
+          const platStrA = a.platform || (Array.isArray(a.platforms) ? a.platforms.join(' ') : '');
+          const platStrB = b.platform || (Array.isArray(b.platforms) ? b.platforms.join(' ') : '');
+          const matchA = isPlatformMatch(platStrA, platformName) ? 1 : 0;
+          const matchB = isPlatformMatch(platStrB, platformName) ? 1 : 0;
+          if (matchA !== matchB) return matchB - matchA;
+        }
+
+        // 6. Preferência por jogos principais (com ano de lançamento definido)
+        const yearA = a.releaseYear ? 1 : 0;
+        const yearB = b.releaseYear ? 1 : 0;
+        if (yearA !== yearB) return yearB - yearA;
+
+        return 0;
+      });
+    }
+
+    /**
+     * Pesquisa jogos diretamente na base web do IGDB via Web Reader (r.jina.ai)
+     * Não requer credenciais nem OAuth da Twitch e funciona 100% no navegador (GitHub Pages).
+     * @param {string} title
+     * @param {string} [platformName]
+     * @returns {Promise<Array>}
+     */
+    static async searchIgdbWeb(title, platformName = '') {
+      if (!title || !String(title).trim()) return [];
+
+      const cleanTitle = String(title)
+        .replace(/\s*\([^)]*\)/g, '')
+        .replace(/\s*\[[^\]]*\]/g, '')
+        .replace(/[^\w\s\-\:]/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!cleanTitle) return [];
+
+      const targetUrl = `https://www.igdb.com/search?type=1&q=${encodeURIComponent(cleanTitle)}`;
+      const jinaUrl = `https://r.jina.ai/${targetUrl}`;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const resp = await fetch(jinaUrl, {
+          method: 'GET',
+          headers: { 'Accept': 'text/plain, text/markdown, */*' },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) return [];
+
+        const body = await resp.text();
+        if (!body || body.trim() === '' || body.includes('404 Not Found') || body.includes('Page Not Found')) {
+          return [];
+        }
+
+        const blocks = body.split(/(?=\[!\[Image \d+: Cover of )/);
+        const results = [];
+        const seenSlugs = new Set();
+
+        for (const block of blocks) {
+          const imgMatch = block.match(/https:\/\/images\.igdb\.com\/igdb\/image\/upload\/t_cover_([a-z0-9_]+)\/([a-z0-9_]+)\.(jpg|png|webp)/i);
+          const gameLinkMatch = block.match(/\[([^\]]+)\]\(https:\/\/www\.igdb\.com\/games\/([a-z0-9_\-]+)\)/);
+          if (!imgMatch || !gameLinkMatch) continue;
+
+          const imgId = imgMatch[2];
+          const slug = gameLinkMatch[2];
+          if (seenSlugs.has(slug)) continue;
+          seenSlugs.add(slug);
+
+          const titleFull = gameLinkMatch[1].trim();
+          const yearMatch = titleFull.match(/\((\d{4})\)$/);
+          const gameTitle = yearMatch ? titleFull.replace(/\s*\(\d{4}\)$/, '').trim() : titleFull;
+          const releaseYear = yearMatch ? parseInt(yearMatch[1], 10) : null;
+
+          const platforms = [...block.matchAll(/\[([^\]]+)\]\(https:\/\/www\.igdb\.com\/top-100\/games\/platform\/[^)]+\)/g)].map(m => m[1]);
+          const platformDisplay = platforms.length > 0 ? platforms.slice(0, 3).join(' • ') : 'Multiplataforma';
+
+          const hasCover = imgId && imgId !== 'nocover';
+          const coverUrl = hasCover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg` : '';
+
+          const candidateCovers = [];
+          if (hasCover) {
+            candidateCovers.push({
+              type: 'cover-1080p',
+              url: `https://images.igdb.com/igdb/image/upload/t_1080p/${imgId}.jpg`,
+              label: 'Capa HD 1080p (IGDB)',
+              priority: 1
+            });
+            candidateCovers.push({
+              type: 'cover-big',
+              url: `https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg`,
+              label: 'Capa Oficial (IGDB)',
+              priority: 2
+            });
+            candidateCovers.push({
+              type: 'cover-720p',
+              url: `https://images.igdb.com/igdb/image/upload/t_720p/${imgId}.jpg`,
+              label: 'Capa 720p (IGDB)',
+              priority: 3
+            });
+          }
+
+          results.push({
+            id: slug,
+            slug: slug,
+            title: gameTitle,
+            releaseYear: releaseYear,
+            platform: platformDisplay,
+            platforms: platforms,
+            genre: '',
+            genres: [],
+            coverUrl: coverUrl,
+            candidateCovers: candidateCovers,
+            source: 'IGDB'
+          });
+        }
+
+        return results;
+      } catch (err) {
+        console.warn('[searchIgdbWeb] Falhou:', err);
+        return [];
+      }
+    }
+
+    /**
+     * Fallback via Steam Store Search com URLs seguras e resiliência de capas
+     * @param {string} title
+     * @param {string} [platformName]
+     * @returns {Promise<Array>}
+     */
+    static async searchSteam(title, platformName = '') {
+      try {
+        const steamTitle = this.cleanSearchTitle(title);
+        if (!steamTitle) return [];
+
+        const steamUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(steamTitle)}&l=portuguese&cc=BR`;
+        const proxies = [
+          'https://corsproxy.io/?url=',
+          'https://api.allorigins.win/raw?url='
+        ];
+
+        if (typeof window !== 'undefined' && (window.chrome?.webview || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          proxies.unshift('');
+        }
+
+        for (const proxy of proxies) {
+          try {
+            const finalUrl = proxy ? `${proxy}${encodeURIComponent(steamUrl)}` : steamUrl;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const resp = await fetch(finalUrl, { headers: { 'Accept': 'application/json' }, signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (resp.ok) {
+              const sData = await resp.json();
+              if (sData && sData.items && sData.items.length > 0) {
+                const steamResults = [];
+                for (const item of sData.items.slice(0, 10)) {
+                  const appId = item.id;
+                  const itemTitle = item.name;
+                  if (!appId) continue;
+
+                  // header.jpg e capsule_616x353.jpg são garantidos para qualquer app da Steam Store
+                  const headerImg = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/header.jpg`;
+                  const capsuleImg = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/capsule_616x353.jpg`;
+                  const libraryHero = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_600x900_2x.jpg`;
+                  const libraryCover = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
+
+                  steamResults.push({
+                    id: `steam_${appId}`,
+                    title: itemTitle,
+                    platform: platformName || 'PC',
+                    genre: '',
+                    genres: [],
+                    releaseYear: null,
+                    coverUrl: libraryCover,
+                    fallbackCoverUrl: headerImg,
+                    source: 'Steam',
+                    candidateCovers: [
+                      { type: 'cover-vertical-hd', url: libraryHero, label: 'Capa Vertical HD (Steam)', priority: 1, fallbackUrl: headerImg },
+                      { type: 'cover-vertical', url: libraryCover, label: 'Capa Vertical (Steam)', priority: 2, fallbackUrl: headerImg },
+                      { type: 'cover-header', url: headerImg, label: 'Banner Horizontal (Steam)', priority: 3 },
+                      { type: 'cover-capsule', url: capsuleImg, label: 'Cápsula Store (Steam)', priority: 4 }
+                    ]
+                  });
+                }
+                if (steamResults.length > 0) return steamResults;
+              }
+            }
+          } catch (e) {}
+        }
+      } catch (steamErr) {
+        console.warn('[Steam Search] Falhou:', steamErr);
+      }
+      return [];
+    }
+
+    /**
      * Pesquisa jogos no IGDB pelo título e plataforma com estratégia multi-query e fallbacks inteligentes
      * @param {string} title - Título do jogo
      * @param {string} [platformName] - Nome da plataforma
@@ -560,7 +817,7 @@
 
       const resultsMap = new Map();
 
-      // 1. Tenta IGDB se credenciais foram fornecidas
+      // 1. Tenta API Oficial do IGDB se credenciais foram fornecidas
       if (clientId && (clientSecret || accessToken)) {
         try {
           const auth = await this.getAccessToken(clientId, clientSecret, accessToken, tokenExpiry);
@@ -569,12 +826,9 @@
 
           const fields = 'fields id, name, summary, cover.url, cover.image_id, genres.name, platforms.name, first_release_date, artworks.url, artworks.image_id, screenshots.url, screenshots.image_id;';
 
-          // Executa buscas ordenadas por precisão
           for (let i = 0; i < candidates.length; i++) {
             const cand = candidates[i];
             const escaped = cand.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-            
-            // Estratégia A: Full Text Search indexado do IGDB
             const querySearch = `${fields} search "${escaped}"; limit 15;`;
             try {
               const rawGames = await this.fetchIgdbGames(querySearch, clientId, accessToken, credentials.proxyUrl);
@@ -590,119 +844,56 @@
               if (qErr.isAuthError) throw qErr;
             }
 
-            // Se já encontramos correspondências diretas no primeiro termo exato, paramos para maior velocidade
             if (resultsMap.size >= 5) break;
           }
-
-          // Se nenhuma correspondência foi encontrada com search "...", tenta busca por substring (where name ~ *...*)
-          if (resultsMap.size === 0 && candidates.length > 0) {
-            const bestCandidate = candidates[0];
-            const cleanCand = this.cleanSearchTitle(bestCandidate).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-            if (cleanCand && cleanCand.length >= 3) {
-              const queryPattern = `${fields} where name ~ *"${cleanCand}"*; limit 15;`;
-              try {
-                const rawPattern = await this.fetchIgdbGames(queryPattern, clientId, accessToken, credentials.proxyUrl);
-                if (rawPattern && Array.isArray(rawPattern) && rawPattern.length > 0) {
-                  for (const g of rawPattern) {
-                    const parsed = this.parseIgdbGameItem(g, platformName);
-                    if (parsed && !resultsMap.has(parsed.id)) {
-                      resultsMap.set(parsed.id, parsed);
-                    }
-                  }
-                }
-              } catch (pErr) {
-                if (pErr.isAuthError) throw pErr;
-              }
-            }
-          }
         } catch (igdbErr) {
-          console.warn('[IGDB] Falha na consulta direta ao IGDB, acionando fallback inteligente:', igdbErr);
+          console.warn('[IGDB] API oficial falhou ou sem resposta, acionando busca web IGDB:', igdbErr);
           if (igdbErr.isAuthError) {
-            // Repassa erro de autenticação para o app exibir o toast adequado
-            throw igdbErr;
+            // Continua para o leitor web do IGDB para garantir busca com sucesso!
           }
         }
       }
 
+      // Se encontrou via API oficial, retorna ordenado
       if (resultsMap.size > 0) {
-        const results = Array.from(resultsMap.values());
-        
-        // Ordena colocando correspondências exatas de título em primeiro lugar
-        const normalizedTarget = this.normalizeDiacritics(rawTitle.toLowerCase());
-        results.sort((a, b) => {
-          const normA = this.normalizeDiacritics((a.title || '').toLowerCase());
-          const normB = this.normalizeDiacritics((b.title || '').toLowerCase());
-          const exactA = normA === normalizedTarget ? 1 : 0;
-          const exactB = normB === normalizedTarget ? 1 : 0;
-          if (exactA !== exactB) return exactB - exactA;
-
-          const startsA = normA.startsWith(normalizedTarget) ? 1 : 0;
-          const startsB = normB.startsWith(normalizedTarget) ? 1 : 0;
-          return startsB - startsA;
-        });
-
-        return results;
+        return this.sortResults(Array.from(resultsMap.values()), rawTitle, platformName);
       }
 
-      // 2. Fallback Inteligente: ScreenScraper API (sem necessidade de OAuth / Twitch key)
+      // 2. Busca direta no IGDB via Web Reader (alta velocidade, sem OAuth, capas oficiais IGDB)
       try {
-        if (typeof window !== 'undefined' && window.ScreenScraperService && typeof window.ScreenScraperService.searchGames === 'function') {
-          const ssResults = await window.ScreenScraperService.searchGames(rawTitle, platformName, credentials);
-          if (ssResults && ssResults.length > 0) {
-            return ssResults.map(item => ({
-              ...item,
-              source: 'ScreenScraper',
-              genres: typeof window.StorageService !== 'undefined' ? window.StorageService.parseGenres(item.genre) : (item.genre ? [item.genre] : [])
-            }));
-          }
+        const webResults = await this.searchIgdbWeb(rawTitle, platformName);
+        if (webResults && webResults.length > 0) {
+          return this.sortResults(webResults, rawTitle, platformName);
         }
-      } catch (ssErr) {
-        console.warn('[ScreenScraper Fallback] Falhou:', ssErr);
+      } catch (webErr) {
+        console.warn('[IGDB Web Search] Falhou:', webErr);
       }
 
-      // 3. Fallback: Steam Store Search API
-      try {
-        const steamTitle = this.cleanSearchTitle(rawTitle);
-        const steamUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(steamTitle)}&l=portuguese&cc=BR`;
-        const proxies = ['', ...IGDB_CONFIG.DEFAULT_PROXIES];
-        for (const proxy of proxies) {
-          try {
-            const finalUrl = proxy ? `${proxy}${encodeURIComponent(steamUrl)}` : steamUrl;
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 6000);
-            const resp = await fetch(finalUrl, { headers: { 'Accept': 'application/json' }, signal: controller.signal });
-            clearTimeout(timeoutId);
-            if (resp.ok) {
-              const sData = await resp.json();
-              if (sData && sData.items && sData.items.length > 0) {
-                const steamResults = [];
-                for (const item of sData.items.slice(0, 5)) {
-                  const appId = item.id;
-                  const itemTitle = item.name;
-                  const headerImg = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/header.jpg`;
-                  const libraryHero = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_600x900_2x.jpg`;
-                  const libraryCover = `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
-                  
-                  steamResults.push({
-                    id: `steam_${appId}`,
-                    title: itemTitle,
-                    platform: platformName || 'PC',
-                    genre: '',
-                    genres: [],
-                    releaseYear: null,
-                    coverUrl: libraryCover,
-                    source: 'Steam',
-                    candidateCovers: [
-                      { type: 'cover-vertical-hd', url: libraryHero, label: 'Capa Vertical HD (Steam)', priority: 1 },
-                      { type: 'cover-vertical', url: libraryCover, label: 'Capa Vertical (Steam)', priority: 2 },
-                      { type: 'cover-header', url: headerImg, label: 'Banner Horizontal (Steam)', priority: 3 }
-                    ]
-                  });
-                }
-                if (steamResults.length > 0) return steamResults;
-              }
+      // 3. Fallback: ScreenScraper API (somente se credenciais foram configuradas)
+      const ssid = (credentials.ssid || '').trim();
+      const devid = (credentials.devid || '').trim();
+      if (ssid || devid) {
+        try {
+          if (typeof window !== 'undefined' && window.ScreenScraperService && typeof window.ScreenScraperService.searchGames === 'function') {
+            const ssResults = await window.ScreenScraperService.searchGames(rawTitle, platformName, credentials);
+            if (ssResults && ssResults.length > 0) {
+              return ssResults.map(item => ({
+                ...item,
+                source: 'ScreenScraper',
+                genres: typeof window.StorageService !== 'undefined' ? window.StorageService.parseGenres(item.genre) : (item.genre ? [item.genre] : [])
+              }));
             }
-          } catch (e) {}
+          }
+        } catch (ssErr) {
+          console.warn('[ScreenScraper Fallback] Falhou:', ssErr);
+        }
+      }
+
+      // 4. Fallback final: Steam Store Search API
+      try {
+        const steamResults = await this.searchSteam(rawTitle, platformName);
+        if (steamResults && steamResults.length > 0) {
+          return steamResults;
         }
       } catch (steamErr) {
         console.warn('[Steam Fallback] Falhou:', steamErr);

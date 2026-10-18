@@ -8825,8 +8825,8 @@
               <i data-lucide="image" class="w-5 h-5"></i>
             </div>
             <div>
-              <h3 id="picker-modal-title" class="font-heading font-extrabold text-xl text-white">Capas Encontradas no IGDB</h3>
-              <p class="text-xs text-slate-400">Selecione uma imagem para <strong>{{ gameForm.title }}</strong></p>
+              <h3 id="picker-modal-title" class="font-heading font-extrabold text-xl text-white">Resultados de Jogos no IGDB</h3>
+              <p class="text-xs text-slate-400">Selecione o jogo e a capa desejada para <strong>{{ gameForm.title || 'seu jogo' }}</strong></p>
             </div>
           </div>
           <button @click="isScraperPickerOpen = false" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer" aria-label="Fechar modal">
@@ -8834,53 +8834,131 @@
           </button>
         </div>
 
-        <!-- Grade de Resultados / Capas Candidatas RolÃ¡vel -->
-        <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6 scrollbar-thin">
+        <!-- Barra de Refinamento de Pesquisa Rápida -->
+        <div class="px-4 sm:px-6 py-3 bg-slate-950/60 border-b border-slate-800 flex items-center gap-2 flex-shrink-0">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input 
+              type="text" 
+              v-model="singleScraperState.query" 
+              @keyup.enter="searchSingleGameScreenScraper(singleScraperState.query)"
+              placeholder="Refinar pesquisa no IGDB..."
+              class="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-xs sm:text-sm focus:border-indigo-500 focus:outline-none transition-colors"
+            />
+          </div>
+          <button 
+            type="button" 
+            @click="searchSingleGameScreenScraper(singleScraperState.query)"
+            :disabled="singleScraperState.isSearching"
+            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-md"
+          >
+            <i v-if="!singleScraperState.isSearching" data-lucide="search" class="w-3.5 h-3.5"></i>
+            <svg v-else class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+            <span>Buscar</span>
+          </button>
+        </div>
+
+        <!-- Lista de Resultados de Jogos -->
+        <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-3.5 scrollbar-thin">
+          
+          <!-- Loading State -->
+          <div v-if="singleScraperState.isSearching" class="py-16 flex flex-col items-center justify-center space-y-3 text-center">
+            <div class="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+            <p class="text-sm font-semibold text-white">Pesquisando no IGDB...</p>
+            <p class="text-xs text-slate-400">Localizando títulos correspondentes, capas oficiais em alta definição e plataformas.</p>
+          </div>
+
+          <!-- Empty State -->
+          <div v-else-if="!singleScraperState.candidates || singleScraperState.candidates.length === 0" class="py-16 text-center space-y-3">
+            <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mx-auto">
+              <i data-lucide="search-x" class="w-6 h-6"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">Nenhum resultado encontrado no IGDB</h4>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto">
+              Tente digitar apenas o nome principal do jogo acima, ou utilize o botão Google Imagens para escolher uma capa da web.
+            </p>
+          </div>
+
+          <!-- Itens da Lista de Jogos -->
           <div 
+            v-else
             v-for="candidate in singleScraperState.candidates" 
             :key="candidate.id"
-            class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3"
+            class="p-3.5 sm:p-4 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/50 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-4 group"
           >
-            <div class="flex items-center justify-between">
-              <div>
-                <h4 class="font-heading font-bold text-white text-base">{{ candidate.title }}</h4>
-                <div class="flex items-center gap-2 text-xs text-slate-400">
-                  <span class="text-indigo-400 font-semibold">{{ candidate.platform }}</span>
-                  <span v-if="candidate.genre"> • {{ candidate.genre }}</span>
-                </div>
+            <!-- Capa do Jogo (Vertical) -->
+            <div class="w-16 h-22 sm:w-20 sm:h-28 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex-shrink-0 relative shadow-md group-hover:border-indigo-500/50 transition-colors">
+              <img 
+                :src="candidate.coverUrl || (candidate.candidateCovers && candidate.candidateCovers[0]?.url)" 
+                :alt="candidate.title"
+                @error="handleCoverPickerImageError($event, candidate, null)"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+              <span v-if="candidate.source" class="absolute bottom-1 right-1 text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-black/80 text-indigo-300 border border-indigo-500/30">
+                {{ candidate.source }}
+              </span>
+            </div>
+
+            <!-- Informações do Jogo -->
+            <div class="flex-1 min-w-0 space-y-1.5 w-full">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="font-heading font-bold text-white text-base sm:text-lg leading-snug group-hover:text-indigo-300 transition-colors">
+                  {{ candidate.title }}
+                </h4>
+                <span v-if="candidate.releaseYear" class="px-2 py-0.5 rounded-md bg-slate-800 text-amber-300 border border-slate-700 text-xs font-mono font-semibold">
+                  {{ candidate.releaseYear }}
+                </span>
+              </div>
+
+              <!-- Plataformas e Gêneros -->
+              <div class="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
+                <span v-if="candidate.platform" class="text-indigo-400 font-semibold bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+                  {{ candidate.platform }}
+                </span>
+                <span v-if="candidate.genre" class="text-slate-300">
+                  {{ candidate.genre }}
+                </span>
+              </div>
+
+              <!-- Variações de Arte / Capas Disponíveis -->
+              <div v-if="candidate.candidateCovers && candidate.candidateCovers.filter(c => !c.isBroken).length > 1" class="pt-1 flex items-center gap-1.5 flex-wrap">
+                <span class="text-[11px] text-slate-400 mr-1">Variações:</span>
+                <button
+                  v-for="(cov, cIdx) in candidate.candidateCovers.filter(c => !c.isBroken).slice(0, 4)"
+                  :key="cIdx"
+                  type="button"
+                  @click.stop="applyScraperCover(cov.url, candidate.genre, candidate)"
+                  class="text-[10px] font-semibold px-2 py-0.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+                  :class="(candidate.coverUrl === cov.url) ? 'bg-indigo-600/30 border-indigo-500 text-indigo-200' : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-600'"
+                >
+                  <i data-lucide="image" class="w-3 h-3 text-indigo-400"></i>
+                  <span>{{ cov.label || ('Opção ' + (cIdx + 1)) }}</span>
+                </button>
               </div>
             </div>
 
-            <!-- Grade de VariaÃ§Ãµes de Capa -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              <div 
-                v-for="(cover, cIdx) in candidate.candidateCovers" 
-                :key="cIdx"
-                class="group relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 hover:border-indigo-500 transition-all cursor-pointer flex flex-col justify-between"
-                @click="applyScraperCover(cover.url, candidate.genre)"
+            <!-- Botão Selecionar -->
+            <div class="flex-shrink-0 w-full sm:w-auto pt-2 sm:pt-0">
+              <button
+                type="button"
+                @click="applyScraperCover(candidate.coverUrl || (candidate.candidateCovers && candidate.candidateCovers[0]?.url), candidate.genre, candidate)"
+                class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
               >
-                <!-- Capa -->
-                <div class="aspect-[3/4] bg-slate-900 overflow-hidden relative">
-                  <img :src="cover.url" :alt="cover.label" class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  <span class="absolute top-1.5 left-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-indigo-300 border border-indigo-500/30 backdrop-blur-sm">
-                    {{ cover.label }}
-                  </span>
-                </div>
-
-                <!-- BotÃ£o de SeleÃ§Ã£o -->
-                <div class="p-2 text-center bg-slate-900 border-t border-slate-800 group-hover:bg-indigo-600 transition-colors">
-                  <span class="text-[11px] font-bold text-white flex items-center justify-center gap-1">
-                    <i data-lucide="check" class="w-3 h-3"></i>
-                    Usar Capa
-                  </span>
-                </div>
-              </div>
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Selecionar</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- RodapÃ© do Modal Fixado -->
-        <div class="flex items-center justify-end gap-3 p-3 sm:p-4 border-t border-slate-800 flex-shrink-0 bg-slate-950/80">
+        <!-- Rodapé do Modal Fixado -->
+        <div class="flex items-center justify-between gap-3 p-3 sm:p-4 border-t border-slate-800 flex-shrink-0 bg-slate-950/80">
+          <span class="text-xs text-slate-400">
+            <span v-if="singleScraperState.candidates && singleScraperState.candidates.length > 0">
+              {{ singleScraperState.candidates.length }} jogo(s) encontrado(s)
+            </span>
+          </span>
           <button 
             type="button" 
             @click="isScraperPickerOpen = false" 

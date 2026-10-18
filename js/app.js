@@ -506,6 +506,7 @@ function initApp() {
 
       const singleScraperState = ref({
         isSearching: false,
+        query: '',
         candidates: []
       });
 
@@ -2550,21 +2551,25 @@ function initApp() {
       // ----------------------------------------------------------------------
       // BUSCA DE CAPA INDIVIDUAL (IGDB / SCREEN SCRAPER)
       // ----------------------------------------------------------------------
-      const searchSingleGameScreenScraper = async () => {
-        // Se houver um ID do IGDB preenchido no formulário, prioriza a busca exata por ID
-        if (gameForm.value.igdbId && gameForm.value.igdbId.trim()) {
+      const searchSingleGameScreenScraper = async (overrideTitle = null) => {
+        // Se houver um ID do IGDB numérico puro preenchido no formulário e não for busca por texto
+        if (!overrideTitle && gameForm.value.igdbId && /^\d+$/.test(gameForm.value.igdbId.trim())) {
           return await fetchFromIgdbById();
         }
 
-        const title = (gameForm.value.title || '').trim();
+        const title = (typeof overrideTitle === 'string' && overrideTitle.trim()) ? overrideTitle.trim() : (gameForm.value.title || '').trim();
         if (!title) {
-          showToast('Por favor, digite o título do jogo ou o ID do IGDB antes de pesquisar.', 'error');
+          showToast('Por favor, digite o título do jogo antes de pesquisar.', 'error');
           return;
         }
 
-        const creds = getScraperCredentials();
+        singleScraperState.value.query = title;
         singleScraperState.value.isSearching = true;
         singleScraperState.value.candidates = [];
+        isScraperPickerOpen.value = true;
+        refreshLucideIcons();
+
+        const creds = getScraperCredentials();
 
         try {
           let results = [];
@@ -2577,63 +2582,88 @@ function initApp() {
           if (results && results.length > 0) {
             singleScraperState.value.candidates = results;
             
-            const bestGame = results[0];
-            if (bestGame.coverUrl) {
-              gameForm.value.coverUrl = bestGame.coverUrl;
+            // Sugere a primeira capa válida apenas se o formulário ainda não tiver capa
+            const firstValid = results.find(r => r.coverUrl && !r.coverUrl.includes('nocover'));
+            if (!gameForm.value.coverUrl && firstValid) {
+              gameForm.value.coverUrl = firstValid.coverUrl;
             }
-            if (bestGame.genre) {
-              gameForm.value.genre = StorageService ? StorageService.formatGenres(bestGame.genre) : bestGame.genre;
+            if (!gameForm.value.genre && results[0]?.genre) {
+              gameForm.value.genre = StorageService ? StorageService.formatGenres(results[0].genre) : results[0].genre;
             }
 
-            isScraperPickerOpen.value = true;
-            showToast(`Capa e dados encontrados para "${bestGame.title}"!`, 'success');
+            showToast(`${results.length} jogos encontrados no IGDB!`, 'success');
             refreshLucideIcons();
           } else {
-            if (!creds.clientId && !creds.clientSecret) {
-              openScraperModal();
-              showToast(`Nenhum resultado encontrado para "${title}". Configure suas credenciais da Twitch/IGDB para buscas mais amplas.`, 'info');
-            } else {
-              showToast(`Nenhum resultado encontrado para "${title}". Tente simplificar o título ou use a busca no Google Imagens.`, 'info');
-            }
+            showToast(`Nenhum resultado encontrado para "${title}".`, 'info');
           }
         } catch (err) {
           console.error('Erro na pesquisa de capa:', err);
-          try {
-            if (ScreenScraperService && typeof ScreenScraperService.searchGames === 'function') {
-              const fallbackResults = await ScreenScraperService.searchGames(title, gameForm.value.platform, creds);
-              if (fallbackResults && fallbackResults.length > 0) {
-                singleScraperState.value.candidates = fallbackResults;
-                const bestGame = fallbackResults[0];
-                if (bestGame.coverUrl) gameForm.value.coverUrl = bestGame.coverUrl;
-                if (bestGame.genre) gameForm.value.genre = StorageService ? StorageService.formatGenres(bestGame.genre) : bestGame.genre;
-                isScraperPickerOpen.value = true;
-                showToast(`Capa e dados encontrados para "${bestGame.title}"!`, 'success');
-                refreshLucideIcons();
-                return;
-              }
-            }
-          } catch (fallbackErr) {
-            console.warn('Fallback também falhou:', fallbackErr);
-          }
-
           showToast(err.message || 'Erro ao buscar dados do jogo', 'error');
-          if (err.isAuthError || (err.message && err.message.includes('Client ID ou Client Secret incorretos'))) {
-            openScraperModal();
-          }
         } finally {
           singleScraperState.value.isSearching = false;
+          refreshLucideIcons();
         }
       };
 
-      const applyScraperCover = (coverUrl, genre = '') => {
+      const handleCoverPickerImageError = (event, candidate, cover = null) => {
+        if (cover) {
+          cover.isBroken = true;
+        }
+        event.target.onerror = null;
+
+        if (cover && cover.fallbackUrl && event.target.src !== cover.fallbackUrl) {
+          event.target.src = cover.fallbackUrl;
+          return;
+        }
+
+        if (candidate) {
+          if (candidate.fallbackCoverUrl && event.target.src !== candidate.fallbackCoverUrl) {
+            event.target.src = candidate.fallbackCoverUrl;
+            return;
+          }
+          if (candidate.candidateCovers && Array.isArray(candidate.candidateCovers)) {
+            const altCover = candidate.candidateCovers.find(c => !c.isBroken && c.url && c.url !== event.target.src);
+            if (altCover) {
+              event.target.src = altCover.url;
+              return;
+            }
+          }
+        }
+
+        if (window.PlaceholderGenerator) {
+          event.target.src = window.PlaceholderGenerator.generate(candidate?.title || 'Jogo', candidate?.platform || 'PC');
+        }
+      };
+
+      const applyScraperCover = (coverUrl, genre = '', candidate = null) => {
         if (coverUrl) {
           gameForm.value.coverUrl = coverUrl;
         }
         if (genre) {
           gameForm.value.genre = StorageService ? StorageService.formatGenres(genre) : genre;
         }
+        if (candidate) {
+          if (candidate.title) {
+            gameForm.value.title = candidate.title;
+          }
+          if (candidate.releaseYear && !gameForm.value.completionYear) {
+            gameForm.value.completionYear = candidate.releaseYear;
+          }
+          if (candidate.id && !String(candidate.id).startsWith('steam_')) {
+            gameForm.value.igdbId = String(candidate.id);
+          }
+          // Se não há gênero preenchido mas temos o slug do IGDB, consulta gênero oficial em segundo plano
+          if (!gameForm.value.genre && candidate.slug && window.IgdbService && typeof window.IgdbService.fetchGameViaWebReader === 'function') {
+            window.IgdbService.fetchGameViaWebReader(candidate.slug, gameForm.value.platform).then(details => {
+              if (details && details.genre && !gameForm.value.genre) {
+                gameForm.value.genre = details.genre;
+                showToast(`Gêneros atualizados: ${details.genre}`, 'info');
+              }
+            }).catch(() => {});
+          }
+        }
         isScraperPickerOpen.value = false;
-        showToast('Capa e dados aplicados com sucesso!', 'success');
+        showToast('Jogo e capa aplicados com sucesso!', 'success');
         refreshLucideIcons();
       };
 
@@ -5864,6 +5894,7 @@ Headset / Áudio: `;
         fetchFromIgdbById,
         isFetchingIgdbId,
         applyScraperCover,
+        handleCoverPickerImageError,
 
         // Identificação de Rejogados / Replay
         isGameReplay,
