@@ -1041,7 +1041,7 @@ function initApp() {
           const s = (g.status || '').toString().trim().toLowerCase();
           if (s === 'backlog' || s === 'fila' || s === 'quero jogar') return false;
           if (s === 'jogando') return false;
-          return g.status === 'Zerado' || s === 'zerado' || s === 'finalizado' || s === 'concluido' || s === 'completed';
+          return g.status === 'Zerado' || s === 'zerado' || s === 'finalizado' || s === 'concluido' || s === 'concluído' || s === 'completed' || s === 'finished';
         });
       });
 
@@ -1431,12 +1431,27 @@ function initApp() {
           if (isGameHandheld(g)) countHandheld++;
           if (g.isEarlyAccess) countEarlyAccess++;
           
-          const isPlat = Boolean(g.isPlatinum) || g.completionCondition === 'Platinado/Perfeitos';
-          if (isPlat) {
+          let cond = 'Condição Padrão';
+          if (Boolean(g.isPlatinum) || g.completionCondition === 'Platinado/Perfeitos') {
+            cond = 'Platinado/Perfeitos';
+          } else if (StorageService && StorageService.normalizeCompletionCondition) {
+            cond = StorageService.normalizeCompletionCondition(g.completionCondition, Boolean(g.isPlatinum));
+          } else {
+            const raw = (g.completionCondition || '').toLowerCase().trim();
+            if (raw.includes('platina') || raw.includes('100%') || raw.includes('perfeit')) {
+              cond = 'Platinado/Perfeitos';
+            } else if (raw.includes('reduz') || raw.includes('any%') || raw.includes('curt') || raw.includes('rush') || raw.includes('principal') || raw.includes('rapida') || raw.includes('rápida') || raw.includes('historia') || raw.includes('história')) {
+              cond = 'Condição Reduzida';
+            } else if (raw.includes('sem fim') || raw.includes('infinit') || raw.includes('mmo') || raw.includes('multi') || raw.includes('endless')) {
+              cond = 'Jogo sem fim';
+            }
+          }
+
+          if (cond === 'Platinado/Perfeitos') {
             countPlatinum++;
-          } else if (g.completionCondition === 'Condição Reduzida') {
+          } else if (cond === 'Condição Reduzida') {
             countReduced++;
-          } else if (g.completionCondition === 'Jogo sem fim') {
+          } else if (cond === 'Jogo sem fim') {
             countEndless++;
           } else {
             countStandard++;
@@ -1734,13 +1749,12 @@ function initApp() {
       });
 
       const ratingDistribution = computed(() => {
-        const finished = finishedGames.value || [];
-        const targetList = finished.length > 0 ? finished : (games.value || []);
+        const allGames = games.value || [];
         const counts = {};
         for (let i = 1; i <= 11; i++) counts[i] = 0;
 
         let totalRated = 0;
-        targetList.forEach(g => {
+        allGames.forEach(g => {
           if (g.rating !== undefined && g.rating !== null && g.rating !== '') {
             const score = Math.round(Number(g.rating));
             if (score >= 1 && score <= 11) {
@@ -1759,7 +1773,7 @@ function initApp() {
             rating: score,
             count,
             percentage: totalRated > 0 ? Math.round((count / totalRated) * 100) : 0,
-            barHeightPercentage: maxCount > 0 && count > 0 ? Math.max(10, Math.round((count / maxCount) * 100)) : 0
+            barHeightPercentage: maxCount > 0 && count > 0 ? Math.max(12, Math.round((count / maxCount) * 100)) : 0
           };
         });
       });
@@ -1775,13 +1789,24 @@ function initApp() {
         };
 
         finished.forEach(g => {
-          const isPlat = Boolean(g.isPlatinum) || g.completionCondition === 'Platinado/Perfeitos';
-          if (isPlat) {
-            counts['Platinado/Perfeitos']++;
-          } else if (g.completionCondition === 'Condição Reduzida') {
-            counts['Condição Reduzida']++;
-          } else if (g.completionCondition === 'Jogo sem fim') {
-            counts['Jogo sem fim']++;
+          let cond = 'Condição Padrão';
+          if (Boolean(g.isPlatinum) || g.completionCondition === 'Platinado/Perfeitos') {
+            cond = 'Platinado/Perfeitos';
+          } else if (StorageService && StorageService.normalizeCompletionCondition) {
+            cond = StorageService.normalizeCompletionCondition(g.completionCondition, Boolean(g.isPlatinum));
+          } else {
+            const raw = (g.completionCondition || '').toLowerCase().trim();
+            if (raw.includes('platina') || raw.includes('100%') || raw.includes('perfeit')) {
+              cond = 'Platinado/Perfeitos';
+            } else if (raw.includes('reduz') || raw.includes('any%') || raw.includes('curt') || raw.includes('rush') || raw.includes('principal') || raw.includes('rapida') || raw.includes('rápida') || raw.includes('historia') || raw.includes('história')) {
+              cond = 'Condição Reduzida';
+            } else if (raw.includes('sem fim') || raw.includes('infinit') || raw.includes('mmo') || raw.includes('multi') || raw.includes('endless')) {
+              cond = 'Jogo sem fim';
+            }
+          }
+
+          if (counts[cond] !== undefined) {
+            counts[cond]++;
           } else {
             counts['Condição Padrão']++;
           }

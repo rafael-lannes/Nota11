@@ -246,17 +246,17 @@ class StorageService {
    * Normaliza a Condição de Zerar para uma das 4 opções oficiais
    */
   static normalizeCompletionCondition(val, isPlatinumFlag = false) {
-    if (!val && isPlatinumFlag) return 'Platinado/Perfeitos';
+    if (isPlatinumFlag) return 'Platinado/Perfeitos';
     if (!val) return 'Condição Padrão';
     const s = String(val).toLowerCase().trim();
 
     if (s.includes('platina') || s.includes('perfeit') || s.includes('100%') || s === 'sim' || s === 'true' || s === '1' || s === 'yes') {
       return 'Platinado/Perfeitos';
     }
-    if (s.includes('reduz') || s.includes('any%') || s.includes('curt') || s.includes('rush')) {
+    if (s.includes('reduz') || s.includes('any%') || s.includes('curt') || s.includes('rush') || s.includes('principal') || s.includes('rapida') || s.includes('rápida') || s.includes('historia') || s.includes('história')) {
       return 'Condição Reduzida';
     }
-    if (s.includes('sem fim') || s.includes('infinit') || s.includes('mmo') || s.includes('multi') || s.includes('endless') || s.includes('continuo')) {
+    if (s.includes('sem fim') || s.includes('infinit') || s.includes('mmo') || s.includes('multi') || s.includes('endless') || s.includes('continuo') || s.includes('contínuo')) {
       return 'Jogo sem fim';
     }
     return 'Condição Padrão';
