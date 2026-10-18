@@ -25,7 +25,6 @@ function initApp() {
   const StorageService = window.StorageService;
   const PlaceholderGenerator = window.PlaceholderGenerator;
   const IgdbService = window.IgdbService || window.IGDBService;
-  const ScreenScraperService = window.ScreenScraperService;
   const SAMPLE_GAMES = window.SAMPLE_GAMES || [];
   const DEFAULT_PROFILE = (typeof window !== 'undefined' && window.DEFAULT_PROFILE) || (StorageService && StorageService.DEFAULT_PROFILE) || {
     name: 'Jogador',
@@ -2602,10 +2601,11 @@ function initApp() {
 
         try {
           let results = [];
-          if (IgdbService && typeof IgdbService.searchGames === 'function') {
-            results = await IgdbService.searchGames(title, gameForm.value.platform, creds);
-          } else if (ScreenScraperService && typeof ScreenScraperService.searchGames === 'function') {
-            results = await ScreenScraperService.searchGames(title, gameForm.value.platform, creds);
+          const igdbInstance = IgdbService || (typeof window !== 'undefined' && (window.IgdbService || window.IGDBService));
+          if (igdbInstance && typeof igdbInstance.searchGames === 'function') {
+            results = await igdbInstance.searchGames(title, gameForm.value.platform, creds);
+          } else {
+            throw new Error('Serviço de busca do IGDB não disponível. Atualize a página.');
           }
 
           if (results && results.length > 0) {

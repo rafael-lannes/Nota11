@@ -634,7 +634,7 @@
       const cleanTitle = String(title)
         .replace(/\s*\([^)]*\)/g, '')
         .replace(/\s*\[[^\]]*\]/g, '')
-        .replace(/[^\p{L}\p{N}\s\-\:]/gu, ' ')
+        .replace(/[^\p{L}\p{N}\s\-:]/gu, ' ')
         .replace(/\s+/g, ' ')
         .trim();
 
@@ -835,8 +835,8 @@
 
       const candidates = this.generateSearchCandidates(rawTitle);
 
-      const clientId = (credentials.clientId || credentials.ssid || '').trim();
-      const clientSecret = (credentials.clientSecret || credentials.sspassword || '').trim();
+      const clientId = (credentials.clientId || '').trim();
+      const clientSecret = (credentials.clientSecret || '').trim();
       let accessToken = (credentials.accessToken || '').trim();
       let tokenExpiry = credentials.tokenExpiry || 0;
 
@@ -894,27 +894,7 @@
         console.warn('[IGDB Web Search] Falhou:', webErr);
       }
 
-      // 3. Fallback: ScreenScraper API (somente se credenciais foram configuradas)
-      const ssid = (credentials.ssid || '').trim();
-      const devid = (credentials.devid || '').trim();
-      if (ssid || devid) {
-        try {
-          if (typeof window !== 'undefined' && window.ScreenScraperService && typeof window.ScreenScraperService.searchGames === 'function') {
-            const ssResults = await window.ScreenScraperService.searchGames(rawTitle, platformName, credentials);
-            if (ssResults && ssResults.length > 0) {
-              return saveCacheAndReturn(ssResults.map(item => ({
-                ...item,
-                source: 'ScreenScraper',
-                genres: typeof window.StorageService !== 'undefined' ? window.StorageService.parseGenres(item.genre) : (item.genre ? [item.genre] : [])
-              })));
-            }
-          }
-        } catch (ssErr) {
-          console.warn('[ScreenScraper Fallback] Falhou:', ssErr);
-        }
-      }
-
-      // 4. Fallback final: Steam Store Search API
+      // 3. Fallback final: Steam Store Search API
       try {
         const steamResults = await this.searchSteam(rawTitle, platformName);
         if (steamResults && steamResults.length > 0) {
@@ -1118,8 +1098,8 @@
       }
 
       // 3. Se for numérico ou o Web Reader falhar, tenta a API oficial do IGDB se houver credenciais
-      const clientId = (credentials.clientId || credentials.ssid || '').trim();
-      const clientSecret = (credentials.clientSecret || credentials.sspassword || '').trim();
+      const clientId = (credentials.clientId || '').trim();
+      const clientSecret = (credentials.clientSecret || '').trim();
       let accessToken = (credentials.accessToken || '').trim();
       let tokenExpiry = credentials.tokenExpiry || 0;
 
