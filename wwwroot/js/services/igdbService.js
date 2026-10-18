@@ -19,6 +19,7 @@
 
   let _isLocalProxyChecked = false;
   let _workingLocalProxyBase = null;
+  const _searchCache = new Map();
 
   /**
    * Helper para chamar endpoints locais no backend C# EmbeddedServer
@@ -280,7 +281,7 @@
         try {
           const finalUrl = proxy ? `${proxy}${encodeURIComponent(targetUrl)}` : targetUrl;
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000);
+          const timeoutId = setTimeout(() => controller.abort(), 2500);
 
           const resp = await fetch(finalUrl, {
             method: 'POST',
@@ -374,7 +375,7 @@
         try {
           const finalUrl = proxy ? `${proxy}${encodeURIComponent(targetUrl)}` : targetUrl;
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 12000);
+          const timeoutId = setTimeout(() => controller.abort(), 2500);
 
           const headers = {
             'Client-ID': cleanClientId,
@@ -611,6 +612,11 @@
         const yearB = b.releaseYear ? 1 : 0;
         if (yearA !== yearB) return yearB - yearA;
 
+        // 7. Relevância por número de plataformas (jogos comerciais de maior escala)
+        const platCountA = Array.isArray(a.platforms) ? a.platforms.length : (a.platform ? a.platform.split('•').length : 0);
+        const platCountB = Array.isArray(b.platforms) ? b.platforms.length : (b.platform ? b.platform.split('•').length : 0);
+        if (platCountA !== platCountB) return platCountB - platCountA;
+
         return 0;
       });
     }
@@ -639,11 +645,15 @@
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
 
         const resp = await fetch(jinaUrl, {
           method: 'GET',
-          headers: { 'Accept': 'text/plain, text/markdown, */*' },
+          headers: {
+            'Accept': 'text/plain, text/markdown, */*',
+            'x-engine': 'direct',
+            'x-timeout': '5'
+          },
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -683,21 +693,21 @@
           const candidateCovers = [];
           if (hasCover) {
             candidateCovers.push({
-              type: 'cover-1080p',
-              url: `https://images.igdb.com/igdb/image/upload/t_1080p/${imgId}.jpg`,
-              label: 'Capa HD 1080p (IGDB)',
+              type: 'cover-big',
+              url: `https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg`,
+              label: 'Capa Oficial',
               priority: 1
             });
             candidateCovers.push({
-              type: 'cover-big',
-              url: `https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg`,
-              label: 'Capa Oficial (IGDB)',
+              type: 'cover-1080p',
+              url: `https://images.igdb.com/igdb/image/upload/t_1080p/${imgId}.jpg`,
+              label: 'HD 1080p',
               priority: 2
             });
             candidateCovers.push({
               type: 'cover-720p',
               url: `https://images.igdb.com/igdb/image/upload/t_720p/${imgId}.jpg`,
-              label: 'Capa 720p (IGDB)',
+              label: '720p',
               priority: 3
             });
           }
@@ -808,6 +818,22 @@
       if (!title || !String(title).trim()) return [];
 
       const rawTitle = String(title).trim();
+      const cacheKey = `${rawTitle.toLowerCase()}:::${(platformName || '').toLowerCase().trim()}`;
+      if (_searchCache.has(cacheKey)) {
+        return _searchCache.get(cacheKey);
+      }
+
+      const saveCacheAndReturn = (results) => {
+        if (results && results.length > 0) {
+          if (_searchCache.size >= 60) {
+            const oldestKey = _searchCache.keys().next().value;
+            _searchCache.delete(oldestKey);
+          }
+          _searchCache.set(cacheKey, results);
+        }
+        return results;
+      };
+
       const candidates = this.generateSearchCandidates(rawTitle);
 
       const clientId = (credentials.clientId || credentials.ssid || '').trim();
@@ -856,14 +882,14 @@
 
       // Se encontrou via API oficial, retorna ordenado
       if (resultsMap.size > 0) {
-        return this.sortResults(Array.from(resultsMap.values()), rawTitle, platformName);
+        return saveCacheAndReturn(this.sortResults(Array.from(resultsMap.values()), rawTitle, platformName));
       }
 
       // 2. Busca direta no IGDB via Web Reader (alta velocidade, sem OAuth, capas oficiais IGDB)
       try {
         const webResults = await this.searchIgdbWeb(rawTitle, platformName);
         if (webResults && webResults.length > 0) {
-          return this.sortResults(webResults, rawTitle, platformName);
+          return saveCacheAndReturn(this.sortResults(webResults, rawTitle, platformName));
         }
       } catch (webErr) {
         console.warn('[IGDB Web Search] Falhou:', webErr);
@@ -877,11 +903,11 @@
           if (typeof window !== 'undefined' && window.ScreenScraperService && typeof window.ScreenScraperService.searchGames === 'function') {
             const ssResults = await window.ScreenScraperService.searchGames(rawTitle, platformName, credentials);
             if (ssResults && ssResults.length > 0) {
-              return ssResults.map(item => ({
+              return saveCacheAndReturn(ssResults.map(item => ({
                 ...item,
                 source: 'ScreenScraper',
                 genres: typeof window.StorageService !== 'undefined' ? window.StorageService.parseGenres(item.genre) : (item.genre ? [item.genre] : [])
-              }));
+              })));
             }
           }
         } catch (ssErr) {
@@ -893,7 +919,7 @@
       try {
         const steamResults = await this.searchSteam(rawTitle, platformName);
         if (steamResults && steamResults.length > 0) {
-          return steamResults;
+          return saveCacheAndReturn(steamResults);
         }
       } catch (steamErr) {
         console.warn('[Steam Fallback] Falhou:', steamErr);
@@ -963,12 +989,14 @@
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
 
         const response = await fetch(jinaUrl, {
           method: 'GET',
           headers: {
-            'Accept': 'text/plain, text/markdown, */*'
+            'Accept': 'text/plain, text/markdown, */*',
+            'x-engine': 'direct',
+            'x-timeout': '5'
           },
           signal: controller.signal
         });
