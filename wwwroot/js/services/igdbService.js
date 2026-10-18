@@ -634,13 +634,14 @@
       const cleanTitle = String(title)
         .replace(/\s*\([^)]*\)/g, '')
         .replace(/\s*\[[^\]]*\]/g, '')
-        .replace(/[^\w\s\-\:]/gi, ' ')
+        .replace(/[^\p{L}\p{N}\s\-\:]/gu, ' ')
         .replace(/\s+/g, ' ')
         .trim();
 
       if (!cleanTitle) return [];
 
-      const targetUrl = `https://www.igdb.com/search?type=1&q=${encodeURIComponent(cleanTitle)}`;
+      const queryParam = encodeURIComponent(cleanTitle).replace(/%20/g, '+');
+      const targetUrl = `https://www.igdb.com/search?type=1&q=${queryParam}`;
       const jinaUrl = `https://r.jina.ai/${targetUrl}`;
 
       try {
