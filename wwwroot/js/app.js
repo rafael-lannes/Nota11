@@ -2549,24 +2549,53 @@ function initApp() {
       };
 
       // ----------------------------------------------------------------------
-      // BUSCA DE CAPA INDIVIDUAL (IGDB / SCREEN SCRAPER)
+      // PROTEÇÃO CONTRA FECHAMENTO ACIDENTAL DE MODAIS (SELEÇÃO DE TEXTO / DRAG)
       // ----------------------------------------------------------------------
-      const searchSingleGameScreenScraper = async (overrideTitle = null) => {
-        // Se houver um ID do IGDB numérico puro preenchido no formulário e não for busca por texto
-        if (!overrideTitle && gameForm.value.igdbId && /^\d+$/.test(gameForm.value.igdbId.trim())) {
-          return await fetchFromIgdbById();
-        }
+      let _modalBackdropMouseDownTarget = null;
 
-        const title = (typeof overrideTitle === 'string' && overrideTitle.trim()) ? overrideTitle.trim() : (gameForm.value.title || '').trim();
-        if (!title) {
-          showToast('Por favor, digite o título do jogo antes de pesquisar.', 'error');
+      const handleModalBackdropMouseDown = (event) => {
+        _modalBackdropMouseDownTarget = event.target;
+      };
+
+      const handleModalBackdropClick = (event, closeCallback) => {
+        // Se o clique começou em um input/texto dentro do modal e o mouse foi solto no backdrop, NUNCA fecha!
+        if (_modalBackdropMouseDownTarget !== event.currentTarget || event.target !== event.currentTarget) {
           return;
         }
 
+        // Se houver qualquer texto selecionado na tela no momento do clique, NUNCA fecha!
+        const selection = window.getSelection ? window.getSelection().toString() : '';
+        if (selection && selection.trim().length > 0) {
+          return;
+        }
+
+        if (typeof closeCallback === 'function') {
+          closeCallback();
+        }
+      };
+
+      // ----------------------------------------------------------------------
+      // BUSCA DE CAPA INDIVIDUAL (IGDB / SCREEN SCRAPER)
+      // ----------------------------------------------------------------------
+      const searchSingleGameScreenScraper = async (overrideTitle = null) => {
+        const queryFromInput = (typeof overrideTitle === 'string' && overrideTitle.trim())
+          ? overrideTitle.trim()
+          : (singleScraperState.value.query || '').trim();
+
+        const title = queryFromInput || (gameForm.value.title || '').trim();
+
+        // Sempre abre o modal do seletor
+        isScraperPickerOpen.value = true;
         singleScraperState.value.query = title;
+        refreshLucideIcons();
+
+        if (!title) {
+          singleScraperState.value.candidates = [];
+          return;
+        }
+
         singleScraperState.value.isSearching = true;
         singleScraperState.value.candidates = [];
-        isScraperPickerOpen.value = true;
         refreshLucideIcons();
 
         const creds = getScraperCredentials();
@@ -2581,19 +2610,9 @@ function initApp() {
 
           if (results && results.length > 0) {
             singleScraperState.value.candidates = results;
-            
-            // Sugere a primeira capa válida apenas se o formulário ainda não tiver capa
-            const firstValid = results.find(r => r.coverUrl && !r.coverUrl.includes('nocover'));
-            if (!gameForm.value.coverUrl && firstValid) {
-              gameForm.value.coverUrl = firstValid.coverUrl;
-            }
-            if (!gameForm.value.genre && results[0]?.genre) {
-              gameForm.value.genre = StorageService ? StorageService.formatGenres(results[0].genre) : results[0].genre;
-            }
-
             showToast(`${results.length} jogos encontrados no IGDB!`, 'success');
-            refreshLucideIcons();
           } else {
+            singleScraperState.value.candidates = [];
             showToast(`Nenhum resultado encontrado para "${title}".`, 'info');
           }
         } catch (err) {
@@ -5883,6 +5902,10 @@ Headset / Áudio: `;
         refreshLucideIcons,
         parseGameGenres,
         filterBySpecificGenre,
+
+        // Proteção contra fechamento acidental de modais
+        handleModalBackdropMouseDown,
+        handleModalBackdropClick,
 
         // ScreenScraper / IGDB Métodos
         openScraperModal,

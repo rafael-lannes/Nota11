@@ -645,14 +645,12 @@
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         const resp = await fetch(jinaUrl, {
           method: 'GET',
           headers: {
-            'Accept': 'text/plain, text/markdown, */*',
-            'x-engine': 'direct',
-            'x-timeout': '5'
+            'Accept': 'text/plain, text/markdown, */*'
           },
           signal: controller.signal
         });
@@ -989,14 +987,12 @@
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         const response = await fetch(jinaUrl, {
           method: 'GET',
           headers: {
-            'Accept': 'text/plain, text/markdown, */*',
-            'x-engine': 'direct',
-            'x-timeout': '5'
+            'Accept': 'text/plain, text/markdown, */*'
           },
           signal: controller.signal
         });
