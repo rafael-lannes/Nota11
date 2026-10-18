@@ -5325,7 +5325,7 @@
               Estatísticas da Coleção
             </h2>
             <p class="text-xs sm:text-sm text-slate-400 max-w-2xl">
-              Tempo investido, ritmo de conclusões ao longo dos anos, plataformas mais jogadas, notas e maiores maratonas.
+              Tempo investido, ritmo de conclusões ao longo dos anos, plataformas mais jogadas, notas e jogos mais jogados.
             </p>
           </div>
 
@@ -5946,6 +5946,7 @@
                   </h3>
                   <p class="text-xs text-slate-400">Histograma de notas registradas na coleção.</p>
                 </div>
+                <span class="text-xs text-slate-400 font-mono">{{ stats.ratedCount || 0 }} avaliados</span>
               </div>
 
               <!-- Histograma Visual de Barras Verticais (1 a 11) -->
@@ -5957,31 +5958,37 @@
                 >
                   <!-- Tooltip no Hover -->
                   <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-slate-800 text-white text-[10px] py-1 px-2 rounded-md font-mono whitespace-nowrap z-20 pointer-events-none shadow-lg border border-slate-700">
-                    Nota {{ rItem.rating }}: {{ rItem.count }} jogos ({{ rItem.percentage }}%)
+                    Nota {{ rItem.rating }}: {{ rItem.count }} {{ rItem.count === 1 ? 'jogo' : 'jogos' }} ({{ rItem.percentage }}%)
                   </div>
 
                   <!-- Contagem em cima da barra -->
-                  <span class="text-[10px] font-mono text-slate-400 mb-1 group-hover:text-white font-semibold">
+                  <span 
+                    class="text-[10px] font-mono mb-1 transition-colors font-semibold"
+                    :class="rItem.count > 0 ? 'text-slate-300 group-hover:text-white' : 'text-slate-600/40'"
+                  >
                     {{ rItem.count }}
                   </span>
 
                   <!-- Barra Vertical Proporcional -->
                   <div 
-                    class="w-full rounded-t-lg transition-all duration-300 group-hover:brightness-125"
-                    :class="{
-                      'bg-gradient-to-t from-amber-600 via-amber-400 to-yellow-300 shadow-sm border-t-2 border-yellow-200': rItem.rating === 11,
-                      'bg-emerald-400': rItem.rating === 10,
-                      'bg-emerald-500': rItem.rating === 9,
-                      'bg-green-500': rItem.rating === 8,
-                      'bg-lime-500': rItem.rating === 7,
-                      'bg-yellow-500': rItem.rating === 6,
-                      'bg-amber-500': rItem.rating === 5,
-                      'bg-orange-500': rItem.rating === 4,
-                      'bg-rose-500': rItem.rating === 3,
-                      'bg-red-500': rItem.rating === 2,
-                      'bg-red-600': rItem.rating <= 1
-                    }"
-                    :style="{ height: `${Math.max(6, rItem.barHeightPercentage)}%` }"
+                    class="w-full rounded-t-lg transition-all duration-300"
+                    :class="[
+                      rItem.count > 0 ? 'group-hover:brightness-125' : 'opacity-0',
+                      {
+                        'bg-gradient-to-t from-amber-600 via-amber-400 to-yellow-300 shadow-sm border-t-2 border-yellow-200': rItem.rating === 11 && rItem.count > 0,
+                        'bg-emerald-400': rItem.rating === 10 && rItem.count > 0,
+                        'bg-emerald-500': rItem.rating === 9 && rItem.count > 0,
+                        'bg-green-500': rItem.rating === 8 && rItem.count > 0,
+                        'bg-lime-500': rItem.rating === 7 && rItem.count > 0,
+                        'bg-yellow-500': rItem.rating === 6 && rItem.count > 0,
+                        'bg-amber-500': rItem.rating === 5 && rItem.count > 0,
+                        'bg-orange-500': rItem.rating === 4 && rItem.count > 0,
+                        'bg-rose-500': rItem.rating === 3 && rItem.count > 0,
+                        'bg-red-500': rItem.rating === 2 && rItem.count > 0,
+                        'bg-red-600': rItem.rating <= 1 && rItem.count > 0
+                      }
+                    ]"
+                    :style="{ height: rItem.count > 0 ? `${rItem.barHeightPercentage}%` : '0%' }"
                   ></div>
 
                   <!-- Rótulo do Eixo X (Nota 1..11) -->
@@ -6014,7 +6021,16 @@
                 >
                   <div class="flex items-center justify-between text-xs sm:text-sm">
                     <div class="flex items-center gap-2">
-                      <i :data-lucide="cItem.icon" class="w-4 h-4" :class="`text-${cItem.color}-400`"></i>
+                      <i 
+                        :data-lucide="cItem.icon" 
+                        class="w-4 h-4" 
+                        :class="{
+                          'text-amber-400': cItem.color === 'amber',
+                          'text-emerald-400': cItem.color === 'emerald',
+                          'text-blue-400': cItem.color === 'blue',
+                          'text-purple-400': cItem.color === 'purple'
+                        }"
+                      ></i>
                       <strong class="text-white font-semibold">{{ cItem.name }}</strong>
                     </div>
                     <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-slate-800 text-slate-200">
@@ -6031,7 +6047,7 @@
                         'bg-gradient-to-r from-blue-500 to-cyan-400': cItem.color === 'blue',
                         'bg-gradient-to-r from-indigo-500 to-purple-400': cItem.color === 'purple'
                       }"
-                      :style="{ width: `${Math.max(4, cItem.percentage)}%` }"
+                      :style="{ width: cItem.count > 0 ? `${Math.max(4, cItem.percentage)}%` : '0%' }"
                     ></div>
                   </div>
                 </div>
@@ -6040,20 +6056,20 @@
 
           </div>
 
-          <!-- SEÇÃO 5: TOP 10 MAIORES MARATONAS (JOGOS MAIS LONGOS DA COLEÇÃO) -->
+          <!-- SEÇÃO 5: TOP 10 JOGOS MAIS JOGADOS -->
           <div class="p-5 sm:p-6 rounded-3xl bg-[#12141c] border border-slate-800 shadow-xl space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
               <div>
                 <h3 class="font-heading font-extrabold text-lg sm:text-xl text-white flex items-center gap-2">
                   <i data-lucide="flame" class="w-5 h-5 text-amber-500"></i>
-                  <span>Top 10 Maiores Maratonas (Jogos Mais Longos)</span>
+                  <span>Top 10 jogos mais jogados</span>
                 </h3>
                 <p class="text-xs text-slate-400">Os títulos onde você mais investiu tempo de jogo.</p>
               </div>
             </div>
 
-            <!-- Tabela / Lista dos 10 Mais Longos -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <!-- Tabela / Lista dos 10 Mais Jogados -->
+            <div v-if="topLongestGames.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div 
                 v-for="(mGame, mIdx) in topLongestGames" 
                 :key="mGame.id"
@@ -6116,84 +6132,11 @@
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- SEÇÃO 6: ARMAZENAMENTO & PESO DOS DADOS E ARQUIVOS DE CAPA -->
-          <div class="p-5 sm:p-6 rounded-3xl bg-[#12141c] border border-slate-800 shadow-xl space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-              <div>
-                <h3 class="font-heading font-extrabold text-lg sm:text-xl text-white flex items-center gap-2">
-                  <i data-lucide="hard-drive" class="w-5 h-5 text-cyan-400"></i>
-                  <span>Armazenamento da Coleção & Arquivos de Capa</span>
-                </h3>
-                <p class="text-xs text-slate-400">Detalhamento do espaço ocupado pelos registros, configurações e imagens de capa.</p>
-              </div>
-              <span class="text-xs font-mono font-bold text-cyan-300 bg-cyan-950/60 border border-cyan-800/60 px-3 py-1 rounded-xl self-start sm:self-auto">
-                Total Geral: {{ storageInfo.totalWithCoversFormatted }}
-              </span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-              
-              <!-- Card 1: Arquivos de Capa da Lista -->
-              <div class="p-4 rounded-2xl bg-slate-900/80 border border-indigo-500/30 space-y-2">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-indigo-300 font-semibold flex items-center gap-1.5">
-                    <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i>
-                    <span>Arquivos de Capa</span>
-                  </span>
-                  <span class="font-mono text-indigo-300 font-bold text-xs">{{ storageInfo.coversTotalCount }} capas</span>
-                </div>
-                <div>
-                  <strong class="text-xl sm:text-2xl font-black text-white font-mono block">{{ storageInfo.coversFilesFormatted }}</strong>
-                  <span class="text-[11px] text-slate-400 block">Imagens em HD e miniaturas da lista</span>
-                </div>
-              </div>
-
-              <!-- Card 2: Metadados dos Jogos -->
-              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-400 font-semibold flex items-center gap-1.5">
-                    <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
-                    <span>Dados dos Jogos</span>
-                  </span>
-                  <span class="font-mono text-slate-400 text-xs">{{ games.length }} títulos</span>
-                </div>
-                <div>
-                  <strong class="text-xl sm:text-2xl font-black text-emerald-300 font-mono block">{{ storageInfo.gamesMetadataFormatted }}</strong>
-                  <span class="text-[11px] text-slate-400 block">Títulos, plataformas, tempos e notas</span>
-                </div>
-              </div>
-
-              <!-- Card 3: LocalStorage Usado -->
-              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-400 font-semibold flex items-center gap-1.5">
-                    <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
-                    <span>Banco Local (LocalStorage)</span>
-                  </span>
-                  <span class="font-mono text-cyan-300 text-xs">{{ storageInfo.percentUsed }}% de 5MB</span>
-                </div>
-                <div>
-                  <strong class="text-xl sm:text-2xl font-black text-cyan-300 font-mono block">{{ storageInfo.totalFormatted }}</strong>
-                  <span class="text-[11px] text-slate-400 block">Armazenamento interno do navegador</span>
-                </div>
-              </div>
-
-              <!-- Card 4: Perfil & Configurações -->
-              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-400 font-semibold flex items-center gap-1.5">
-                    <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
-                    <span>Configurações & Perfil</span>
-                  </span>
-                </div>
-                <div>
-                  <strong class="text-xl sm:text-2xl font-black text-slate-200 font-mono block">{{ storageInfo.profileFormatted }}</strong>
-                  <span class="text-[11px] text-slate-400 block">Avatar, bio e preferências salvas</span>
-                </div>
-              </div>
-
+            <!-- Estado Vazio -->
+            <div v-else class="p-8 text-center bg-slate-900/40 rounded-2xl border border-dashed border-slate-800">
+              <i data-lucide="clock" class="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-60"></i>
+              <p class="text-sm text-slate-400 font-medium">Nenhum tempo de jogo registrado ainda.</p>
+              <p class="text-xs text-slate-500">Adicione o tempo de jogo nos seus registros para ver os jogos mais jogados.</p>
             </div>
           </div>
 
@@ -10445,8 +10388,8 @@
                           <span class="text-[9px] font-mono font-bold" :class="r.rating === 11 ? 'text-amber-400' : 'text-slate-400'">{{ r.count }}</span>
                           <div 
                             class="w-full snapshot-rating-bar" 
-                            :class="r.rating === 11 ? 'bg-gradient-to-t from-amber-600 via-amber-400 to-yellow-300 shadow-md shadow-amber-500/30' : r.rating >= 9 ? 'bg-emerald-500' : r.rating >= 7 ? 'bg-cyan-500' : 'bg-slate-700'"
-                            :style="{ height: r.barHeightPercentage + '%' }"
+                            :class="[r.count > 0 ? '' : 'opacity-0', r.rating === 11 ? 'bg-gradient-to-t from-amber-600 via-amber-400 to-yellow-300 shadow-md shadow-amber-500/30' : r.rating >= 9 ? 'bg-emerald-500' : r.rating >= 7 ? 'bg-cyan-500' : 'bg-slate-700']"
+                            :style="{ height: r.count > 0 ? r.barHeightPercentage + '%' : '0%' }"
                           ></div>
                           <span class="text-[10px] font-mono font-bold" :class="r.rating === 11 ? 'text-amber-300' : 'text-slate-400'">
                             {{ r.rating === 11 ? '★11' : r.rating }}
@@ -10471,7 +10414,7 @@
                             <span class="font-bold text-white font-mono">{{ c.count }}</span>
                           </div>
                           <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full" :class="c.color === 'amber' ? 'bg-amber-400' : c.color === 'emerald' ? 'bg-emerald-400' : c.color === 'purple' ? 'bg-purple-400' : 'bg-cyan-400'" :style="{ width: Math.max(5, c.percentage) + '%' }"></div>
+                            <div class="h-full rounded-full" :class="c.color === 'amber' ? 'bg-amber-400' : c.color === 'emerald' ? 'bg-emerald-400' : c.color === 'purple' ? 'bg-purple-400' : 'bg-cyan-400'" :style="{ width: c.count > 0 ? Math.max(5, c.percentage) + '%' : '0%' }"></div>
                           </div>
                         </div>
                       </div>
@@ -10480,12 +10423,12 @@
 
                 </div>
 
-                <!-- SEÇÃO 3: MAIORES MARATONAS (TOP 4 JOGOS MAIS JOGADOS) -->
+                <!-- SEÇÃO 3: JOGOS MAIS JOGADOS (TOP 4) -->
                 <div v-if="shareShowHighlights && topLongestGames.length > 0" class="snapshot-stats-panel space-y-3">
                   <div class="flex items-center justify-between border-b border-white/10 pb-2">
                     <span class="text-xs font-bold text-white flex items-center gap-1.5">
                       <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-400"></i>
-                      <span>Maiores Maratonas da Coleção (Mais Tempo Investido)</span>
+                      <span>Top Jogos Mais Jogados (Mais Tempo Investido)</span>
                     </span>
                     <span class="text-[10px] text-cyan-300 font-mono font-bold">Top 4</span>
                   </div>

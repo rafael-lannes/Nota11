@@ -1420,17 +1420,27 @@ function initApp() {
 
         finished.forEach(g => {
           totalHoursNumber += (g.playtimeHours || 0);
-          if (g.rating !== undefined && g.rating !== null) {
-            totalRatingSum += g.rating;
-            ratedCount++;
-            if (g.rating === 11) count11++;
+          if (g.rating !== undefined && g.rating !== null && g.rating !== '') {
+            const numR = Number(g.rating);
+            if (!isNaN(numR) && numR >= 1 && numR <= 11) {
+              totalRatingSum += numR;
+              ratedCount++;
+              if (numR === 11) count11++;
+            }
           }
           if (isGameHandheld(g)) countHandheld++;
           if (g.isEarlyAccess) countEarlyAccess++;
-          if (g.completionCondition === 'Platinado/Perfeitos' || g.isPlatinum) countPlatinum++;
-          if (g.completionCondition === 'Condição Padrão') countStandard++;
-          if (g.completionCondition === 'Condição Reduzida') countReduced++;
-          if (g.completionCondition === 'Jogo sem fim') countEndless++;
+          
+          const isPlat = Boolean(g.isPlatinum) || g.completionCondition === 'Platinado/Perfeitos';
+          if (isPlat) {
+            countPlatinum++;
+          } else if (g.completionCondition === 'Condição Reduzida') {
+            countReduced++;
+          } else if (g.completionCondition === 'Jogo sem fim') {
+            countEndless++;
+          } else {
+            countStandard++;
+          }
         });
 
         const avgRating = ratedCount > 0 ? (totalRatingSum / ratedCount).toFixed(1) : '0.0';
@@ -1453,6 +1463,7 @@ function initApp() {
           totalPlaytimeHours: Math.round(totalHoursNumber),
           totalPlaytimeFormatted,
           averageRating: avgRating,
+          ratedCount,
           masterpiecesCount: count11,
           handheldCount: countHandheld,
           earlyAccessCount: countEarlyAccess,
@@ -1723,18 +1734,23 @@ function initApp() {
       });
 
       const ratingDistribution = computed(() => {
-        const finished = finishedGames.value;
-        const total = finished.length || 1;
+        const finished = finishedGames.value || [];
+        const targetList = finished.length > 0 ? finished : (games.value || []);
         const counts = {};
         for (let i = 1; i <= 11; i++) counts[i] = 0;
 
-        finished.forEach(g => {
-          if (g.rating >= 1 && g.rating <= 11) {
-            counts[g.rating]++;
+        let totalRated = 0;
+        targetList.forEach(g => {
+          if (g.rating !== undefined && g.rating !== null && g.rating !== '') {
+            const score = Math.round(Number(g.rating));
+            if (score >= 1 && score <= 11) {
+              counts[score]++;
+              totalRated++;
+            }
           }
         });
 
-        const maxCount = Math.max(...Object.values(counts), 1);
+        const maxCount = Math.max(...Object.values(counts), 0);
 
         return Object.keys(counts).map(key => {
           const score = Number(key);
@@ -1742,15 +1758,15 @@ function initApp() {
           return {
             rating: score,
             count,
-            percentage: Math.round((count / total) * 100),
-            barHeightPercentage: Math.max(8, Math.round((count / maxCount) * 100))
+            percentage: totalRated > 0 ? Math.round((count / totalRated) * 100) : 0,
+            barHeightPercentage: maxCount > 0 && count > 0 ? Math.max(10, Math.round((count / maxCount) * 100)) : 0
           };
         });
       });
 
       const conditionDistribution = computed(() => {
-        const finished = finishedGames.value;
-        const total = finished.length || 1;
+        const finished = finishedGames.value || [];
+        const total = finished.length;
         const counts = {
           'Platinado/Perfeitos': 0,
           'Condição Padrão': 0,
@@ -1759,25 +1775,41 @@ function initApp() {
         };
 
         finished.forEach(g => {
-          const cond = g.completionCondition || (g.isPlatinum ? 'Platinado/Perfeitos' : 'Condição Padrão');
-          if (counts[cond] !== undefined) {
-            counts[cond]++;
+          const isPlat = Boolean(g.isPlatinum) || g.completionCondition === 'Platinado/Perfeitos';
+          if (isPlat) {
+            counts['Platinado/Perfeitos']++;
+          } else if (g.completionCondition === 'Condição Reduzida') {
+            counts['Condição Reduzida']++;
+          } else if (g.completionCondition === 'Jogo sem fim') {
+            counts['Jogo sem fim']++;
           } else {
             counts['Condição Padrão']++;
           }
         });
 
         return [
-          { name: 'Platinado / Perfeitos', count: counts['Platinado/Perfeitos'], percentage: Math.round((counts['Platinado/Perfeitos'] / total) * 100), color: 'amber', icon: 'award' },
-          { name: 'Condição Padrão', count: counts['Condição Padrão'], percentage: Math.round((counts['Condição Padrão'] / total) * 100), color: 'emerald', icon: 'check-circle-2' },
-          { name: 'Condição Reduzida', count: counts['Condição Reduzida'], percentage: Math.round((counts['Condição Reduzida'] / total) * 100), color: 'blue', icon: 'fast-forward' },
-          { name: 'Jogo Sem Fim', count: counts['Jogo sem fim'], percentage: Math.round((counts['Jogo sem fim'] / total) * 100), color: 'purple', icon: 'infinity' }
+          { name: 'Platinado / Perfeitos', count: counts['Platinado/Perfeitos'], percentage: total > 0 ? Math.round((counts['Platinado/Perfeitos'] / total) * 100) : 0, color: 'amber', icon: 'award' },
+          { name: 'Condição Padrão', count: counts['Condição Padrão'], percentage: total > 0 ? Math.round((counts['Condição Padrão'] / total) * 100) : 0, color: 'emerald', icon: 'check-circle-2' },
+          { name: 'Condição Reduzida', count: counts['Condição Reduzida'], percentage: total > 0 ? Math.round((counts['Condição Reduzida'] / total) * 100) : 0, color: 'blue', icon: 'fast-forward' },
+          { name: 'Jogo Sem Fim', count: counts['Jogo sem fim'], percentage: total > 0 ? Math.round((counts['Jogo sem fim'] / total) * 100) : 0, color: 'purple', icon: 'infinity' }
         ];
       });
 
       const topLongestGames = computed(() => {
-        return [...finishedGames.value]
-          .sort((a, b) => (b.playtimeHours || 0) - (a.playtimeHours || 0))
+        const parseHours = (g) => {
+          if (g.playtimeHours !== undefined && g.playtimeHours !== null && !isNaN(Number(g.playtimeHours))) {
+            return Number(g.playtimeHours);
+          }
+          if (g.playtime) {
+            const pt = parsePlaytimeInput(g.playtime);
+            return pt ? pt.hours : 0;
+          }
+          return 0;
+        };
+
+        return [...(games.value || [])]
+          .filter(g => parseHours(g) > 0)
+          .sort((a, b) => parseHours(b) - parseHours(a))
           .slice(0, 10);
       });
 
