@@ -1343,9 +1343,50 @@ function initApp() {
         return list;
       });
 
+      const isMasterpieceExpanded = ref(false);
+
       const masterpieceGames = computed(() => {
-        return games.value.filter(g => g.status === 'Zerado' && g.rating === 11);
+        const list = games.value.filter(g => {
+          const s = (g.status || '').toString().trim().toLowerCase();
+          const isZerado = g.status === 'Zerado' || s === 'zerado' || s === 'finalizado' || s === 'concluido' || s === 'concluído' || s === 'completed' || s === 'finished';
+          return isZerado && Number(g.rating) === 11;
+        });
+
+        // Ordenar os Nota 11 do mais recente para o mais antigo (últimos zerados primeiro)
+        return list.slice().sort((a, b) => {
+          const parseTime = (game) => {
+            if (game.completionDate) {
+              const t = new Date(game.completionDate).getTime();
+              if (!isNaN(t) && t > 0) return t;
+            }
+            if (game.completionYear) {
+              const y = Number(game.completionYear);
+              if (!isNaN(y) && y > 0) return new Date(y, 11, 31).getTime();
+            }
+            if (game.createdAt) {
+              const t = new Date(game.createdAt).getTime();
+              if (!isNaN(t) && t > 0) return t;
+            }
+            return 0;
+          };
+
+          const timeA = parseTime(a);
+          const timeB = parseTime(b);
+          if (timeB !== timeA) return timeB - timeA;
+          return 0;
+        });
       });
+
+      const displayedMasterpieceGames = computed(() => {
+        if (isMasterpieceExpanded.value) {
+          return masterpieceGames.value;
+        }
+        return masterpieceGames.value.slice(0, 5);
+      });
+
+      const toggleMasterpieceExpanded = () => {
+        isMasterpieceExpanded.value = !isMasterpieceExpanded.value;
+      };
 
       const backlogStats = computed(() => {
         const bgList = backlogGames.value || [];
@@ -5956,6 +5997,9 @@ Headset / Áudio: `;
         finishedGames,
         filteredFinishedGames,
         masterpieceGames,
+        displayedMasterpieceGames,
+        isMasterpieceExpanded,
+        toggleMasterpieceExpanded,
         stats,
         availablePlatforms,
         availableGenres,
