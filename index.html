@@ -7073,7 +7073,7 @@
               </label>
               <span class="text-[10px] text-cyan-400/90 font-mono font-semibold">{{ quickFinishForm.platform || getPcSubcategory(gameToFinish?.platform) }}</span>
             </div>
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button 
                 type="button" 
                 @click="setQuickFinishPcSubcategory('PC - Computador')"
@@ -7100,6 +7100,15 @@
               >
                 <i data-lucide="gamepad" class="w-3.5 h-3.5 text-cyan-300 flex-shrink-0"></i>
                 <span class="truncate">Rog Ally</span>
+              </button>
+              <button 
+                type="button" 
+                @click="setQuickFinishPcSubcategory('PC - Recomp/Decomp')"
+                :class="getPcSubcategory(quickFinishForm.platform || gameToFinish?.platform) === 'PC - Recomp/Decomp' ? 'bg-cyan-600 text-white font-bold ring-2 ring-cyan-300 shadow-md shadow-cyan-500/20' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/80'"
+                class="py-2 px-1.5 rounded-xl text-xs font-semibold text-center transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-300 flex-shrink-0"></i>
+                <span class="truncate">Recomp/Decomp</span>
               </button>
             </div>
           </div>
@@ -7329,7 +7338,7 @@
               </label>
               <span class="text-[10px] text-cyan-400/90 font-mono font-semibold">{{ getPcSubcategory(gameForm.platform) }}</span>
             </div>
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button 
                 type="button" 
                 @click="setPcSubcategory('PC - Computador')"
@@ -7356,6 +7365,15 @@
               >
                 <i data-lucide="gamepad" class="w-4 h-4 text-cyan-300 flex-shrink-0"></i>
                 <span class="truncate">Rog Ally</span>
+              </button>
+              <button 
+                type="button" 
+                @click="setPcSubcategory('PC - Recomp/Decomp')"
+                :class="getPcSubcategory(gameForm.platform) === 'PC - Recomp/Decomp' ? 'bg-cyan-600 text-white font-bold ring-2 ring-cyan-300 shadow-md shadow-cyan-500/20' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/80'"
+                class="py-2.5 px-2 rounded-xl text-xs font-semibold text-center transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 cursor-pointer"
+              >
+                <i data-lucide="cpu" class="w-4 h-4 text-cyan-300 flex-shrink-0"></i>
+                <span class="truncate">Recomp/Decomp</span>
               </button>
             </div>
           </div>

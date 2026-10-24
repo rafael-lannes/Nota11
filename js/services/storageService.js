@@ -24,7 +24,7 @@ function isPcPlatform(platform) {
     return false;
   }
   return p === 'pc' || p.startsWith('pc ') || p.startsWith('pc/') || p.startsWith('pc(') || p.startsWith('pc -') ||
-         p.includes('steam deck') || p.includes('rog ally') || p.includes('computador') ||
+         p.includes('steam deck') || p.includes('rog ally') || p.includes('computador') || p.includes('recomp') || p.includes('decomp') ||
          p.includes('windows') || p.includes('steam') || p.includes('linux') || p.includes('mac') || p.includes('portátil');
 }
 
@@ -352,6 +352,10 @@ class StorageService {
           platform = 'PC - Steam Deck';
         } else if (pLow === 'rog ally') {
           platform = 'PC - Rog Ally';
+        } else if (pLow.includes('recomp') || pLow.includes('decomp')) {
+          platform = 'PC - Recomp/Decomp';
+        } else if (pLow === 'switch 2' || pLow === 'nintendo switch 2') {
+          platform = 'Nintendo Switch 2';
         }
         const condition = this.normalizeCompletionCondition(game.completionCondition, Boolean(game.isPlatinum));
         const isPlat = condition === 'Platinado/Perfeitos';
@@ -406,6 +410,10 @@ class StorageService {
               game.platform = 'PC - Steam Deck';
             } else if (pLow === 'rog ally') {
               game.platform = 'PC - Rog Ally';
+            } else if (pLow.includes('recomp') || pLow.includes('decomp')) {
+              game.platform = 'PC - Recomp/Decomp';
+            } else if (pLow === 'switch 2' || pLow === 'nintendo switch 2') {
+              game.platform = 'Nintendo Switch 2';
             }
           }
           if (game.isHandheld && !isPcPlatform(game.platform)) {
@@ -436,6 +444,10 @@ class StorageService {
           settings.defaultPlatform = 'PC - Steam Deck';
         } else if (pLow === 'rog ally') {
           settings.defaultPlatform = 'PC - Rog Ally';
+        } else if (pLow.includes('recomp') || pLow.includes('decomp')) {
+          settings.defaultPlatform = 'PC - Recomp/Decomp';
+        } else if (pLow === 'switch 2' || pLow === 'nintendo switch 2') {
+          settings.defaultPlatform = 'Nintendo Switch 2';
         }
       }
       return settings;
@@ -455,6 +467,10 @@ class StorageService {
           settings.defaultPlatform = 'PC - Steam Deck';
         } else if (pLow === 'rog ally') {
           settings.defaultPlatform = 'PC - Rog Ally';
+        } else if (pLow.includes('recomp') || pLow.includes('decomp')) {
+          settings.defaultPlatform = 'PC - Recomp/Decomp';
+        } else if (pLow === 'switch 2' || pLow === 'nintendo switch 2') {
+          settings.defaultPlatform = 'Nintendo Switch 2';
         }
       }
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));

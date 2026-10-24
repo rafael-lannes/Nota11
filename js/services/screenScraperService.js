@@ -25,6 +25,7 @@
     'PC - Computador': 135,
     'PC - Steam Deck': 135,
     'PC - Rog Ally': 135,
+    'PC - Recomp/Decomp': 135,
     'PC (Windows / Steam)': 135,
     'PC': 135,
     'Steam Deck / PC Portátil': 135,
@@ -37,6 +38,7 @@
     'PlayStation 5': 230,
     'Xbox Series X/S': 231,
     'Nintendo Switch': 225,
+    'Nintendo Switch 2': 225,
 
     // 8ª Geração
     'PlayStation 4': 60,

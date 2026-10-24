@@ -176,7 +176,9 @@ function initApp() {
         { name: 'Portáteis / Viagem', icon: 'gamepad-2' },
         { name: 'Campanha Principal', icon: 'sword' },
         { name: 'Casuais / Relax', icon: 'coffee' },
-        { name: 'Rumo à Platina', icon: 'trophy' }
+        { name: 'Rumo à Platina', icon: 'trophy' },
+        { name: 'Nintendo Switch 2', icon: 'gamepad-2' },
+        { name: 'PC - Recomp/Decomp', icon: 'cpu' }
       ];
 
       // Modais
@@ -570,6 +572,7 @@ function initApp() {
             'PC - Computador',
             'PC - Steam Deck',
             'PC - Rog Ally',
+            'PC - Recomp/Decomp',
             'Mac / Apple Silicon',
             'Linux'
           ]
@@ -579,7 +582,8 @@ function initApp() {
           items: [
             'PlayStation 5',
             'Xbox Series X/S',
-            'Nintendo Switch'
+            'Nintendo Switch',
+            'Nintendo Switch 2'
           ]
         },
         {
@@ -1991,6 +1995,7 @@ function initApp() {
       const getPcSubcategory = (platform) => {
         if (!platform) return 'PC - Computador';
         const p = String(platform).toLowerCase();
+        if (p.includes('recomp') || p.includes('decomp')) return 'PC - Recomp/Decomp';
         if (p.includes('steam deck') || p.includes('deck')) return 'PC - Steam Deck';
         if (p.includes('rog ally') || p.includes('ally')) return 'PC - Rog Ally';
         return 'PC - Computador';
@@ -3227,7 +3232,7 @@ function initApp() {
           return false;
         }
         return p === 'pc' || p.startsWith('pc ') || p.startsWith('pc/') || p.startsWith('pc(') || p.startsWith('pc -') ||
-               p.includes('steam deck') || p.includes('rog ally') || p.includes('computador') ||
+               p.includes('steam deck') || p.includes('rog ally') || p.includes('computador') || p.includes('recomp') || p.includes('decomp') ||
                p.includes('windows') || p.includes('steam') || p.includes('linux') || p.includes('mac') || p.includes('portátil');
       };
 
@@ -3280,6 +3285,9 @@ function initApp() {
         const p = platform.toLowerCase().trim();
 
         // 1. PC & Portáteis PC
+        if (p.includes('recomp') || p.includes('decomp')) {
+          return 'badge-platform-recomp';
+        }
         if (p.includes('steam deck') || p.includes('deck')) {
           return 'badge-platform-steam-deck';
         }
@@ -3337,6 +3345,9 @@ function initApp() {
         }
 
         // 4. Nintendo Family (Cores e estilos representativos de cada era)
+        if (p.includes('switch 2') || p.includes('switch2')) {
+          return 'badge-platform-switch-2';
+        }
         if (p.includes('switch') || p.includes('ns')) {
           return 'badge-platform-switch';
         }
@@ -3452,6 +3463,9 @@ function initApp() {
         const p = platform.toLowerCase().trim();
 
         // 1. PC & Portáteis PC
+        if (p.includes('recomp') || p.includes('decomp')) {
+          return 'cpu';
+        }
         if (p.includes('steam deck') || p.includes('deck') || p.includes('rog ally') || p.includes('ally') || p.includes('legion go') || p.includes('claw')) {
           return 'gamepad-2';
         }
@@ -3545,6 +3559,7 @@ function initApp() {
         'PC - Computador': 'icones/computador.png',
         'PC - Steam Deck': 'icones/Steam Deck.png',
         'PC - Rog Ally': 'icones/rog ally asus.png',
+        'PC - Recomp/Decomp': 'icones/computador.png',
         'Mac / Apple Silicon': 'icones/mac.png',
         'Linux': 'icones/linux.png',
         'PC': 'icones/computador.png',
@@ -3552,6 +3567,7 @@ function initApp() {
         'PlayStation 5': 'icones/ps5.png',
         'Xbox Series X/S': 'icones/xbox series.png',
         'Nintendo Switch': 'icones/nintendo switch.png',
+        'Nintendo Switch 2': 'icones/nintendo switch.png',
 
         'PlayStation 4': 'icones/ps4.png',
         'Xbox One': 'icones/xbox one.png',
@@ -3605,6 +3621,7 @@ function initApp() {
         if (p.includes('atari')) return encodeURI('icones/atari.png');
 
         // PC & Portáteis PC
+        if (p.includes('recomp') || p.includes('decomp')) return encodeURI('icones/computador.png');
         if (p.includes('steam deck') || p === 'deck') return encodeURI('icones/Steam Deck.png');
         if (p.includes('rog ally') || p === 'ally') return encodeURI('icones/rog ally asus.png');
         if (p.includes('mac') || p.includes('apple silicon') || p.includes('macos')) return encodeURI('icones/mac.png');
