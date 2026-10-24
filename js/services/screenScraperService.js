@@ -25,7 +25,6 @@
     'PC - Computador': 135,
     'PC - Steam Deck': 135,
     'PC - Rog Ally': 135,
-    'PC - Recomp/Decomp': 135,
     'PC (Windows / Steam)': 135,
     'PC': 135,
     'Steam Deck / PC Portátil': 135,

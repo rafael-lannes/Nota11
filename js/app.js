@@ -107,6 +107,7 @@ function initApp() {
       const onlyPlatinumFilter = ref(false);
       const onlyReplayFilter = ref(false);
       const onlyEarlyAccessFilter = ref(false);
+      const onlyRecompFilter = ref(false);
       const onlyDuplicatesFilter = ref(false);
       const isMobileFilterOpen = ref(false);
       const isZeradosControlsOpen = ref(false);
@@ -127,6 +128,7 @@ function initApp() {
         if (onlyPlatinumFilter.value) count++;
         if (onlyReplayFilter.value) count++;
         if (onlyEarlyAccessFilter.value) count++;
+        if (onlyRecompFilter.value) count++;
         if (onlyDuplicatesFilter.value) count++;
         return count;
       });
@@ -142,6 +144,7 @@ function initApp() {
         onlyPlatinumFilter.value = false;
         onlyReplayFilter.value = false;
         onlyEarlyAccessFilter.value = false;
+        onlyRecompFilter.value = false;
         onlyDuplicatesFilter.value = false;
       };
 
@@ -177,8 +180,7 @@ function initApp() {
         { name: 'Campanha Principal', icon: 'sword' },
         { name: 'Casuais / Relax', icon: 'coffee' },
         { name: 'Rumo à Platina', icon: 'trophy' },
-        { name: 'Nintendo Switch 2', icon: 'gamepad-2' },
-        { name: 'PC - Recomp/Decomp', icon: 'cpu' }
+        { name: 'Nintendo Switch 2', icon: 'gamepad-2' }
       ];
 
       // Modais
@@ -355,6 +357,7 @@ function initApp() {
               completionCondition: condition,
               isHandheld: Boolean(g.isHandheld),
               isEarlyAccess: Boolean(g.isEarlyAccess),
+              isRecomp: Boolean(g.isRecomp),
               isPlatinum: isPlat,
               isReplay: Boolean(g.isReplay),
               isNowPlaying: normalizedStatus === 'Jogando',
@@ -522,6 +525,7 @@ function initApp() {
         completionCondition: 'Condição Padrão',
         isHandheld: false,
         isEarlyAccess: false,
+        isRecomp: false,
         isPlatinum: false,
         isReplay: false,
         keepPlaying: false,
@@ -544,6 +548,7 @@ function initApp() {
         completionCondition: 'Condição Padrão',
         isHandheld: false,
         isEarlyAccess: false,
+        isRecomp: false,
         isPlatinum: false,
         isReplay: false,
         isNowPlaying: false,
@@ -572,7 +577,6 @@ function initApp() {
             'PC - Computador',
             'PC - Steam Deck',
             'PC - Rog Ally',
-            'PC - Recomp/Decomp',
             'Mac / Apple Silicon',
             'Linux'
           ]
@@ -708,6 +712,7 @@ function initApp() {
             completionCondition: condition,
             isHandheld: Boolean(g.isHandheld),
             isEarlyAccess: Boolean(g.isEarlyAccess),
+            isRecomp: Boolean(g.isRecomp),
             isPlatinum: condition === 'Platinado/Perfeitos',
             isReplay: Boolean(g.isReplay),
             isNowPlaying: Boolean(g.isNowPlaying)
@@ -959,6 +964,7 @@ function initApp() {
             (newVal.playtime && newVal.playtime !== '00:00:00' && newVal.playtime !== '0h' && newVal.playtime !== '0') ||
             newVal.isReplay ||
             newVal.isEarlyAccess ||
+            newVal.isRecomp ||
             newVal.isPlatinum
           );
           if (hasContent) {
@@ -969,7 +975,7 @@ function initApp() {
       }, { deep: true });
 
       // Atualiza ícones quando a página, visão, filtros ou layout mudarem
-      watch([activePage, currentView, selectedYearTab, onlyReplayFilter, onlyPlatinumFilter, onlyHandheldFilter, onlyEarlyAccessFilter, onlyDuplicatesFilter, nowPlayingLayout, backlogLayout, nowPlayingViewMode, heroTab, currentLayout], () => {
+      watch([activePage, currentView, selectedYearTab, onlyReplayFilter, onlyPlatinumFilter, onlyHandheldFilter, onlyEarlyAccessFilter, onlyRecompFilter, onlyDuplicatesFilter, nowPlayingLayout, backlogLayout, nowPlayingViewMode, heroTab, currentLayout], () => {
         refreshLucideIcons();
       });
 
@@ -1283,7 +1289,12 @@ function initApp() {
           list = list.filter(g => g.isEarlyAccess);
         }
 
-        // 11. Filtro de Possíveis Duplicados (Mesmos dados)
+        // 11. Filtro de Jogos Recomp / Decomp
+        if (onlyRecompFilter.value) {
+          list = list.filter(g => g.isRecomp);
+        }
+
+        // 12. Filtro de Possíveis Duplicados (Mesmos dados)
         if (onlyDuplicatesFilter.value) {
           list = list.filter(g => isGameDuplicate(g));
         }
@@ -1458,6 +1469,7 @@ function initApp() {
         let count11 = 0;
         let countHandheld = 0;
         let countEarlyAccess = 0;
+        let countRecomp = 0;
         let countPlatinum = 0;
         let countStandard = 0;
         let countReduced = 0;
@@ -1475,6 +1487,7 @@ function initApp() {
           }
           if (isGameHandheld(g)) countHandheld++;
           if (g.isEarlyAccess) countEarlyAccess++;
+          if (g.isRecomp) countRecomp++;
           
           let cond = 'Condição Padrão';
           if (Boolean(g.isPlatinum) || g.completionCondition === 'Platinado/Perfeitos') {
@@ -1527,6 +1540,7 @@ function initApp() {
           masterpiecesCount: count11,
           handheldCount: countHandheld,
           earlyAccessCount: countEarlyAccess,
+          recompCount: countRecomp,
           platinumCount: countPlatinum,
           standardCount: countStandard,
           reducedCount: countReduced,
@@ -1554,6 +1568,7 @@ function initApp() {
           let count11 = 0;
           let countHandheld = 0;
           let countEarlyAccess = 0;
+          let countRecomp = 0;
           let countPlatinum = 0;
           let countReplay = 0;
 
@@ -1566,6 +1581,7 @@ function initApp() {
             }
             if (isGameHandheld(g)) countHandheld++;
             if (g.isEarlyAccess) countEarlyAccess++;
+            if (g.isRecomp) countRecomp++;
             if (g.completionCondition === 'Platinado/Perfeitos' || g.isPlatinum) countPlatinum++;
             if (isGameReplay(g)) countReplay++;
           });
@@ -1585,6 +1601,7 @@ function initApp() {
             masterpiecesCount: count11,
             handheldCount: countHandheld,
             earlyAccessCount: countEarlyAccess,
+            recompCount: countRecomp,
             platinumCount: countPlatinum,
             replayCount: countReplay,
             games: yearGames
@@ -1937,6 +1954,7 @@ function initApp() {
           completionCondition: 'Condição Padrão',
           isHandheld: isPcPlatform(plat) ? (Boolean(game.isHandheld) || plat === 'PC - Steam Deck' || plat === 'PC - Rog Ally') : false,
           isEarlyAccess: Boolean(game.isEarlyAccess),
+          isRecomp: Boolean(game.isRecomp),
           isPlatinum: false,
           isReplay: Boolean(game.isReplay || isGameReplay(game)),
           keepPlaying: Boolean(game.isNowPlaying),
@@ -1972,6 +1990,7 @@ function initApp() {
             completionCondition: condition,
             isHandheld: isHandheldFinal,
             isEarlyAccess: Boolean(quickFinishForm.value.isEarlyAccess),
+            isRecomp: Boolean(quickFinishForm.value.isRecomp),
             isPlatinum: isPlat,
             isReplay: isRep,
             isNowPlaying: keepPlaying,
@@ -1995,7 +2014,6 @@ function initApp() {
       const getPcSubcategory = (platform) => {
         if (!platform) return 'PC - Computador';
         const p = String(platform).toLowerCase();
-        if (p.includes('recomp') || p.includes('decomp')) return 'PC - Recomp/Decomp';
         if (p.includes('steam deck') || p.includes('deck')) return 'PC - Steam Deck';
         if (p.includes('rog ally') || p.includes('ally')) return 'PC - Rog Ally';
         return 'PC - Computador';
@@ -2035,6 +2053,7 @@ function initApp() {
           completionCondition: 'Condição Padrão',
           isHandheld: false,
           isEarlyAccess: false,
+          isRecomp: false,
           isPlatinum: false,
           isReplay: false,
           isNowPlaying: false,
@@ -2072,6 +2091,7 @@ function initApp() {
             completionCondition: savedDraft.completionCondition || 'Condição Padrão',
             isHandheld: Boolean(savedDraft.isHandheld),
             isEarlyAccess: Boolean(savedDraft.isEarlyAccess),
+            isRecomp: Boolean(savedDraft.isRecomp),
             isPlatinum: Boolean(savedDraft.isPlatinum),
             isReplay: Boolean(savedDraft.isReplay),
             isNowPlaying: Boolean(savedDraft.isNowPlaying),
@@ -2096,6 +2116,7 @@ function initApp() {
             completionCondition: 'Condição Padrão',
             isHandheld: false,
             isEarlyAccess: false,
+            isRecomp: false,
             isPlatinum: false,
             isReplay: false,
             isNowPlaying: false,
@@ -2139,6 +2160,7 @@ function initApp() {
           completionCondition: condition,
           isHandheld: isPcPlatform(plat) ? (Boolean(game.isHandheld) || plat === 'PC - Steam Deck' || plat === 'PC - Rog Ally') : false,
           isEarlyAccess: Boolean(game.isEarlyAccess),
+          isRecomp: Boolean(game.isRecomp),
           isPlatinum: isPlat,
           isReplay: Boolean(game.isReplay || isGameReplay(game)),
           isNowPlaying: Boolean(game.isNowPlaying),
@@ -2201,6 +2223,7 @@ function initApp() {
               completionCondition: condition,
               isHandheld: isHandheldVal,
               isEarlyAccess: Boolean(gameForm.value.isEarlyAccess),
+              isRecomp: Boolean(gameForm.value.isRecomp),
               isPlatinum: isPlat,
               isReplay: Boolean(gameForm.value.isReplay),
               isNowPlaying: isNowPlayingVal,
@@ -2230,6 +2253,7 @@ function initApp() {
             completionCondition: condition,
             isHandheld: isHandheldVal,
             isEarlyAccess: Boolean(gameForm.value.isEarlyAccess),
+            isRecomp: Boolean(gameForm.value.isRecomp),
             isPlatinum: isPlat,
             isReplay: autoReplay,
             isNowPlaying: isNowPlayingVal,
@@ -2954,6 +2978,7 @@ function initApp() {
                 completionCondition: condition,
                 isHandheld: Boolean(item.isHandheld),
                 isEarlyAccess: Boolean(item.isEarlyAccess),
+                isRecomp: Boolean(item.isRecomp),
                 isPlatinum: condition === 'Platinado/Perfeitos',
                 isReplay: isReplay,
                 coverUrl: (item.coverUrl || '').trim() || (PlaceholderGenerator ? PlaceholderGenerator.generate(item.title, item.platform) : ''),
@@ -3014,6 +3039,7 @@ function initApp() {
                   completionCondition: condition,
                   isHandheld: Boolean(g.isHandheld),
                   isEarlyAccess: Boolean(g.isEarlyAccess),
+                  isRecomp: Boolean(g.isRecomp),
                   isPlatinum: condition === 'Platinado/Perfeitos',
                   isReplay: Boolean(g.isReplay),
                   isNowPlaying: g.status === 'Jogando',
@@ -3070,6 +3096,7 @@ function initApp() {
             completionCondition: condition,
             isHandheld: Boolean(g.isHandheld),
             isEarlyAccess: Boolean(g.isEarlyAccess),
+            isRecomp: Boolean(g.isRecomp),
             isPlatinum: condition === 'Platinado/Perfeitos',
             isReplay: Boolean(g.isReplay)
           };
@@ -3232,7 +3259,7 @@ function initApp() {
           return false;
         }
         return p === 'pc' || p.startsWith('pc ') || p.startsWith('pc/') || p.startsWith('pc(') || p.startsWith('pc -') ||
-               p.includes('steam deck') || p.includes('rog ally') || p.includes('computador') || p.includes('recomp') || p.includes('decomp') ||
+               p.includes('steam deck') || p.includes('rog ally') || p.includes('computador') ||
                p.includes('windows') || p.includes('steam') || p.includes('linux') || p.includes('mac') || p.includes('portátil');
       };
 
@@ -3285,9 +3312,6 @@ function initApp() {
         const p = platform.toLowerCase().trim();
 
         // 1. PC & Portáteis PC
-        if (p.includes('recomp') || p.includes('decomp')) {
-          return 'badge-platform-recomp';
-        }
         if (p.includes('steam deck') || p.includes('deck')) {
           return 'badge-platform-steam-deck';
         }
@@ -3463,9 +3487,6 @@ function initApp() {
         const p = platform.toLowerCase().trim();
 
         // 1. PC & Portáteis PC
-        if (p.includes('recomp') || p.includes('decomp')) {
-          return 'cpu';
-        }
         if (p.includes('steam deck') || p.includes('deck') || p.includes('rog ally') || p.includes('ally') || p.includes('legion go') || p.includes('claw')) {
           return 'gamepad-2';
         }
@@ -3559,7 +3580,6 @@ function initApp() {
         'PC - Computador': 'icones/computador.png',
         'PC - Steam Deck': 'icones/Steam Deck.png',
         'PC - Rog Ally': 'icones/rog ally asus.png',
-        'PC - Recomp/Decomp': 'icones/computador.png',
         'Mac / Apple Silicon': 'icones/mac.png',
         'Linux': 'icones/linux.png',
         'PC': 'icones/computador.png',
@@ -3621,7 +3641,6 @@ function initApp() {
         if (p.includes('atari')) return encodeURI('icones/atari.png');
 
         // PC & Portáteis PC
-        if (p.includes('recomp') || p.includes('decomp')) return encodeURI('icones/computador.png');
         if (p.includes('steam deck') || p === 'deck') return encodeURI('icones/Steam Deck.png');
         if (p.includes('rog ally') || p === 'ally') return encodeURI('icones/rog ally asus.png');
         if (p.includes('mac') || p.includes('apple silicon') || p.includes('macos')) return encodeURI('icones/mac.png');
@@ -6111,6 +6130,7 @@ Headset / Áudio: `;
         onlyPlatinumFilter,
         onlyReplayFilter,
         onlyEarlyAccessFilter,
+        onlyRecompFilter,
         onlyDuplicatesFilter,
         isGameDuplicate,
         duplicateGameIds,

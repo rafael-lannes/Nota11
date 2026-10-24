@@ -294,12 +294,6 @@ textarea:focus-visible {
   border: 1px solid rgba(217, 70, 239, 0.7) !important;
   box-shadow: 0 0 8px rgba(217, 70, 239, 0.25);
 }
-.badge-platform-recomp {
-  background: rgba(6, 44, 38, 0.95) !important;
-  color: #a7f3d0 !important;
-  border: 1px solid rgba(16, 185, 129, 0.75) !important;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
-}
 .badge-platform-mac {
   background: rgba(30, 41, 59, 0.9) !important;
   color: #f8fafc !important;
@@ -591,6 +585,16 @@ tr.game-row, .game-table-row {
   background: rgba(88, 28, 135, 0.85);
   color: #f3e8ff;
   border: 1px solid rgba(168, 85, 247, 0.5);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   RECOMP / DECOMP BADGE
+   ========================================================================== */
+.badge-recomp {
+  background: rgba(6, 78, 59, 0.85);
+  color: #a7f3d0;
+  border: 1px solid rgba(16, 185, 129, 0.5);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 

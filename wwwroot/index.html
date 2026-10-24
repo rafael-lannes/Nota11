@@ -1189,6 +1189,15 @@
                         <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
                       </span>
 
+                      <!-- Recomp / Decomp -->
+                      <span 
+                        v-if="game.isRecomp" 
+                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                        title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                      >
+                        <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
+                      </span>
+
                       <!-- Possível Duplicado -->
                       <span 
                         v-if="isGameDuplicate(game)" 
@@ -1461,6 +1470,13 @@
                         <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
                       </span>
                       <span 
+                        v-if="game.isRecomp" 
+                        class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0 badge-tag"
+                        title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                      >
+                        <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
+                      </span>
+                      <span 
                         v-if="isGameDuplicate(game)" 
                         class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded badge-duplicate uppercase tracking-wider inline-flex items-center gap-1 badge-tag"
                         title="Possível registro duplicado (mesmos dados)"
@@ -1682,6 +1698,15 @@
                     title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                   >
                     <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
+                  </span>
+
+                  <!-- Recomp / Decomp -->
+                  <span 
+                    v-if="game.isRecomp" 
+                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                    title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                  >
+                    <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
                   </span>
 
                   <!-- Possível Duplicado -->
@@ -1963,6 +1988,13 @@
                     title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                   >
                     <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
+                  </span>
+                  <span 
+                    v-if="game.isRecomp" 
+                    class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0 badge-tag"
+                    title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                  >
+                    <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
                   </span>
                   <span 
                     v-if="isGameDuplicate(game)" 
@@ -2906,6 +2938,18 @@
                     <span>Early Access</span>
                   </button>
 
+                  <!-- Toggle Recomp/Decomp -->
+                  <button 
+                    @click="onlyRecompFilter = !onlyRecompFilter"
+                    :class="onlyRecompFilter ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-700/80'"
+                    class="px-2.5 py-1 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Filtrar apenas jogos Recomp / Decomp"
+                    aria-label="Filtrar jogos Recomp / Decomp"
+                  >
+                    <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>Recomp/Decomp</span>
+                  </button>
+
                   <!-- Toggle Duplicados -->
                   <button 
                     @click="onlyDuplicatesFilter = !onlyDuplicatesFilter"
@@ -3364,6 +3408,13 @@
                     <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300"></i>
                   </span>
                   <span 
+                    v-if="game.isRecomp" 
+                    class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                    title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                  >
+                    <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300"></i>
+                  </span>
+                  <span 
                     v-if="isGameDuplicate(game)" 
                     class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-duplicate uppercase tracking-wider inline-flex items-center gap-1"
                     title="Possível registro duplicado (mesmos dados)"
@@ -3647,6 +3698,13 @@
                         title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                       >
                         <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
+                      </span>
+                      <span 
+                        v-if="game.isRecomp" 
+                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                        title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                      >
+                        <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
                       </span>
                       <span 
                         v-if="isGameDuplicate(game)" 
@@ -4048,6 +4106,13 @@
                         <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
                       </span>
                       <span 
+                        v-if="game.isRecomp" 
+                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                        title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                      >
+                        <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
+                      </span>
+                      <span 
                         v-if="isGameDuplicate(game)" 
                         class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-duplicate uppercase tracking-wider flex items-center gap-1"
                         title="Possível registro duplicado (mesmos dados)"
@@ -4327,6 +4392,13 @@
                             title="Jogado / Zerado em Acesso Antecipado (Early Access)"
                           >
                             <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
+                          </span>
+                          <span 
+                            v-if="game.isRecomp" 
+                            class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                            title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                          >
+                            <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
                           </span>
                           <span 
                             v-if="isGameDuplicate(game)" 
@@ -4759,6 +4831,13 @@
                           <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
                         </span>
                         <span 
+                          v-if="game.isRecomp" 
+                          class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                          title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                        >
+                          <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
+                        </span>
+                        <span 
                           v-if="isGameDuplicate(game)" 
                           class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-duplicate uppercase tracking-wider inline-flex items-center gap-1"
                           title="Possível registro duplicado (mesmos dados)"
@@ -5032,6 +5111,13 @@
                               <i data-lucide="flask-conical" class="w-2.5 h-2.5 text-purple-300 flex-shrink-0"></i>
                             </span>
                             <span 
+                              v-if="game.isRecomp" 
+                              class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-recomp uppercase tracking-wider inline-flex items-center justify-center flex-shrink-0"
+                              title="Versão Recomp / Decomp (Port Nativo / Recompilação)"
+                            >
+                              <i data-lucide="cpu" class="w-2.5 h-2.5 text-emerald-300 flex-shrink-0"></i>
+                            </span>
+                            <span 
                               v-if="isGameDuplicate(game)" 
                               class="text-[9px] font-extrabold px-1.5 py-0.5 rounded badge-duplicate uppercase tracking-wider inline-flex items-center gap-1"
                               title="Possível registro duplicado (mesmos dados)"
@@ -5293,7 +5379,7 @@
           </div>
           <div class="flex items-center justify-center gap-3 pt-2">
             <button 
-              @click="searchQuery = ''; platformFilter = 'ALL'; conditionFilter = 'ALL'; yearFilter = 'ALL'; ratingFilter = 'ALL'; onlyHandheldFilter = false; onlyPlatinumFilter = false; onlyReplayFilter = false; onlyEarlyAccessFilter = false; onlyDuplicatesFilter = false" 
+              @click="searchQuery = ''; platformFilter = 'ALL'; conditionFilter = 'ALL'; yearFilter = 'ALL'; ratingFilter = 'ALL'; onlyHandheldFilter = false; onlyPlatinumFilter = false; onlyReplayFilter = false; onlyEarlyAccessFilter = false; onlyRecompFilter = false; onlyDuplicatesFilter = false" 
               class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-md active:scale-95"
             >
               Limpar Filtros e Busca
@@ -7073,7 +7159,7 @@
               </label>
               <span class="text-[10px] text-cyan-400/90 font-mono font-semibold">{{ quickFinishForm.platform || getPcSubcategory(gameToFinish?.platform) }}</span>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="grid grid-cols-3 gap-2">
               <button 
                 type="button" 
                 @click="setQuickFinishPcSubcategory('PC - Computador')"
@@ -7100,15 +7186,6 @@
               >
                 <i data-lucide="gamepad" class="w-3.5 h-3.5 text-cyan-300 flex-shrink-0"></i>
                 <span class="truncate">Rog Ally</span>
-              </button>
-              <button 
-                type="button" 
-                @click="setQuickFinishPcSubcategory('PC - Recomp/Decomp')"
-                :class="getPcSubcategory(quickFinishForm.platform || gameToFinish?.platform) === 'PC - Recomp/Decomp' ? 'bg-cyan-600 text-white font-bold ring-2 ring-cyan-300 shadow-md shadow-cyan-500/20' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/80'"
-                class="py-2 px-1.5 rounded-xl text-xs font-semibold text-center transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-300 flex-shrink-0"></i>
-                <span class="truncate">Recomp/Decomp</span>
               </button>
             </div>
           </div>
@@ -7148,6 +7225,26 @@
                 </span>
                 <span v-if="quickFinishForm.isEarlyAccess" class="text-[10px] font-bold text-purple-400 uppercase tracking-wider bg-purple-950/80 px-2 py-0.5 rounded border border-purple-700/50">
                   Early Access
+                </span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Checkbox: Recomp / Decomp -->
+          <div>
+            <label class="flex items-center gap-3 p-3 rounded-2xl bg-slate-900 border border-slate-700/80 cursor-pointer hover:border-emerald-500/50 transition-all select-none">
+              <input 
+                type="checkbox" 
+                v-model="quickFinishForm.isRecomp" 
+                class="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900"
+              />
+              <div class="min-w-0 flex-1 flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Versão Recomp / Decomp</span>
+                </span>
+                <span v-if="quickFinishForm.isRecomp" class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-700/50">
+                  Recomp/Decomp
                 </span>
               </div>
             </label>
@@ -7338,7 +7435,7 @@
               </label>
               <span class="text-[10px] text-cyan-400/90 font-mono font-semibold">{{ getPcSubcategory(gameForm.platform) }}</span>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="grid grid-cols-3 gap-2">
               <button 
                 type="button" 
                 @click="setPcSubcategory('PC - Computador')"
@@ -7365,15 +7462,6 @@
               >
                 <i data-lucide="gamepad" class="w-4 h-4 text-cyan-300 flex-shrink-0"></i>
                 <span class="truncate">Rog Ally</span>
-              </button>
-              <button 
-                type="button" 
-                @click="setPcSubcategory('PC - Recomp/Decomp')"
-                :class="getPcSubcategory(gameForm.platform) === 'PC - Recomp/Decomp' ? 'bg-cyan-600 text-white font-bold ring-2 ring-cyan-300 shadow-md shadow-cyan-500/20' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/80'"
-                class="py-2.5 px-2 rounded-xl text-xs font-semibold text-center transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 cursor-pointer"
-              >
-                <i data-lucide="cpu" class="w-4 h-4 text-cyan-300 flex-shrink-0"></i>
-                <span class="truncate">Recomp/Decomp</span>
               </button>
             </div>
           </div>
@@ -7709,6 +7797,26 @@
                 </span>
                 <span v-if="gameForm.isEarlyAccess" class="text-[10px] font-bold text-purple-400 uppercase tracking-wider bg-purple-950/80 px-2 py-0.5 rounded border border-purple-700/50">
                   Early Access
+                </span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Checkbox: Recomp / Decomp -->
+          <div>
+            <label class="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-900 border border-slate-700/80 cursor-pointer hover:border-emerald-500/50 transition-all select-none">
+              <input 
+                type="checkbox" 
+                v-model="gameForm.isRecomp" 
+                class="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900"
+              />
+              <div class="min-w-0 flex-1 flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Versão Recomp / Decomp (Port Nativo / Recompilação)</span>
+                </span>
+                <span v-if="gameForm.isRecomp" class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-700/50">
+                  Recomp/Decomp
                 </span>
               </div>
             </label>
@@ -8110,6 +8218,13 @@
                   <span>Early Access</span>
                 </span>
                 <span 
+                  v-if="detailGame.isRecomp" 
+                  class="text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-emerald-500/50 bg-emerald-950/80 text-emerald-300 uppercase tracking-wider inline-flex items-center gap-1"
+                >
+                  <i data-lucide="cpu" class="w-3 h-3 text-emerald-400 flex-shrink-0"></i>
+                  <span>Recomp / Decomp</span>
+                </span>
+                <span 
                   v-if="isGameDuplicate(detailGame)" 
                   class="text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-rose-500/50 bg-rose-950/80 text-rose-300 uppercase tracking-wider inline-flex items-center gap-1"
                 >
@@ -8278,6 +8393,11 @@
             <div v-if="detailGame.isEarlyAccess" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-950/60 border border-purple-700/40 text-purple-300 font-semibold">
               <i data-lucide="flask-conical" class="w-4 h-4 text-purple-400"></i>
               <span>{{ detailGame.status === 'Jogando' ? 'Em andamento em Early Access (Acesso Antecipado)' : 'Finalizado em Early Access (Acesso Antecipado)' }}</span>
+            </div>
+
+            <div v-if="detailGame.isRecomp" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-700/40 text-emerald-300 font-semibold">
+              <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
+              <span>Versão Recomp / Decomp (Port nativo ou recompilação com melhorias modernas)</span>
             </div>
 
             <div v-if="isGameDuplicate(detailGame)" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-950/60 border border-rose-700/40 text-rose-300 font-semibold">

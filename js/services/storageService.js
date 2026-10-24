@@ -24,7 +24,7 @@ function isPcPlatform(platform) {
     return false;
   }
   return p === 'pc' || p.startsWith('pc ') || p.startsWith('pc/') || p.startsWith('pc(') || p.startsWith('pc -') ||
-         p.includes('steam deck') || p.includes('rog ally') || p.includes('computador') || p.includes('recomp') || p.includes('decomp') ||
+         p.includes('steam deck') || p.includes('rog ally') || p.includes('computador') ||
          p.includes('windows') || p.includes('steam') || p.includes('linux') || p.includes('mac') || p.includes('portátil');
 }
 
@@ -346,14 +346,18 @@ class StorageService {
       return parsed.map(game => {
         let platform = (game.platform || 'PC - Computador').trim();
         const pLow = platform.toLowerCase();
+        let isRecomp = Boolean(game.isRecomp);
         if (pLow === 'pc (windows / steam)' || pLow === 'pc / steam' || pLow === 'pc (windows)' || pLow === 'pc(windows/steam)' || pLow === 'pc') {
           platform = game.isHandheld ? 'PC - Steam Deck' : 'PC - Computador';
         } else if (pLow === 'steam deck / pc portátil' || pLow === 'steam deck') {
           platform = 'PC - Steam Deck';
         } else if (pLow === 'rog ally') {
           platform = 'PC - Rog Ally';
-        } else if (pLow.includes('recomp') || pLow.includes('decomp')) {
-          platform = 'PC - Recomp/Decomp';
+        } else if (pLow === 'pc - recomp/decomp' || pLow === 'recomp/decomp' || pLow === 'recomp' || pLow === 'decomp' || pLow.includes('recomp') || pLow.includes('decomp')) {
+          isRecomp = true;
+          if (pLow === 'pc - recomp/decomp' || pLow === 'recomp/decomp' || pLow === 'recomp' || pLow === 'decomp') {
+            platform = 'PC - Computador';
+          }
         } else if (pLow === 'switch 2' || pLow === 'nintendo switch 2') {
           platform = 'Nintendo Switch 2';
         }
@@ -386,6 +390,8 @@ class StorageService {
           completionCondition: condition,
           isPlatinum: isPlat,
           isHandheld: isHandheldFinal,
+          isEarlyAccess: Boolean(game.isEarlyAccess),
+          isRecomp: Boolean(isRecomp),
           isReplay: Boolean(game.isReplay),
           isNowPlaying: status === 'Jogando',
           playtime: formattedPlaytime,
@@ -410,8 +416,9 @@ class StorageService {
               game.platform = 'PC - Steam Deck';
             } else if (pLow === 'rog ally') {
               game.platform = 'PC - Rog Ally';
-            } else if (pLow.includes('recomp') || pLow.includes('decomp')) {
-              game.platform = 'PC - Recomp/Decomp';
+            } else if (pLow === 'pc - recomp/decomp' || pLow === 'recomp/decomp' || pLow === 'recomp' || pLow === 'decomp') {
+              game.platform = 'PC - Computador';
+              game.isRecomp = true;
             } else if (pLow === 'switch 2' || pLow === 'nintendo switch 2') {
               game.platform = 'Nintendo Switch 2';
             }
@@ -444,8 +451,6 @@ class StorageService {
           settings.defaultPlatform = 'PC - Steam Deck';
         } else if (pLow === 'rog ally') {
           settings.defaultPlatform = 'PC - Rog Ally';
-        } else if (pLow.includes('recomp') || pLow.includes('decomp')) {
-          settings.defaultPlatform = 'PC - Recomp/Decomp';
         } else if (pLow === 'switch 2' || pLow === 'nintendo switch 2') {
           settings.defaultPlatform = 'Nintendo Switch 2';
         }
@@ -467,8 +472,6 @@ class StorageService {
           settings.defaultPlatform = 'PC - Steam Deck';
         } else if (pLow === 'rog ally') {
           settings.defaultPlatform = 'PC - Rog Ally';
-        } else if (pLow.includes('recomp') || pLow.includes('decomp')) {
-          settings.defaultPlatform = 'PC - Recomp/Decomp';
         } else if (pLow === 'switch 2' || pLow === 'nintendo switch 2') {
           settings.defaultPlatform = 'Nintendo Switch 2';
         }
@@ -611,6 +614,7 @@ class StorageService {
         (draft.playtime && draft.playtime !== '00:00:00' && draft.playtime !== '0h' && draft.playtime !== '0') ||
         draft.isReplay ||
         draft.isEarlyAccess ||
+        draft.isRecomp ||
         draft.isPlatinum
       );
     } catch (e) {
@@ -1207,6 +1211,7 @@ class StorageService {
         completionCondition,
         isHandheld: isHandheldParsed,
         isEarlyAccess: false,
+        isRecomp: false,
         isPlatinum,
         isReplay,
         isNowPlaying: status === 'Jogando',
@@ -1294,6 +1299,7 @@ class StorageService {
           completionCondition: condition,
           isHandheld: isHandheldFinal,
           isEarlyAccess: Boolean(game.isEarlyAccess),
+          isRecomp: Boolean(game.isRecomp),
           isPlatinum: isPlat,
           isReplay: Boolean(game.isReplay),
           isNowPlaying: normalizedStatus === 'Jogando',
