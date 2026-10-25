@@ -493,6 +493,36 @@
     }
 
     /**
+     * Obtém apenas os metadados (updated_at) da nuvem para verificação rápida e leve
+     */
+    static async getCloudMetadata(userId = null) {
+      const client = this.getClient();
+      if (!client) return null;
+
+      let uid = userId;
+      if (!uid) {
+        const user = await this.getCurrentUser();
+        uid = user ? user.id : null;
+      }
+      if (!uid) return null;
+
+      try {
+        const { data, error } = await client
+          .from('user_data')
+          .select('updated_at')
+          .eq('user_id', uid)
+          .maybeSingle();
+
+        if (error || !data) return null;
+        return {
+          updatedAt: data.updated_at
+        };
+      } catch (err) {
+        return null;
+      }
+    }
+
+    /**
      * Salva ou atualiza os dados completos do usuário na nuvem (Upsert atômico)
      * Aceita tanto saveUserData(payload) quanto saveUserData(userId, userEmail, payload)
      */
@@ -542,20 +572,27 @@
       };
 
       try {
-        const { error } = await client
+        const { data, error } = await client
           .from('user_data')
-          .upsert(record, { onConflict: 'user_id' });
+          .upsert(record, { onConflict: 'user_id' })
+          .select('updated_at')
+          .maybeSingle();
 
         if (error) {
           console.error('[SupabaseService] Erro ao salvar dados na nuvem:', error);
           return { success: false, error: error.message || 'Falha ao salvar no banco.' };
         }
 
+        const serverUpdatedAt = (data && data.updated_at) ? data.updated_at : record.updated_at;
+
         try {
-          localStorage.setItem(SUPABASE_STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
+          localStorage.setItem(SUPABASE_STORAGE_KEYS.LAST_SYNC, serverUpdatedAt);
+          if (typeof window !== 'undefined' && window.StorageService) {
+            window.StorageService.clearPendingChanges(serverUpdatedAt);
+          }
         } catch (e) {}
 
-        return { success: true, timestamp: record.updated_at };
+        return { success: true, timestamp: serverUpdatedAt };
       } catch (err) {
         console.error('[SupabaseService] Falha de rede ao salvar no banco:', err);
         return { success: false, error: err.message || 'Erro de rede ao sincronizar.' };

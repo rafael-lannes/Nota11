@@ -9,7 +9,9 @@ const STORAGE_KEYS = {
   SETTINGS: 'nota11_user_settings',
   PROFILE: 'nota11_user_profile',
   PLAYING_CATEGORIES: 'nota11_playing_categories',
-  ADD_GAME_DRAFT: 'nota11_add_game_draft'
+  ADD_GAME_DRAFT: 'nota11_add_game_draft',
+  LOCAL_UPDATED_AT: 'nota11_local_updated_at',
+  HAS_PENDING_CHANGES: 'nota11_has_pending_changes'
 };
 
 function isPcPlatform(platform) {
@@ -334,8 +336,125 @@ class StorageService {
   }
 
   // =========================================================================
-  // PERSISTÊNCIA REATIVA (LOCALSTORAGE & BANCO NATIVO)
+  // PERSISTÊNCIA REATIVA (LOCALSTORAGE & BANCO NATIVO) & CONTROLE DE VERSÃO
   // =========================================================================
+
+  static isApplyingRemote = false;
+
+  /**
+   * Marca que a versão local foi modificada pelo usuário neste dispositivo
+   */
+  static markLocalUpdated(customTimestamp = null) {
+    if (this.isApplyingRemote) return null;
+    const ts = customTimestamp || new Date().toISOString();
+    try {
+      localStorage.setItem(STORAGE_KEYS.LOCAL_UPDATED_AT, ts);
+      localStorage.setItem(STORAGE_KEYS.HAS_PENDING_CHANGES, 'true');
+    } catch (e) {}
+    return ts;
+  }
+
+  /**
+   * Retorna o timestamp ISO da última modificação local conhecida
+   */
+  static getLocalUpdatedAt() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.LOCAL_UPDATED_AT);
+      if (stored) return stored;
+
+      // Fallback para versões anteriores ou primeiro carregamento
+      const lastSync = localStorage.getItem('nota11_supabase_last_sync');
+      let maxTime = 0;
+      let maxIso = null;
+
+      if (lastSync) {
+        const t = new Date(lastSync).getTime();
+        if (!isNaN(t) && t > maxTime) {
+          maxTime = t;
+          maxIso = lastSync;
+        }
+      }
+
+      const games = this.loadGames();
+      if (Array.isArray(games) && games.length > 0) {
+        games.forEach(g => {
+          const raw = g.updatedAt || g.createdAt;
+          if (raw) {
+            const t = new Date(raw).getTime();
+            if (!isNaN(t) && t > maxTime) {
+              maxTime = t;
+              maxIso = raw;
+            }
+          }
+        });
+      }
+
+      if (maxIso) {
+        localStorage.setItem(STORAGE_KEYS.LOCAL_UPDATED_AT, maxIso);
+        return maxIso;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Verifica se há modificações locais pendentes de envio para a nuvem
+   */
+  static hasPendingChanges() {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.HAS_PENDING_CHANGES) === 'true';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Limpa a flag de alterações pendentes após sincronização bem-sucedida
+   */
+  static clearPendingChanges(timestamp = null) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.HAS_PENDING_CHANGES, 'false');
+      if (timestamp) {
+        localStorage.setItem(STORAGE_KEYS.LOCAL_UPDATED_AT, timestamp);
+      }
+    } catch (e) {}
+  }
+
+  /**
+   * Aplica com segurança os dados baixados da nuvem no localStorage local,
+   * sem disparar falsos avisos de edição local nem loops de auto-sync.
+   */
+  static applyCloudData(cloudData) {
+    if (!cloudData) return false;
+    this.isApplyingRemote = true;
+    try {
+      if (Array.isArray(cloudData.games)) {
+        this.saveGames(cloudData.games);
+      }
+      if (cloudData.profile && typeof cloudData.profile === 'object') {
+        this.saveUserProfile(cloudData.profile);
+      }
+      if (cloudData.settings && typeof cloudData.settings === 'object') {
+        this.saveSettings(cloudData.settings);
+      }
+      if (Array.isArray(cloudData.playingCategories)) {
+        this.savePlayingCategories(cloudData.playingCategories);
+      }
+
+      const ts = cloudData.updatedAt || new Date().toISOString();
+      localStorage.setItem(STORAGE_KEYS.LOCAL_UPDATED_AT, ts);
+      localStorage.setItem(STORAGE_KEYS.HAS_PENDING_CHANGES, 'false');
+      localStorage.setItem('nota11_supabase_last_sync', ts);
+      return true;
+    } catch (e) {
+      console.error('[StorageService] Erro ao aplicar dados da nuvem localmente:', e);
+      return false;
+    } finally {
+      this.isApplyingRemote = false;
+    }
+  }
 
   static loadGames() {
     try {
@@ -429,6 +548,7 @@ class StorageService {
         });
       }
       localStorage.setItem(STORAGE_KEYS.GAMES, JSON.stringify(games));
+      this.markLocalUpdated();
       this.syncNativeDatabase();
       return true;
     } catch (e) {
@@ -477,6 +597,7 @@ class StorageService {
         }
       }
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+      this.markLocalUpdated();
       this.syncNativeDatabase();
       return true;
     } catch (e) {
@@ -516,6 +637,7 @@ class StorageService {
   static saveUserProfile(profile) {
     try {
       localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
+      this.markLocalUpdated();
       this.syncNativeDatabase();
       return true;
     } catch (e) {
@@ -528,6 +650,7 @@ class StorageService {
     try {
       const defaultProfile = { ...DEFAULT_PROFILE };
       localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(defaultProfile));
+      this.markLocalUpdated();
       this.syncNativeDatabase();
       return defaultProfile;
     } catch (e) {
@@ -551,6 +674,7 @@ class StorageService {
   static savePlayingCategories(categories) {
     try {
       localStorage.setItem(STORAGE_KEYS.PLAYING_CATEGORIES, JSON.stringify(categories));
+      this.markLocalUpdated();
       this.syncNativeDatabase();
       return true;
     } catch (e) {
@@ -677,6 +801,7 @@ class StorageService {
   static onDataChanged = null;
 
   static notifyDataChanged() {
+    if (this.isApplyingRemote) return;
     if (typeof this.onDataChanged === 'function') {
       try {
         this.onDataChanged();
