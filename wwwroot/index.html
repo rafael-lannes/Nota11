@@ -3454,9 +3454,9 @@
 
                 <!-- Data Zerado, Ano e Tempo de Jogo -->
                 <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60 font-mono">
-                  <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                  <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                     <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
-                    <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                    <span>{{ game.completionYear || '-' }}</span>
                   </span>
                   <span v-else class="flex items-center gap-1 truncate" :title="'Data: ' + formatDate(game.completionDate) + (game.completionYear ? ' (' + game.completionYear + ')' : '')">
                     <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
@@ -3910,9 +3910,9 @@
                     </span>
 
                     <!-- Data de Conclusão / Ano -->
-                    <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                    <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                       <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
-                      <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                      <span>{{ game.completionYear || '-' }}</span>
                     </span>
                     <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                       {{ formatDate(game.completionDate) }}
@@ -4164,9 +4164,9 @@
                     </div>
 
                     <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60 font-mono">
-                      <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                      <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                         <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
-                        <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                        <span>{{ game.completionYear || '-' }}</span>
                       </span>
                       <span v-else class="flex items-center gap-1 truncate font-mono">
                         <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
@@ -4619,9 +4619,9 @@
                         </span>
 
                         <!-- Data de Conclusão / Ano -->
-                        <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                        <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                           <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
-                          <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                          <span>{{ game.completionYear || '-' }}</span>
                         </span>
                         <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                           {{ formatDate(game.completionDate) }}
@@ -4903,9 +4903,9 @@
                       </div>
 
                       <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60 font-mono">
-                        <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                        <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                           <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
-                          <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                          <span>{{ game.completionYear || '-' }}</span>
                         </span>
                         <span v-else class="flex items-center gap-1 truncate font-mono">
                           <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
@@ -5350,9 +5350,9 @@
                           </span>
 
                           <!-- Data de Conclusão / Ano -->
-                          <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                          <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                             <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
-                            <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                            <span>{{ game.completionYear || '-' }}</span>
                           </span>
                           <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                             {{ formatDate(game.completionDate) }}
@@ -11005,7 +11005,7 @@
                         class="flex items-center justify-between text-[9px] text-slate-400 pt-1 border-t border-white/5"
                       >
                         <span v-if="shareSnapshotType === 'year' && shareShowDates" class="font-mono" :class="isGameReleaseDateOnly(game) ? 'text-rose-400 font-semibold' : ''">
-                          {{ isGameReleaseDateOnly(game) ? 'Lançamento' : formatDate(game.completionDate) }}
+                          {{ isGameReleaseDateOnly(game) ? (game.completionYear || '-') : formatDate(game.completionDate) }}
                         </span>
                         <span v-else-if="shareSnapshotType === 'nowPlaying' && hasPlaytime(game)" class="font-mono text-cyan-300 font-semibold flex items-center gap-0.5">
                           <i data-lucide="clock" class="w-2.5 h-2.5"></i>
