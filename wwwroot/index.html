@@ -365,24 +365,6 @@
                   </div>
                 </button>
 
-                <!-- Edição Massiva -->
-          <button 
-            type="button"
-            @click="startBatchEditMode(); closeToolsMenu()"
-            class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
-          >
-            <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0">
-              <i data-lucide="check-square" class="w-4 h-4"></i>
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center justify-between">
-                <strong class="text-white block font-semibold text-xs">Edição Massiva</strong>
-                <span class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[9px] font-bold">LOTE</span>
-              </div>
-              <span class="text-[10px] text-slate-400">Operações em lote na coleção de zerados</span>
-            </div>
-          </button>
-
           <!-- Baixar Capas IGDB -->
                 <button 
                   @click="openScraperModal(); closeToolsMenu()"
@@ -12632,6 +12614,24 @@
             <div class="min-w-0 flex-1">
               <strong class="text-white block font-semibold text-xs">Backup & Planilhas</strong>
               <span class="text-[10px] text-slate-400">Exportar/Importar CSV e JSON</span>
+            </div>
+          </button>
+
+          <!-- Edição Massiva -->
+          <button 
+            type="button"
+            @click="startBatchEditMode(); closeToolsMenu()"
+            class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
+          >
+            <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <strong class="text-white block font-semibold text-xs">Edição Massiva</strong>
+                <span class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[9px] font-bold">LOTE</span>
+              </div>
+              <span class="text-[10px] text-slate-400">Operações em lote na coleção de zerados</span>
             </div>
           </button>
 
