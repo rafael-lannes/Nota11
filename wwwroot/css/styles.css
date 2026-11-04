@@ -1364,4 +1364,13 @@ tr.game-row, .game-table-row {
   display: block;
 }
 
+/* Cor rosa escuro para jogos com data de lançamento no lugar da data de zerado */
+.text-release-date {
+  color: #fb7185; /* rose-400 */
+}
+
+.text-release-date-dark {
+  color: #f43f5e; /* rose-500 */
+}
+
 

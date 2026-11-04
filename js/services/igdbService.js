@@ -451,9 +451,12 @@
       }
 
       let releaseYear = null;
+      let releaseDate = null;
       if (game.first_release_date) {
         try {
-          releaseYear = new Date(game.first_release_date * 1000).getFullYear();
+          const d = new Date(game.first_release_date * 1000);
+          releaseYear = d.getFullYear();
+          releaseDate = d.toISOString().split('T')[0];
         } catch (e) {
           releaseYear = null;
         }
@@ -535,6 +538,7 @@
         genre: gameGenre,
         genres: gameGenreList,
         releaseYear,
+        releaseDate,
         coverUrl: bestCoverUrl,
         candidateCovers,
         source: 'IGDB'

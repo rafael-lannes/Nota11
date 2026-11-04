@@ -358,6 +358,7 @@ function initApp() {
               isHandheld: Boolean(g.isHandheld),
               isEarlyAccess: Boolean(g.isEarlyAccess),
               isRecomp: Boolean(g.isRecomp),
+            isReleaseDateOnly: Boolean(g.isReleaseDateOnly || (!g.completionDate && g.status === 'Zerado')),
               isPlatinum: isPlat,
               isReplay: Boolean(g.isReplay),
               isNowPlaying: normalizedStatus === 'Jogando',
@@ -451,7 +452,7 @@ function initApp() {
 
       const getGameCompletionDateInfo = (game) => {
         if (!game) return { year: null, month: null };
-        if (game.completionDate && typeof game.completionDate === 'string') {
+        if (!game.isReleaseDateOnly && game.completionDate && typeof game.completionDate === 'string') {
           const s = game.completionDate.trim();
           const mIso = s.match(/^(\d{4})[-/](\d{1,2})/);
           if (mIso) {
@@ -571,6 +572,8 @@ function initApp() {
       const quickFinishForm = ref({
         completionDate: new Date().toISOString().split('T')[0],
         completionYear: new Date().getFullYear(),
+        isReleaseDateOnly: false,
+        releaseYear: null,
         playtime: '00:00:00',
         playtimeHours: 0,
         rating: 10,
@@ -595,6 +598,8 @@ function initApp() {
         rating: 10,
         completionDate: new Date().toISOString().split('T')[0],
         completionYear: new Date().getFullYear(),
+        isReleaseDateOnly: false,
+        releaseYear: null,
         playtime: '00:00:00',
         playtimeHours: 0,
         completionCondition: 'Condição Padrão',
@@ -765,6 +770,7 @@ function initApp() {
             isHandheld: Boolean(g.isHandheld),
             isEarlyAccess: Boolean(g.isEarlyAccess),
             isRecomp: Boolean(g.isRecomp),
+            isReleaseDateOnly: Boolean(g.isReleaseDateOnly || (!g.completionDate && g.status === 'Zerado')),
             isPlatinum: condition === 'Platinado/Perfeitos',
             isReplay: Boolean(g.isReplay),
             isNowPlaying: Boolean(g.isNowPlaying)
@@ -1034,6 +1040,7 @@ function initApp() {
             newVal.isReplay ||
             newVal.isEarlyAccess ||
             newVal.isRecomp ||
+            newVal.isReleaseDateOnly ||
             newVal.isPlatinum
           );
           if (hasContent) {
@@ -1258,9 +1265,22 @@ function initApp() {
           const finishedList = list.filter(g => g.status === 'Zerado');
           if (finishedList.length > 1) {
             finishedList.sort((a, b) => {
-              const dateA = a.completionDate ? new Date(a.completionDate).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-              const dateB = b.completionDate ? new Date(b.completionDate).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-              return dateA - dateB;
+              const parseDate = (g) => {
+                if (g.completionDate) {
+                  const t = new Date(g.completionDate).getTime();
+                  if (!isNaN(t) && t > 0) return t;
+                }
+                if (g.completionYear) {
+                  const y = Number(g.completionYear);
+                  if (!isNaN(y) && y > 0) return new Date(y, 0, 1).getTime();
+                }
+                if (g.createdAt) {
+                  const t = new Date(g.createdAt).getTime();
+                  if (!isNaN(t) && t > 0) return t;
+                }
+                return 0;
+              };
+              return parseDate(a) - parseDate(b);
             });
             for (let i = 1; i < finishedList.length; i++) {
               repIds.add(finishedList[i].id);
@@ -1373,11 +1393,26 @@ function initApp() {
           if (sortBy.value === 'custom') {
             return 0; // Ordem personalizada manual
           }
+          const parseDate = (g) => {
+            if (g.completionDate) {
+              const t = new Date(g.completionDate).getTime();
+              if (!isNaN(t) && t > 0) return t;
+            }
+            if (g.completionYear) {
+              const y = Number(g.completionYear);
+              if (!isNaN(y) && y > 0) return new Date(y, 0, 1).getTime();
+            }
+            if (g.createdAt) {
+              const t = new Date(g.createdAt).getTime();
+              if (!isNaN(t) && t > 0) return t;
+            }
+            return 0;
+          };
           if (sortBy.value === 'date-desc') {
-            return new Date(b.completionDate || 0) - new Date(a.completionDate || 0);
+            return parseDate(b) - parseDate(a);
           }
           if (sortBy.value === 'date-asc') {
-            return new Date(a.completionDate || 0) - new Date(b.completionDate || 0);
+            return parseDate(a) - parseDate(b);
           }
           if (sortBy.value === 'year-desc') {
             return (b.completionYear || 0) - (a.completionYear || 0);
@@ -2100,10 +2135,13 @@ function initApp() {
         const today = new Date().toISOString().split('T')[0];
         const currentYear = new Date().getFullYear();
         const plat = game.platform || 'PC - Computador';
+        const isReleaseOnly = isGameReleaseDateOnly(game);
 
         quickFinishForm.value = {
-          completionDate: today,
-          completionYear: currentYear,
+          completionDate: isReleaseOnly ? '' : today,
+          completionYear: isReleaseOnly ? (game.completionYear || currentYear) : currentYear,
+          isReleaseDateOnly: isReleaseOnly,
+          releaseYear: game.completionYear || null,
           platform: plat,
           playtime: game.playtime || '20:00:00',
           playtimeHours: game.playtimeHours || 20,
@@ -2124,7 +2162,8 @@ function initApp() {
       const confirmQuickFinish = () => {
         if (!gameToFinish.value) return;
         const pt = parsePlaytimeInput(quickFinishForm.value.playtime);
-        const completionDate = quickFinishForm.value.completionDate || new Date().toISOString().split('T')[0];
+        const isReleaseOnly = Boolean(quickFinishForm.value.isReleaseDateOnly) || !quickFinishForm.value.completionDate;
+        const completionDate = isReleaseOnly ? null : (quickFinishForm.value.completionDate || new Date().toISOString().split('T')[0]);
         const completionYear = StorageService.extractCompletionYear(completionDate, quickFinishForm.value.completionYear);
         const condition = quickFinishForm.value.completionCondition || 'Condição Padrão';
         const isPlat = condition === 'Platinado/Perfeitos';
@@ -2141,6 +2180,7 @@ function initApp() {
             status: 'Zerado',
             completionDate,
             completionYear,
+            isReleaseDateOnly: isReleaseOnly,
             playtime: pt.str,
             playtimeHours: pt.hours,
             rating: Math.max(1, Math.min(11, quickFinishForm.value.rating || 10)),
@@ -2205,6 +2245,8 @@ function initApp() {
           rating: curStatus === 'Zerado' ? 10 : null,
           completionDate: curStatus === 'Zerado' ? today : '',
           completionYear: curStatus === 'Zerado' ? currentYear : null,
+          isReleaseDateOnly: false,
+          releaseYear: null,
           playtime: '00:00:00',
           playtimeHours: 0,
           completionCondition: 'Condição Padrão',
@@ -2241,8 +2283,10 @@ function initApp() {
             genre: savedDraft.genre || '',
             status: savedDraft.status || status,
             rating: savedDraft.rating !== undefined ? savedDraft.rating : (status === 'Zerado' ? 10 : null),
-            completionDate: savedDraft.completionDate || (status === 'Zerado' ? today : ''),
+            completionDate: savedDraft.isReleaseDateOnly ? '' : (savedDraft.completionDate || (status === 'Zerado' ? today : '')),
             completionYear: savedDraft.completionYear || (status === 'Zerado' ? currentYear : null),
+            isReleaseDateOnly: Boolean(savedDraft.isReleaseDateOnly),
+            releaseYear: savedDraft.releaseYear || savedDraft.completionYear || null,
             playtime: savedDraft.playtime || '00:00:00',
             playtimeHours: savedDraft.playtimeHours || 0,
             completionCondition: savedDraft.completionCondition || 'Condição Padrão',
@@ -2268,6 +2312,8 @@ function initApp() {
             rating: status === 'Zerado' ? 10 : null,
             completionDate: status === 'Zerado' ? today : '',
             completionYear: status === 'Zerado' ? currentYear : null,
+            isReleaseDateOnly: false,
+            releaseYear: null,
             playtime: '00:00:00',
             playtimeHours: 0,
             completionCondition: 'Condição Padrão',
@@ -2302,6 +2348,7 @@ function initApp() {
         const isPlat = Boolean(game.isPlatinum) || condition === 'Platinado/Perfeitos';
         const year = game.completionYear || (game.completionDate ? StorageService.extractCompletionYear(game.completionDate) : null);
         const plat = game.platform || 'PC - Computador';
+        const isReleaseOnly = isGameReleaseDateOnly(game);
 
         gameForm.value = {
           id: game.id,
@@ -2310,8 +2357,10 @@ function initApp() {
           genre: game.genre || '',
           status: game.status || 'Zerado',
           rating: game.rating ?? 10,
-          completionDate: game.completionDate || '',
+          completionDate: isReleaseOnly ? '' : (game.completionDate || ''),
           completionYear: year,
+          isReleaseDateOnly: isReleaseOnly,
+          releaseYear: year,
           playtime: pt.str,
           playtimeHours: pt.hours,
           completionCondition: condition,
@@ -2339,7 +2388,8 @@ function initApp() {
         }
 
         const pt = parsePlaytimeInput(gameForm.value.playtime);
-        const completionDate = gameForm.value.status === 'Zerado' ? (gameForm.value.completionDate || new Date().toISOString().split('T')[0]) : '';
+        const isReleaseOnly = gameForm.value.status === 'Zerado' && (Boolean(gameForm.value.isReleaseDateOnly) || !gameForm.value.completionDate);
+        const completionDate = (gameForm.value.status === 'Zerado' && !isReleaseOnly) ? (gameForm.value.completionDate || null) : null;
         const completionYear = gameForm.value.status === 'Zerado' ? StorageService.extractCompletionYear(completionDate, gameForm.value.completionYear) : null;
         
         const isPlat = gameForm.value.status === 'Backlog'
@@ -2381,6 +2431,7 @@ function initApp() {
               isHandheld: isHandheldVal,
               isEarlyAccess: Boolean(gameForm.value.isEarlyAccess),
               isRecomp: Boolean(gameForm.value.isRecomp),
+              isReleaseDateOnly: isReleaseOnly,
               isPlatinum: isPlat,
               isReplay: Boolean(gameForm.value.isReplay),
               isNowPlaying: isNowPlayingVal,
@@ -2411,6 +2462,7 @@ function initApp() {
             isHandheld: isHandheldVal,
             isEarlyAccess: Boolean(gameForm.value.isEarlyAccess),
             isRecomp: Boolean(gameForm.value.isRecomp),
+            isReleaseDateOnly: isReleaseOnly,
             isPlatinum: isPlat,
             isReplay: autoReplay,
             isNowPlaying: isNowPlayingVal,
@@ -2503,7 +2555,7 @@ function initApp() {
           if (gameForm.value.rating === null || gameForm.value.rating === undefined) {
             gameForm.value.rating = 10;
           }
-          if (!gameForm.value.completionDate) {
+          if (!gameForm.value.isReleaseDateOnly && !gameForm.value.completionDate) {
             gameForm.value.completionDate = new Date().toISOString().split('T')[0];
           }
         } else {
@@ -3008,8 +3060,15 @@ function initApp() {
           if (candidate.title) {
             gameForm.value.title = candidate.title;
           }
-          if (candidate.releaseYear && !gameForm.value.completionYear) {
-            gameForm.value.completionYear = candidate.releaseYear;
+          if (candidate.releaseYear) {
+            gameForm.value.releaseYear = candidate.releaseYear;
+            if (gameForm.value.status === 'Zerado' && (!gameForm.value.completionDate || gameForm.value.isReleaseDateOnly)) {
+              gameForm.value.completionYear = candidate.releaseYear;
+              gameForm.value.isReleaseDateOnly = true;
+              gameForm.value.completionDate = '';
+            } else if (!gameForm.value.completionYear) {
+              gameForm.value.completionYear = candidate.releaseYear;
+            }
           }
           if (candidate.id && !String(candidate.id).startsWith('steam_')) {
             gameForm.value.igdbId = String(candidate.id);
@@ -3128,7 +3187,7 @@ function initApp() {
                 genre: item.genre || '',
                 status: 'Zerado',
                 rating: item.rating ?? 10,
-                completionDate: item.completionDate || new Date().toISOString().split('T')[0],
+                completionDate: (item.isReleaseDateOnly || !item.completionDate) ? null : item.completionDate,
                 completionYear: year,
                 playtime: pt.str,
                 playtimeHours: pt.hours,
@@ -3136,6 +3195,7 @@ function initApp() {
                 isHandheld: Boolean(item.isHandheld),
                 isEarlyAccess: Boolean(item.isEarlyAccess),
                 isRecomp: Boolean(item.isRecomp),
+                isReleaseDateOnly: Boolean(item.isReleaseDateOnly || !item.completionDate),
                 isPlatinum: condition === 'Platinado/Perfeitos',
                 isReplay: isReplay,
                 coverUrl: (item.coverUrl || '').trim() || (PlaceholderGenerator ? PlaceholderGenerator.generate(item.title, item.platform) : ''),
@@ -3197,6 +3257,7 @@ function initApp() {
                   isHandheld: Boolean(g.isHandheld),
                   isEarlyAccess: Boolean(g.isEarlyAccess),
                   isRecomp: Boolean(g.isRecomp),
+                  isReleaseDateOnly: Boolean(g.isReleaseDateOnly || (!g.completionDate && isZerado)),
                   isPlatinum: condition === 'Platinado/Perfeitos',
                   isReplay: Boolean(g.isReplay),
                   isNowPlaying: g.status === 'Jogando',
@@ -3254,6 +3315,7 @@ function initApp() {
             isHandheld: Boolean(g.isHandheld),
             isEarlyAccess: Boolean(g.isEarlyAccess),
             isRecomp: Boolean(g.isRecomp),
+            isReleaseDateOnly: Boolean(g.isReleaseDateOnly || (!g.completionDate && g.status === 'Zerado')),
             isPlatinum: condition === 'Platinado/Perfeitos',
             isReplay: Boolean(g.isReplay)
           };
@@ -3853,8 +3915,45 @@ function initApp() {
         return (cat && cat.icon) ? cat.icon : 'layers';
       };
 
+      const isGameReleaseDateOnly = (game) => {
+        if (!game) return false;
+        if (game.status !== 'Zerado') return false;
+        return Boolean(game.isReleaseDateOnly || !game.completionDate);
+      };
+
+      const onToggleReleaseDateOnly = (form) => {
+        if (!form) return;
+        if (form.isReleaseDateOnly) {
+          form.completionDate = '';
+          if (form.releaseYear) {
+            form.completionYear = form.releaseYear;
+          }
+        } else {
+          form.completionDate = new Date().toISOString().split('T')[0];
+          form.completionYear = new Date().getFullYear();
+        }
+      };
+
+      const setGameUnknownDate = (form) => {
+        if (!form) return;
+        form.isReleaseDateOnly = true;
+        form.completionDate = '';
+        if (form.releaseYear) {
+          form.completionYear = form.releaseYear;
+        }
+      };
+
       const onCompletionDateChange = (form) => {
-        if (form && form.completionDate && StorageService) {
+        if (!form) return;
+        if (!form.completionDate) {
+          form.isReleaseDateOnly = true;
+          if (form.releaseYear) {
+            form.completionYear = form.releaseYear;
+          }
+          return;
+        }
+        form.isReleaseDateOnly = false;
+        if (StorageService) {
           const y = StorageService.extractCompletionYear(form.completionDate);
           if (y) form.completionYear = y;
         }
@@ -6283,6 +6382,9 @@ Headset / Áudio: `;
         finishedGamesForPicker,
         onStatusChange,
         onCompletionDateChange,
+        onToggleReleaseDateOnly,
+        setGameUnknownDate,
+        isGameReleaseDateOnly,
         openGoogleImages,
         openDeleteConfirm,
         confirmDelete,

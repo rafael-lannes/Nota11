@@ -3454,7 +3454,11 @@
 
                 <!-- Data Zerado, Ano e Tempo de Jogo -->
                 <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60 font-mono">
-                  <span class="flex items-center gap-1 truncate" :title="'Data: ' + formatDate(game.completionDate) + (game.completionYear ? ' (' + game.completionYear + ')' : '')">
+                  <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                    <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
+                    <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                  </span>
+                  <span v-else class="flex items-center gap-1 truncate" :title="'Data: ' + formatDate(game.completionDate) + (game.completionYear ? ' (' + game.completionYear + ')' : '')">
                     <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
                     <span>{{ formatDate(game.completionDate) }}</span>
                   </span>
@@ -3742,12 +3746,18 @@
                   </td>
 
                   <!-- Data de Conclusão -->
-                  <td class="py-2.5 px-2 sm:px-3 text-center text-slate-400 font-mono text-xs whitespace-nowrap">
-                    {{ formatDate(game.completionDate) }}
+                  <td class="py-2.5 px-2 sm:px-3 text-center font-mono text-xs whitespace-nowrap">
+                    <span v-if="isGameReleaseDateOnly(game)" class="text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data de zerado não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
+                      <i data-lucide="sparkles" class="w-3 h-3 text-rose-400"></i>
+                      <span>Lançamento</span>
+                    </span>
+                    <span v-else class="text-slate-400">
+                      {{ formatDate(game.completionDate) }}
+                    </span>
                   </td>
 
                   <!-- Ano -->
-                  <td class="py-2.5 px-1 sm:px-2 text-center text-slate-300 font-mono text-xs whitespace-nowrap">
+                  <td class="py-2.5 px-1 sm:px-2 text-center font-mono text-xs whitespace-nowrap" :class="isGameReleaseDateOnly(game) ? 'text-rose-400 font-semibold' : 'text-slate-300'">
                     {{ game.completionYear || '-' }}
                   </td>
 
@@ -3900,7 +3910,11 @@
                     </span>
 
                     <!-- Data de Conclusão / Ano -->
-                    <span v-if="game.completionDate" class="font-mono text-slate-400">
+                    <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                      <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
+                      <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                    </span>
+                    <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                       {{ formatDate(game.completionDate) }}
                     </span>
                     <span v-else-if="game.completionYear" class="font-mono text-slate-400">
@@ -4149,8 +4163,12 @@
                       </span>
                     </div>
 
-                    <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
-                      <span class="flex items-center gap-1 truncate font-mono">
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60 font-mono">
+                      <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                        <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
+                        <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                      </span>
+                      <span v-else class="flex items-center gap-1 truncate font-mono">
                         <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
                         <span>{{ formatDate(game.completionDate) }}</span>
                       </span>
@@ -4436,12 +4454,18 @@
                       </td>
 
                       <!-- Data de Conclusão -->
-                      <td class="py-2.5 px-2 sm:px-3 text-center text-slate-400 font-mono text-xs whitespace-nowrap">
-                        {{ formatDate(game.completionDate) }}
+                      <td class="py-2.5 px-2 sm:px-3 text-center font-mono text-xs whitespace-nowrap">
+                        <span v-if="isGameReleaseDateOnly(game)" class="text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data de zerado não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
+                          <i data-lucide="sparkles" class="w-3 h-3 text-rose-400"></i>
+                          <span>Lançamento</span>
+                        </span>
+                        <span v-else class="text-slate-400">
+                          {{ formatDate(game.completionDate) }}
+                        </span>
                       </td>
 
                       <!-- Ano -->
-                      <td class="py-2.5 px-1 sm:px-2 text-center text-slate-300 font-mono text-xs whitespace-nowrap">
+                      <td class="py-2.5 px-1 sm:px-2 text-center font-mono text-xs whitespace-nowrap" :class="isGameReleaseDateOnly(game) ? 'text-rose-400 font-semibold' : 'text-slate-300'">
                         {{ game.completionYear || '-' }}
                       </td>
 
@@ -4595,7 +4619,11 @@
                         </span>
 
                         <!-- Data de Conclusão / Ano -->
-                        <span v-if="game.completionDate" class="font-mono text-slate-400">
+                        <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                          <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
+                          <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                        </span>
+                        <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                           {{ formatDate(game.completionDate) }}
                         </span>
                         <span v-else-if="game.completionYear" class="font-mono text-slate-400">
@@ -4874,8 +4902,12 @@
                         </span>
                       </div>
 
-                      <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
-                        <span class="flex items-center gap-1 truncate font-mono">
+                      <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60 font-mono">
+                        <span v-if="isGameReleaseDateOnly(game)" class="flex items-center gap-1 truncate text-rose-400 font-semibold" :title="'Data de zerado não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                          <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
+                          <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                        </span>
+                        <span v-else class="flex items-center gap-1 truncate font-mono">
                           <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
                           <span>{{ formatDate(game.completionDate) }}</span>
                         </span>
@@ -5153,12 +5185,18 @@
                         </td>
 
                         <!-- Data de Conclusão -->
-                        <td class="py-2.5 px-2 sm:px-3 text-center text-slate-400 font-mono text-xs whitespace-nowrap">
-                          {{ formatDate(game.completionDate) }}
+                        <td class="py-2.5 px-2 sm:px-3 text-center font-mono text-xs whitespace-nowrap">
+                          <span v-if="isGameReleaseDateOnly(game)" class="text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data de zerado não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
+                            <i data-lucide="sparkles" class="w-3 h-3 text-rose-400"></i>
+                            <span>Lançamento</span>
+                          </span>
+                          <span v-else class="text-slate-400">
+                            {{ formatDate(game.completionDate) }}
+                          </span>
                         </td>
 
                         <!-- Ano -->
-                        <td class="py-2.5 px-1 sm:px-2 text-center text-slate-300 font-mono text-xs whitespace-nowrap">
+                        <td class="py-2.5 px-1 sm:px-2 text-center font-mono text-xs whitespace-nowrap" :class="isGameReleaseDateOnly(game) ? 'text-rose-400 font-semibold' : 'text-slate-300'">
                           {{ game.completionYear || '-' }}
                         </td>
 
@@ -5312,7 +5350,11 @@
                           </span>
 
                           <!-- Data de Conclusão / Ano -->
-                          <span v-if="game.completionDate" class="font-mono text-slate-400">
+                          <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Lançamento: ' + (game.completionYear || '-') + ')'">
+                            <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
+                            <span>Lançamento{{ game.completionYear ? ' (' + game.completionYear + ')' : '' }}</span>
+                          </span>
+                          <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                             {{ formatDate(game.completionDate) }}
                           </span>
                           <span v-else-if="game.completionYear" class="font-mono text-slate-400">
@@ -7027,27 +7069,60 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <!-- Data de Conclusão -->
             <div class="sm:col-span-2">
-              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Data de Conclusão *</label>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-semibold text-slate-300">Data de Conclusão {{ quickFinishForm.isReleaseDateOnly ? '' : '*' }}</label>
+                <button 
+                  v-if="quickFinishForm.completionDate && !quickFinishForm.isReleaseDateOnly" 
+                  type="button" 
+                  @click="setGameUnknownDate(quickFinishForm)" 
+                  class="text-[11px] text-slate-400 hover:text-rose-400 transition-colors"
+                >
+                  Não sei a data
+                </button>
+              </div>
               <input 
                 type="date" 
                 v-model="quickFinishForm.completionDate" 
+                :disabled="quickFinishForm.isReleaseDateOnly"
                 @change="onCompletionDateChange(quickFinishForm)"
-                required
-                class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500"
+                :required="!quickFinishForm.isReleaseDateOnly"
+                class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
             <!-- Ano Zerado -->
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Ano Zerado *</label>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+                {{ quickFinishForm.isReleaseDateOnly ? 'Ano de Lançamento *' : 'Ano Zerado *' }}
+              </label>
               <input 
                 type="number" 
                 v-model.number="quickFinishForm.completionYear" 
                 required
-                placeholder="Ex: 2026"
-                class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
+                :placeholder="quickFinishForm.isReleaseDateOnly ? 'Ex: 2004' : 'Ex: 2026'"
+                class="w-full px-3 py-2 bg-slate-900 border rounded-xl text-xs sm:text-sm text-white focus:outline-none font-mono"
+                :class="quickFinishForm.isReleaseDateOnly ? 'border-rose-500/50 focus:border-rose-500 text-rose-300' : 'border-slate-700/80 focus:border-emerald-500'"
               />
             </div>
+          </div>
+
+          <!-- Opção Não sei a data de zerado -->
+          <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+            <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                v-model="quickFinishForm.isReleaseDateOnly" 
+                @change="onToggleReleaseDateOnly(quickFinishForm)"
+                class="rounded border-slate-700 text-rose-500 focus:ring-rose-500/40 bg-slate-900 w-4 h-4 cursor-pointer"
+              />
+              <div class="text-xs">
+                <span class="font-medium text-slate-200">Não sei a data de zerado</span>
+                <span class="text-rose-400 font-semibold block text-[11px]">(incluir e exibir apenas ano de lançamento)</span>
+              </div>
+            </label>
+            <span v-if="quickFinishForm.isReleaseDateOnly" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-500/40">
+              Apenas Lançamento
+            </span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -7484,24 +7559,57 @@
           <div v-if="gameForm.status === 'Zerado'" class="space-y-4 p-4 rounded-2xl bg-[#151824] border border-slate-800">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="sm:col-span-2">
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Data de Conclusão</label>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-xs font-semibold text-slate-300">Data de Conclusão</label>
+                  <button 
+                    v-if="gameForm.completionDate && !gameForm.isReleaseDateOnly" 
+                    type="button" 
+                    @click="setGameUnknownDate(gameForm)" 
+                    class="text-[11px] text-slate-400 hover:text-rose-400 transition-colors"
+                  >
+                    Não lembro a data
+                  </button>
+                </div>
                 <input 
                   type="date" 
                   v-model="gameForm.completionDate" 
+                  :disabled="gameForm.isReleaseDateOnly"
                   @change="onCompletionDateChange(gameForm)"
-                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Ano Zerado</label>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {{ gameForm.isReleaseDateOnly ? 'Ano de Lançamento *' : 'Ano Zerado' }}
+                </label>
                 <input 
                   type="number" 
                   v-model.number="gameForm.completionYear" 
-                  placeholder="Ex: 2026"
-                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500 font-mono"
+                  :placeholder="gameForm.isReleaseDateOnly ? 'Ex: 2004' : 'Ex: 2026'"
+                  class="w-full px-3 py-2 bg-slate-900 border rounded-xl text-xs sm:text-sm text-white focus:outline-none font-mono"
+                  :class="gameForm.isReleaseDateOnly ? 'border-rose-500/50 focus:border-rose-500 text-rose-300' : 'border-slate-700/80 focus:border-indigo-500'"
                 />
               </div>
+            </div>
+
+            <!-- Opção de Data Desconhecida / Usar Ano de Lançamento -->
+            <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  v-model="gameForm.isReleaseDateOnly" 
+                  @change="onToggleReleaseDateOnly(gameForm)"
+                  class="rounded border-slate-700 text-rose-500 focus:ring-rose-500/40 bg-slate-900 w-4 h-4 cursor-pointer"
+                />
+                <div class="text-xs">
+                  <span class="font-medium text-slate-200">Não lembro / não sei a data de zerado</span>
+                  <span class="text-rose-400 font-semibold block text-[11px]">(incluir e exibir apenas ano de lançamento)</span>
+                </div>
+              </label>
+              <span v-if="gameForm.isReleaseDateOnly" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-500/40">
+                Apenas Lançamento
+              </span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -8225,6 +8333,13 @@
                   <span>Recomp / Decomp</span>
                 </span>
                 <span 
+                  v-if="isGameReleaseDateOnly(detailGame)" 
+                  class="text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-rose-500/50 bg-rose-950/80 text-rose-300 uppercase tracking-wider inline-flex items-center gap-1"
+                >
+                  <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
+                  <span>Apenas Lançamento</span>
+                </span>
+                <span 
                   v-if="isGameDuplicate(detailGame)" 
                   class="text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-rose-500/50 bg-rose-950/80 text-rose-300 uppercase tracking-wider inline-flex items-center gap-1"
                 >
@@ -8369,7 +8484,11 @@
               </div>
             </div>
 
-            <div v-if="detailGame.completionDate" class="flex items-center gap-1.5">
+            <div v-if="isGameReleaseDateOnly(detailGame)" class="flex items-center gap-1.5 text-rose-400">
+              <i data-lucide="sparkles" class="w-4 h-4 text-rose-400"></i>
+              <span>Data de Zerado: <strong class="text-rose-300">Não informada</strong> • Ano de Lançamento: <strong class="text-rose-300 font-mono">{{ detailGame.completionYear || '-' }}</strong></span>
+            </div>
+            <div v-else-if="detailGame.completionDate" class="flex items-center gap-1.5">
               <i data-lucide="calendar" class="w-4 h-4 text-indigo-400"></i>
               <span>Finalizado em: <strong class="text-white">{{ formatDate(detailGame.completionDate) }}</strong> <span v-if="detailGame.completionYear" class="text-slate-400 font-mono">({{ detailGame.completionYear }})</span></span>
             </div>
@@ -10885,8 +11004,8 @@
                         v-if="(shareSnapshotType === 'year' && (shareShowDates || isGameHandheld(game))) || (shareSnapshotType === 'nowPlaying' && (hasPlaytime(game) || isGameHandheld(game)))"
                         class="flex items-center justify-between text-[9px] text-slate-400 pt-1 border-t border-white/5"
                       >
-                        <span v-if="shareSnapshotType === 'year' && shareShowDates" class="font-mono">
-                          {{ formatDate(game.completionDate) }}
+                        <span v-if="shareSnapshotType === 'year' && shareShowDates" class="font-mono" :class="isGameReleaseDateOnly(game) ? 'text-rose-400 font-semibold' : ''">
+                          {{ isGameReleaseDateOnly(game) ? 'Lançamento' : formatDate(game.completionDate) }}
                         </span>
                         <span v-else-if="shareSnapshotType === 'nowPlaying' && hasPlaytime(game)" class="font-mono text-cyan-300 font-semibold flex items-center gap-0.5">
                           <i data-lucide="clock" class="w-2.5 h-2.5"></i>
