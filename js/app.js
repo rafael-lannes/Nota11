@@ -358,7 +358,7 @@ function initApp() {
               isHandheld: Boolean(g.isHandheld),
               isEarlyAccess: Boolean(g.isEarlyAccess),
               isRecomp: Boolean(g.isRecomp),
-            isReleaseDateOnly: Boolean(g.isReleaseDateOnly || (!g.completionDate && g.status === 'Zerado')),
+            isReleaseDateOnly: Boolean(g.isReleaseDateOnly),
               isPlatinum: isPlat,
               isReplay: Boolean(g.isReplay),
               isNowPlaying: normalizedStatus === 'Jogando',
@@ -578,6 +578,7 @@ function initApp() {
       // Formulários e Itens Ativos
       const gameToFinish = ref(null);
       const quickFinishForm = ref({
+        dateMode: 'exact',
         completionDate: new Date().toISOString().split('T')[0],
         completionYear: new Date().getFullYear(),
         isReleaseDateOnly: false,
@@ -604,6 +605,7 @@ function initApp() {
         genre: '',
         status: 'Zerado',
         rating: 10,
+        dateMode: 'exact',
         completionDate: new Date().toISOString().split('T')[0],
         completionYear: new Date().getFullYear(),
         isReleaseDateOnly: false,
@@ -778,7 +780,7 @@ function initApp() {
             isHandheld: Boolean(g.isHandheld),
             isEarlyAccess: Boolean(g.isEarlyAccess),
             isRecomp: Boolean(g.isRecomp),
-            isReleaseDateOnly: Boolean(g.isReleaseDateOnly || (!g.completionDate && g.status === 'Zerado')),
+            isReleaseDateOnly: Boolean(g.isReleaseDateOnly),
             isPlatinum: condition === 'Platinado/Perfeitos',
             isReplay: Boolean(g.isReplay),
             isNowPlaying: Boolean(g.isNowPlaying)
@@ -2144,12 +2146,17 @@ function initApp() {
         const currentYear = new Date().getFullYear();
         const plat = game.platform || 'PC - Computador';
         const isReleaseOnly = isGameReleaseDateOnly(game);
+        const isYearOnly = isGameYearOnly(game) || (!game.completionDate && game.completionYear && !isReleaseOnly);
+        let dateMode = 'exact';
+        if (isReleaseOnly) dateMode = 'releaseOnly';
+        else if (isYearOnly) dateMode = 'yearOnly';
 
         quickFinishForm.value = {
-          completionDate: isReleaseOnly ? '' : today,
-          completionYear: isReleaseOnly ? (game.completionYear || currentYear) : currentYear,
+          dateMode,
+          completionDate: (isReleaseOnly || isYearOnly) ? '' : (game.completionDate || today),
+          completionYear: game.completionYear || currentYear,
           isReleaseDateOnly: isReleaseOnly,
-          releaseYear: game.completionYear || null,
+          releaseYear: game.releaseYear || game.completionYear || null,
           platform: plat,
           playtime: game.playtime || '20:00:00',
           playtimeHours: game.playtimeHours || 20,
@@ -2170,9 +2177,23 @@ function initApp() {
       const confirmQuickFinish = () => {
         if (!gameToFinish.value) return;
         const pt = parsePlaytimeInput(quickFinishForm.value.playtime);
-        const isReleaseOnly = Boolean(quickFinishForm.value.isReleaseDateOnly) || !quickFinishForm.value.completionDate;
-        const completionDate = isReleaseOnly ? null : (quickFinishForm.value.completionDate || new Date().toISOString().split('T')[0]);
-        const completionYear = StorageService.extractCompletionYear(completionDate, quickFinishForm.value.completionYear);
+        const dateMode = quickFinishForm.value.dateMode || (quickFinishForm.value.isReleaseDateOnly ? 'releaseOnly' : (quickFinishForm.value.completionDate ? 'exact' : 'yearOnly'));
+        const isReleaseOnly = dateMode === 'releaseOnly';
+        const isYearOnly = dateMode === 'yearOnly';
+
+        let completionDate = null;
+        if (dateMode === 'exact' && quickFinishForm.value.completionDate) {
+          completionDate = quickFinishForm.value.completionDate;
+        }
+
+        let completionYear = Number(quickFinishForm.value.completionYear);
+        if (!completionYear && completionDate) {
+          completionYear = StorageService.extractCompletionYear(completionDate);
+        }
+        if (!completionYear) {
+          completionYear = new Date().getFullYear();
+        }
+
         const condition = quickFinishForm.value.completionCondition || 'Condição Padrão';
         const isPlat = condition === 'Platinado/Perfeitos';
         const isRep = Boolean(quickFinishForm.value.isReplay || gameToFinish.value.isReplay || isGameReplay(gameToFinish.value));
@@ -2284,6 +2305,7 @@ function initApp() {
         const hasValidDraft = StorageService ? StorageService.hasAddGameDraft() : false;
 
         if (savedDraft && hasValidDraft) {
+          const draftMode = savedDraft.dateMode || (savedDraft.isReleaseDateOnly ? 'releaseOnly' : (savedDraft.completionDate ? 'exact' : 'yearOnly'));
           gameForm.value = {
             id: null,
             title: savedDraft.title || '',
@@ -2291,9 +2313,10 @@ function initApp() {
             genre: savedDraft.genre || '',
             status: savedDraft.status || status,
             rating: savedDraft.rating !== undefined ? savedDraft.rating : (status === 'Zerado' ? 10 : null),
-            completionDate: savedDraft.isReleaseDateOnly ? '' : (savedDraft.completionDate || (status === 'Zerado' ? today : '')),
+            dateMode: draftMode,
+            completionDate: draftMode === 'exact' ? (savedDraft.completionDate || (status === 'Zerado' ? today : '')) : '',
             completionYear: savedDraft.completionYear || (status === 'Zerado' ? currentYear : null),
-            isReleaseDateOnly: Boolean(savedDraft.isReleaseDateOnly),
+            isReleaseDateOnly: draftMode === 'releaseOnly',
             releaseYear: savedDraft.releaseYear || savedDraft.completionYear || null,
             playtime: savedDraft.playtime || '00:00:00',
             playtimeHours: savedDraft.playtimeHours || 0,
@@ -2318,6 +2341,7 @@ function initApp() {
             genre: '',
             status: status,
             rating: status === 'Zerado' ? 10 : null,
+            dateMode: 'exact',
             completionDate: status === 'Zerado' ? today : '',
             completionYear: status === 'Zerado' ? currentYear : null,
             isReleaseDateOnly: false,
@@ -2357,6 +2381,10 @@ function initApp() {
         const year = game.completionYear || (game.completionDate ? StorageService.extractCompletionYear(game.completionDate) : null);
         const plat = game.platform || 'PC - Computador';
         const isReleaseOnly = isGameReleaseDateOnly(game);
+        const isYearOnly = isGameYearOnly(game) || (!game.completionDate && game.completionYear && !isReleaseOnly);
+        let dateMode = 'exact';
+        if (isReleaseOnly) dateMode = 'releaseOnly';
+        else if (isYearOnly) dateMode = 'yearOnly';
 
         gameForm.value = {
           id: game.id,
@@ -2365,10 +2393,11 @@ function initApp() {
           genre: game.genre || '',
           status: game.status || 'Zerado',
           rating: game.rating ?? 10,
-          completionDate: isReleaseOnly ? '' : (game.completionDate || ''),
+          dateMode: dateMode,
+          completionDate: (isReleaseOnly || isYearOnly) ? '' : (game.completionDate || ''),
           completionYear: year,
           isReleaseDateOnly: isReleaseOnly,
-          releaseYear: year,
+          releaseYear: game.releaseYear || year,
           playtime: pt.str,
           playtimeHours: pt.hours,
           completionCondition: condition,
@@ -2396,9 +2425,26 @@ function initApp() {
         }
 
         const pt = parsePlaytimeInput(gameForm.value.playtime);
-        const isReleaseOnly = gameForm.value.status === 'Zerado' && (Boolean(gameForm.value.isReleaseDateOnly) || !gameForm.value.completionDate);
-        const completionDate = (gameForm.value.status === 'Zerado' && !isReleaseOnly) ? (gameForm.value.completionDate || null) : null;
-        const completionYear = gameForm.value.status === 'Zerado' ? StorageService.extractCompletionYear(completionDate, gameForm.value.completionYear) : null;
+        const isZerado = gameForm.value.status === 'Zerado';
+        const dateMode = gameForm.value.dateMode || (gameForm.value.isReleaseDateOnly ? 'releaseOnly' : (gameForm.value.completionDate ? 'exact' : 'yearOnly'));
+        const isReleaseOnly = isZerado && dateMode === 'releaseOnly';
+        const isYearOnly = isZerado && dateMode === 'yearOnly';
+
+        let completionDate = null;
+        if (isZerado && dateMode === 'exact' && gameForm.value.completionDate) {
+          completionDate = gameForm.value.completionDate;
+        }
+
+        let completionYear = null;
+        if (isZerado) {
+          completionYear = Number(gameForm.value.completionYear);
+          if (!completionYear && completionDate) {
+            completionYear = StorageService.extractCompletionYear(completionDate);
+          }
+          if (!completionYear) {
+            completionYear = new Date().getFullYear();
+          }
+        }
         
         const isPlat = gameForm.value.status === 'Backlog'
           ? Boolean(gameForm.value.isPlatinum)
@@ -3070,10 +3116,14 @@ function initApp() {
           }
           if (candidate.releaseYear) {
             gameForm.value.releaseYear = candidate.releaseYear;
-            if (gameForm.value.status === 'Zerado' && (!gameForm.value.completionDate || gameForm.value.isReleaseDateOnly)) {
-              gameForm.value.completionYear = candidate.releaseYear;
-              gameForm.value.isReleaseDateOnly = true;
-              gameForm.value.completionDate = '';
+            if (gameForm.value.status === 'Zerado') {
+              if (gameForm.value.dateMode === 'releaseOnly' || gameForm.value.isReleaseDateOnly) {
+                gameForm.value.completionYear = candidate.releaseYear;
+                gameForm.value.isReleaseDateOnly = true;
+                gameForm.value.completionDate = '';
+              } else if (!gameForm.value.completionYear) {
+                gameForm.value.completionYear = candidate.releaseYear;
+              }
             } else if (!gameForm.value.completionYear) {
               gameForm.value.completionYear = candidate.releaseYear;
             }
@@ -3195,7 +3245,7 @@ function initApp() {
                 genre: item.genre || '',
                 status: 'Zerado',
                 rating: item.rating ?? 10,
-                completionDate: (item.isReleaseDateOnly || !item.completionDate) ? null : item.completionDate,
+                completionDate: item.isReleaseDateOnly ? null : (item.completionDate || null),
                 completionYear: year,
                 playtime: pt.str,
                 playtimeHours: pt.hours,
@@ -3203,7 +3253,7 @@ function initApp() {
                 isHandheld: Boolean(item.isHandheld),
                 isEarlyAccess: Boolean(item.isEarlyAccess),
                 isRecomp: Boolean(item.isRecomp),
-                isReleaseDateOnly: Boolean(item.isReleaseDateOnly || !item.completionDate),
+                isReleaseDateOnly: Boolean(item.isReleaseDateOnly),
                 isPlatinum: condition === 'Platinado/Perfeitos',
                 isReplay: isReplay,
                 coverUrl: (item.coverUrl || '').trim() || (PlaceholderGenerator ? PlaceholderGenerator.generate(item.title, item.platform) : ''),
@@ -3265,7 +3315,7 @@ function initApp() {
                   isHandheld: Boolean(g.isHandheld),
                   isEarlyAccess: Boolean(g.isEarlyAccess),
                   isRecomp: Boolean(g.isRecomp),
-                  isReleaseDateOnly: Boolean(g.isReleaseDateOnly || (!g.completionDate && isZerado)),
+                  isReleaseDateOnly: Boolean(g.isReleaseDateOnly),
                   isPlatinum: condition === 'Platinado/Perfeitos',
                   isReplay: Boolean(g.isReplay),
                   isNowPlaying: g.status === 'Jogando',
@@ -3323,7 +3373,7 @@ function initApp() {
             isHandheld: Boolean(g.isHandheld),
             isEarlyAccess: Boolean(g.isEarlyAccess),
             isRecomp: Boolean(g.isRecomp),
-            isReleaseDateOnly: Boolean(g.isReleaseDateOnly || (!g.completionDate && g.status === 'Zerado')),
+            isReleaseDateOnly: Boolean(g.isReleaseDateOnly),
             isPlatinum: condition === 'Platinado/Perfeitos',
             isReplay: Boolean(g.isReplay)
           };
@@ -3926,44 +3976,82 @@ function initApp() {
       const isGameReleaseDateOnly = (game) => {
         if (!game) return false;
         if (game.status !== 'Zerado') return false;
-        return Boolean(game.isReleaseDateOnly || !game.completionDate);
+        return Boolean(game.isReleaseDateOnly);
+      };
+
+      const isGameYearOnly = (game) => {
+        if (!game) return false;
+        if (game.status !== 'Zerado') return false;
+        return !game.isReleaseDateOnly && !game.completionDate && Boolean(game.completionYear);
+      };
+
+      const hasExactCompletionDate = (game) => {
+        if (!game) return false;
+        if (game.status !== 'Zerado') return false;
+        return !game.isReleaseDateOnly && Boolean(game.completionDate);
+      };
+
+      const setFormDateMode = (form, mode) => {
+        if (!form) return;
+        form.dateMode = mode;
+        const currentYear = new Date().getFullYear();
+        if (mode === 'exact') {
+          form.isReleaseDateOnly = false;
+          if (!form.completionDate) {
+            const y = form.completionYear || currentYear;
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            if (Number(y) === currentYear) {
+              form.completionDate = todayStr;
+            } else {
+              form.completionDate = `${y}-01-01`;
+            }
+          }
+          if (StorageService) {
+            const y = StorageService.extractCompletionYear(form.completionDate);
+            if (y) form.completionYear = y;
+          }
+        } else if (mode === 'yearOnly') {
+          form.isReleaseDateOnly = false;
+          form.completionDate = '';
+          if (!form.completionYear) {
+            form.completionYear = currentYear;
+          }
+        } else if (mode === 'releaseOnly') {
+          form.isReleaseDateOnly = true;
+          form.completionDate = '';
+          if (form.releaseYear) {
+            form.completionYear = form.releaseYear;
+          } else if (!form.completionYear) {
+            form.completionYear = currentYear;
+          }
+        }
+        nextTick(() => refreshLucideIcons());
       };
 
       const onToggleReleaseDateOnly = (form) => {
         if (!form) return;
         if (form.isReleaseDateOnly) {
-          form.completionDate = '';
-          if (form.releaseYear) {
-            form.completionYear = form.releaseYear;
-          }
+          setFormDateMode(form, 'releaseOnly');
         } else {
-          form.completionDate = new Date().toISOString().split('T')[0];
-          form.completionYear = new Date().getFullYear();
+          setFormDateMode(form, 'exact');
         }
       };
 
       const setGameUnknownDate = (form) => {
         if (!form) return;
-        form.isReleaseDateOnly = true;
-        form.completionDate = '';
-        if (form.releaseYear) {
-          form.completionYear = form.releaseYear;
-        }
+        setFormDateMode(form, 'yearOnly');
       };
 
       const onCompletionDateChange = (form) => {
         if (!form) return;
-        if (!form.completionDate) {
-          form.isReleaseDateOnly = true;
-          if (form.releaseYear) {
-            form.completionYear = form.releaseYear;
+        if (form.completionDate) {
+          form.dateMode = 'exact';
+          form.isReleaseDateOnly = false;
+          if (StorageService) {
+            const y = StorageService.extractCompletionYear(form.completionDate);
+            if (y) form.completionYear = y;
           }
-          return;
-        }
-        form.isReleaseDateOnly = false;
-        if (StorageService) {
-          const y = StorageService.extractCompletionYear(form.completionDate);
-          if (y) form.completionYear = y;
         }
       };
 
@@ -6603,7 +6691,9 @@ Headset / Áudio: `;
         onCompletionDateChange,
         onToggleReleaseDateOnly,
         setGameUnknownDate,
+        setFormDateMode,
         isGameReleaseDateOnly,
+        isGameYearOnly,
         openGoogleImages,
         openDeleteConfirm,
         confirmDelete,

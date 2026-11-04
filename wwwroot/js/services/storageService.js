@@ -511,7 +511,7 @@ class StorageService {
           isHandheld: isHandheldFinal,
           isEarlyAccess: Boolean(game.isEarlyAccess),
           isRecomp: Boolean(isRecomp),
-          isReleaseDateOnly: Boolean(game.isReleaseDateOnly || (!game.completionDate && isZerado)),
+          isReleaseDateOnly: Boolean(game.isReleaseDateOnly),
           isReplay: Boolean(game.isReplay),
           isNowPlaying: status === 'Jogando',
           playtime: formattedPlaytime,
@@ -1035,7 +1035,7 @@ class StorageService {
       const safeTitle = `"${(game.title || '').replace(/"/g, '""')}"`;
       const safePlatform = `"${(game.platform || 'PC').replace(/"/g, '""')}"`;
       const safeGenre = `"${(game.genre || '').replace(/"/g, '""')}"`;
-      const date = (game.isReleaseDateOnly || !game.completionDate) ? 'Lançamento' : (game.completionDate || '');
+      const date = game.isReleaseDateOnly ? 'Lançamento' : (game.completionDate || '');
       const year = game.completionYear || this.extractCompletionYear(game.completionDate);
       const playtimeStr = `"${this.formatPlaytimeToHHMMSS(game.playtime || game.playtimeHours)}"`;
       const rating = game.rating !== null && game.rating !== undefined ? game.rating : 10;
@@ -1238,7 +1238,7 @@ class StorageService {
 
       let rawDate = (cols[colMap.date] !== undefined ? cols[colMap.date] : (cols[3] || '')).replace(/[\r\n]+/g, ' ').trim();
       const rawDateLower = (rawDate || '').toLowerCase();
-      const isReleaseDateOnly = !rawDate || rawDateLower === 'lançamento' || rawDateLower === 'lancamento' || rawDateLower === 'release';
+      const isReleaseDateOnly = rawDateLower === 'lançamento' || rawDateLower === 'lancamento' || rawDateLower === 'release';
       let completionDate = null;
       if (rawDate && !isReleaseDateOnly) {
         if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(rawDate)) {
@@ -1427,7 +1427,7 @@ class StorageService {
           isHandheld: isHandheldFinal,
           isEarlyAccess: Boolean(game.isEarlyAccess),
           isRecomp: Boolean(game.isRecomp),
-          isReleaseDateOnly: Boolean(game.isReleaseDateOnly || (!game.completionDate && isZerado)),
+          isReleaseDateOnly: Boolean(game.isReleaseDateOnly),
           isPlatinum: isPlat,
           isReplay: Boolean(game.isReplay),
           isNowPlaying: normalizedStatus === 'Jogando',

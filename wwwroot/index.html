@@ -3579,6 +3579,10 @@
                     <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
                     <span>{{ game.completionYear || '-' }}</span>
                   </span>
+                  <span v-else-if="isGameYearOnly(game)" class="flex items-center gap-1 truncate text-slate-300 font-medium" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                    <i data-lucide="calendar" class="w-3 h-3 text-slate-400 flex-shrink-0"></i>
+                    <span>{{ game.completionYear }}</span>
+                  </span>
                   <span v-else class="flex items-center gap-1 truncate" :title="'Data: ' + formatDate(game.completionDate) + (game.completionYear ? ' (' + game.completionYear + ')' : '')">
                     <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
                     <span>{{ formatDate(game.completionDate) }}</span>
@@ -3893,6 +3897,10 @@
                       <i data-lucide="sparkles" class="w-3 h-3 text-rose-400"></i>
                       <span>Lançamento</span>
                     </span>
+                    <span v-else-if="isGameYearOnly(game)" class="text-slate-300 font-medium inline-flex items-center gap-1" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                      <i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i>
+                      <span>Ano {{ game.completionYear }}</span>
+                    </span>
                     <span v-else class="text-slate-400">
                       {{ formatDate(game.completionDate) }}
                     </span>
@@ -4064,6 +4072,10 @@
                     <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                       <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
                       <span>{{ game.completionYear || '-' }}</span>
+                    </span>
+                    <span v-else-if="isGameYearOnly(game)" class="font-mono text-slate-300 inline-flex items-center gap-1" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                      <i data-lucide="calendar" class="w-2.5 h-2.5 text-slate-400"></i>
+                      <span>{{ game.completionYear }}</span>
                     </span>
                     <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                       {{ formatDate(game.completionDate) }}
@@ -4329,7 +4341,11 @@
                         <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
                         <span>{{ game.completionYear || '-' }}</span>
                       </span>
-                      <span v-else class="flex items-center gap-1 truncate font-mono">
+                      <span v-else-if="isGameYearOnly(game)" class="flex items-center gap-1 truncate text-slate-300 font-medium font-mono" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                        <i data-lucide="calendar" class="w-3 h-3 text-slate-400 flex-shrink-0"></i>
+                        <span>{{ game.completionYear }}</span>
+                      </span>
+                      <span v-else class="flex items-center gap-1 truncate font-mono" :title="'Data: ' + formatDate(game.completionDate) + (game.completionYear ? ' (' + game.completionYear + ')' : '')">
                         <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
                         <span>{{ formatDate(game.completionDate) }}</span>
                       </span>
@@ -4641,6 +4657,10 @@
                           <i data-lucide="sparkles" class="w-3 h-3 text-rose-400"></i>
                           <span>Lançamento</span>
                         </span>
+                        <span v-else-if="isGameYearOnly(game)" class="text-slate-300 font-medium inline-flex items-center gap-1" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                          <i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i>
+                          <span>Ano {{ game.completionYear }}</span>
+                        </span>
                         <span v-else class="text-slate-400">
                           {{ formatDate(game.completionDate) }}
                         </span>
@@ -4813,6 +4833,10 @@
                         <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                           <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
                           <span>{{ game.completionYear || '-' }}</span>
+                        </span>
+                        <span v-else-if="isGameYearOnly(game)" class="font-mono text-slate-300 inline-flex items-center gap-1" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                          <i data-lucide="calendar" class="w-2.5 h-2.5 text-slate-400"></i>
+                          <span>{{ game.completionYear }}</span>
                         </span>
                         <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                           {{ formatDate(game.completionDate) }}
@@ -5108,7 +5132,11 @@
                           <i data-lucide="sparkles" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
                           <span>{{ game.completionYear || '-' }}</span>
                         </span>
-                        <span v-else class="flex items-center gap-1 truncate font-mono">
+                        <span v-else-if="isGameYearOnly(game)" class="flex items-center gap-1 truncate text-slate-300 font-medium font-mono" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                          <i data-lucide="calendar" class="w-3 h-3 text-slate-400 flex-shrink-0"></i>
+                          <span>{{ game.completionYear }}</span>
+                        </span>
+                        <span v-else class="flex items-center gap-1 truncate font-mono" :title="'Data: ' + formatDate(game.completionDate) + (game.completionYear ? ' (' + game.completionYear + ')' : '')">
                           <i data-lucide="calendar" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
                           <span>{{ formatDate(game.completionDate) }}</span>
                         </span>
@@ -5412,6 +5440,10 @@
                             <i data-lucide="sparkles" class="w-3 h-3 text-rose-400"></i>
                             <span>Lançamento</span>
                           </span>
+                          <span v-else-if="isGameYearOnly(game)" class="text-slate-300 font-medium inline-flex items-center gap-1" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                            <i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i>
+                            <span>Ano {{ game.completionYear }}</span>
+                          </span>
                           <span v-else class="text-slate-400">
                             {{ formatDate(game.completionDate) }}
                           </span>
@@ -5584,6 +5616,10 @@
                           <span v-if="isGameReleaseDateOnly(game)" class="font-mono text-rose-400 font-semibold inline-flex items-center gap-1" :title="'Data não informada (Ano de Lançamento: ' + (game.completionYear || '-') + ')'">
                             <i data-lucide="sparkles" class="w-2.5 h-2.5 text-rose-400"></i>
                             <span>{{ game.completionYear || '-' }}</span>
+                          </span>
+                          <span v-else-if="isGameYearOnly(game)" class="font-mono text-slate-300 inline-flex items-center gap-1" :title="'Zerado em ' + game.completionYear + ' (dia exato não informado)'">
+                            <i data-lucide="calendar" class="w-2.5 h-2.5 text-slate-400"></i>
+                            <span>{{ game.completionYear }}</span>
                           </span>
                           <span v-else-if="game.completionDate" class="font-mono text-slate-400">
                             {{ formatDate(game.completionDate) }}
@@ -7297,63 +7333,86 @@
               </div>
             </div>
           
+          <!-- Seletor de Tipo de Data de Conclusão -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300">Como deseja registrar a data de conclusão?</label>
+            <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950/80 border border-slate-800 rounded-xl">
+              <button 
+                type="button" 
+                @click="setFormDateMode(quickFinishForm, 'exact')"
+                class="px-2 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                :class="(quickFinishForm.dateMode || 'exact') === 'exact' ? 'bg-emerald-600 text-white shadow-sm font-bold' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'"
+                title="Informar a data exata em que você zerou (dia, mês e ano)"
+              >
+                <i data-lucide="calendar" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                <span class="truncate">Data Exata</span>
+              </button>
+              <button 
+                type="button" 
+                @click="setFormDateMode(quickFinishForm, 'yearOnly')"
+                class="px-2 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                :class="quickFinishForm.dateMode === 'yearOnly' ? 'bg-indigo-600 text-white shadow-sm font-bold' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'"
+                title="Informar apenas o ano em que zerou, sem dia exato"
+              >
+                <i data-lucide="calendar-days" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                <span class="truncate">Apenas Ano</span>
+              </button>
+              <button 
+                type="button" 
+                @click="setFormDateMode(quickFinishForm, 'releaseOnly')"
+                class="px-2 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                :class="quickFinishForm.dateMode === 'releaseOnly' ? 'bg-rose-600 text-white shadow-sm font-bold' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'"
+                title="Não lembro quando zerei. Usar o ano de lançamento oficial do jogo"
+              >
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                <span class="truncate">Lançamento</span>
+              </button>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <!-- Data de Conclusão -->
-            <div class="sm:col-span-2">
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="block text-xs font-semibold text-slate-300">Data de Conclusão {{ quickFinishForm.isReleaseDateOnly ? '' : '*' }}</label>
-                <button 
-                  v-if="quickFinishForm.completionDate && !quickFinishForm.isReleaseDateOnly" 
-                  type="button" 
-                  @click="setGameUnknownDate(quickFinishForm)" 
-                  class="text-[11px] text-slate-400 hover:text-rose-400 transition-colors"
-                >
-                  Não sei a data
-                </button>
-              </div>
+            <!-- Data de Conclusão (exibida no modo Data Exata) -->
+            <div v-if="(quickFinishForm.dateMode || 'exact') === 'exact'" class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Data de Conclusão *</label>
               <input 
                 type="date" 
                 v-model="quickFinishForm.completionDate" 
-                :disabled="quickFinishForm.isReleaseDateOnly"
                 @change="onCompletionDateChange(quickFinishForm)"
-                :required="!quickFinishForm.isReleaseDateOnly"
-                class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                required
+                class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
               />
             </div>
 
-            <!-- Ano Zerado -->
+            <!-- Aviso / Info quando Apenas Ano Zerado -->
+            <div v-else-if="quickFinishForm.dateMode === 'yearOnly'" class="sm:col-span-2 flex items-center p-3 rounded-xl bg-indigo-950/40 border border-indigo-700/40 text-indigo-300 text-xs">
+              <div class="flex items-center gap-2">
+                <i data-lucide="info" class="w-4 h-4 text-indigo-400 flex-shrink-0"></i>
+                <span>Sem dia exato. O jogo será catalogado no <strong>Ano Zerado: {{ quickFinishForm.completionYear || '---' }}</strong>.</span>
+              </div>
+            </div>
+
+            <!-- Aviso / Info quando Ano de Lançamento -->
+            <div v-else class="sm:col-span-2 flex items-center p-3 rounded-xl bg-rose-950/40 border border-rose-700/40 text-rose-300 text-xs">
+              <div class="flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4 text-rose-400 flex-shrink-0"></i>
+                <span>Data não informada. Catalogado pelo <strong>Ano de Lançamento</strong>.</span>
+              </div>
+            </div>
+
+            <!-- Input do Ano -->
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1.5">
-                {{ quickFinishForm.isReleaseDateOnly ? 'Ano de Lançamento *' : 'Ano Zerado *' }}
+              <label class="block text-xs font-semibold mb-1.5" :class="quickFinishForm.dateMode === 'releaseOnly' ? 'text-rose-300' : (quickFinishForm.dateMode === 'yearOnly' ? 'text-indigo-300' : 'text-slate-300')">
+                {{ quickFinishForm.dateMode === 'releaseOnly' ? 'Ano de Lançamento *' : 'Ano Zerado *' }}
               </label>
               <input 
                 type="number" 
                 v-model.number="quickFinishForm.completionYear" 
                 required
-                :placeholder="quickFinishForm.isReleaseDateOnly ? 'Ex: 2004' : 'Ex: 2026'"
+                :placeholder="quickFinishForm.dateMode === 'releaseOnly' ? 'Ex: 2004' : 'Ex: 2026'"
                 class="w-full px-3 py-2 bg-slate-900 border rounded-xl text-xs sm:text-sm text-white focus:outline-none font-mono"
-                :class="quickFinishForm.isReleaseDateOnly ? 'border-rose-500/50 focus:border-rose-500 text-rose-300' : 'border-slate-700/80 focus:border-emerald-500'"
+                :class="quickFinishForm.dateMode === 'releaseOnly' ? 'border-rose-500/50 focus:border-rose-500 text-rose-300' : (quickFinishForm.dateMode === 'yearOnly' ? 'border-indigo-500/50 focus:border-indigo-500 text-indigo-200' : 'border-slate-700/80 focus:border-emerald-500')"
               />
             </div>
-          </div>
-
-          <!-- Opção Não sei a data de zerado -->
-          <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-            <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
-              <input 
-                type="checkbox" 
-                v-model="quickFinishForm.isReleaseDateOnly" 
-                @change="onToggleReleaseDateOnly(quickFinishForm)"
-                class="rounded border-slate-700 text-rose-500 focus:ring-rose-500/40 bg-slate-900 w-4 h-4 cursor-pointer"
-              />
-              <div class="text-xs">
-                <span class="font-medium text-slate-200">Não sei a data de zerado</span>
-                <span class="text-rose-400 font-semibold block text-[11px]">(incluir e exibir apenas ano de lançamento)</span>
-              </div>
-            </label>
-            <span v-if="quickFinishForm.isReleaseDateOnly" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-500/40">
-              Apenas Lançamento
-            </span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -7788,59 +7847,85 @@
 
           <!-- Campos condicionais para Jogos Zerados -->
           <div v-if="gameForm.status === 'Zerado'" class="space-y-4 p-4 rounded-2xl bg-[#151824] border border-slate-800">
+            <!-- Seletor de Tipo de Data de Conclusão -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-300">Como deseja registrar a data de conclusão?</label>
+              <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950/80 border border-slate-800 rounded-xl">
+                <button 
+                  type="button" 
+                  @click="setFormDateMode(gameForm, 'exact')"
+                  class="px-2 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                  :class="(gameForm.dateMode || 'exact') === 'exact' ? 'bg-indigo-600 text-white shadow-sm font-bold' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'"
+                  title="Informar a data exata em que você zerou (dia, mês e ano)"
+                >
+                  <i data-lucide="calendar" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                  <span class="truncate">Data Exata</span>
+                </button>
+                <button 
+                  type="button" 
+                  @click="setFormDateMode(gameForm, 'yearOnly')"
+                  class="px-2 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                  :class="gameForm.dateMode === 'yearOnly' ? 'bg-indigo-600 text-white shadow-sm font-bold' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'"
+                  title="Informar apenas o ano em que zerou, sem dia exato"
+                >
+                  <i data-lucide="calendar-days" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                  <span class="truncate">Apenas Ano</span>
+                </button>
+                <button 
+                  type="button" 
+                  @click="setFormDateMode(gameForm, 'releaseOnly')"
+                  class="px-2 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                  :class="gameForm.dateMode === 'releaseOnly' ? 'bg-rose-600 text-white shadow-sm font-bold' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'"
+                  title="Não lembro quando zerei. Usar o ano de lançamento oficial do jogo"
+                >
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                  <span class="truncate">Lançamento</span>
+                </button>
+              </div>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="sm:col-span-2">
-                <div class="flex items-center justify-between mb-1.5">
-                  <label class="block text-xs font-semibold text-slate-300">Data de Conclusão</label>
-                  <button 
-                    v-if="gameForm.completionDate && !gameForm.isReleaseDateOnly" 
-                    type="button" 
-                    @click="setGameUnknownDate(gameForm)" 
-                    class="text-[11px] text-slate-400 hover:text-rose-400 transition-colors"
-                  >
-                    Não lembro a data
-                  </button>
-                </div>
+              <!-- Data de Conclusão (exibida no modo Data Exata) -->
+              <div v-if="(gameForm.dateMode || 'exact') === 'exact'" class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Data de Conclusão *</label>
                 <input 
                   type="date" 
                   v-model="gameForm.completionDate" 
-                  :disabled="gameForm.isReleaseDateOnly"
                   @change="onCompletionDateChange(gameForm)"
-                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500 font-mono"
                 />
               </div>
 
+              <!-- Aviso / Info quando Apenas Ano Zerado -->
+              <div v-else-if="gameForm.dateMode === 'yearOnly'" class="sm:col-span-2 flex items-center p-3 rounded-xl bg-indigo-950/40 border border-indigo-700/40 text-indigo-300 text-xs">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="info" class="w-4 h-4 text-indigo-400 flex-shrink-0"></i>
+                  <span>Sem dia exato. O jogo será catalogado no <strong>Ano Zerado: {{ gameForm.completionYear || '---' }}</strong>.</span>
+                </div>
+              </div>
+
+              <!-- Aviso / Info quando Ano de Lançamento -->
+              <div v-else class="sm:col-span-2 flex items-center p-3 rounded-xl bg-rose-950/40 border border-rose-700/40 text-rose-300 text-xs">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="sparkles" class="w-4 h-4 text-rose-400 flex-shrink-0"></i>
+                  <span>Data não informada. Catalogado pelo <strong>Ano de Lançamento</strong>.</span>
+                </div>
+              </div>
+
+              <!-- Input do Ano -->
               <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">
-                  {{ gameForm.isReleaseDateOnly ? 'Ano de Lançamento *' : 'Ano Zerado' }}
+                <label class="block text-xs font-semibold mb-1.5" :class="gameForm.dateMode === 'releaseOnly' ? 'text-rose-300' : (gameForm.dateMode === 'yearOnly' ? 'text-indigo-300' : 'text-slate-300')">
+                  {{ gameForm.dateMode === 'releaseOnly' ? 'Ano de Lançamento *' : 'Ano Zerado *' }}
                 </label>
                 <input 
                   type="number" 
                   v-model.number="gameForm.completionYear" 
-                  :placeholder="gameForm.isReleaseDateOnly ? 'Ex: 2004' : 'Ex: 2026'"
+                  required
+                  :placeholder="gameForm.dateMode === 'releaseOnly' ? 'Ex: 2004' : 'Ex: 2026'"
                   class="w-full px-3 py-2 bg-slate-900 border rounded-xl text-xs sm:text-sm text-white focus:outline-none font-mono"
-                  :class="gameForm.isReleaseDateOnly ? 'border-rose-500/50 focus:border-rose-500 text-rose-300' : 'border-slate-700/80 focus:border-indigo-500'"
+                  :class="gameForm.dateMode === 'releaseOnly' ? 'border-rose-500/50 focus:border-rose-500 text-rose-300' : (gameForm.dateMode === 'yearOnly' ? 'border-indigo-500/50 focus:border-indigo-500 text-indigo-200' : 'border-slate-700/80 focus:border-indigo-500')"
                 />
               </div>
-            </div>
-
-            <!-- Opção de Data Desconhecida / Usar Ano de Lançamento -->
-            <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
-                <input 
-                  type="checkbox" 
-                  v-model="gameForm.isReleaseDateOnly" 
-                  @change="onToggleReleaseDateOnly(gameForm)"
-                  class="rounded border-slate-700 text-rose-500 focus:ring-rose-500/40 bg-slate-900 w-4 h-4 cursor-pointer"
-                />
-                <div class="text-xs">
-                  <span class="font-medium text-slate-200">Não lembro / não sei a data de zerado</span>
-                  <span class="text-rose-400 font-semibold block text-[11px]">(incluir e exibir apenas ano de lançamento)</span>
-                </div>
-              </label>
-              <span v-if="gameForm.isReleaseDateOnly" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-500/40">
-                Apenas Lançamento
-              </span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -8571,6 +8656,13 @@
                   <span>Apenas Lançamento</span>
                 </span>
                 <span 
+                  v-if="isGameYearOnly(detailGame)" 
+                  class="text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-indigo-500/50 bg-indigo-950/80 text-indigo-300 uppercase tracking-wider inline-flex items-center gap-1"
+                >
+                  <i data-lucide="calendar-days" class="w-3 h-3 text-indigo-400 flex-shrink-0"></i>
+                  <span>Ano Zerado ({{ detailGame.completionYear }})</span>
+                </span>
+                <span 
                   v-if="isGameDuplicate(detailGame)" 
                   class="text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-rose-500/50 bg-rose-950/80 text-rose-300 uppercase tracking-wider inline-flex items-center gap-1"
                 >
@@ -8718,6 +8810,10 @@
             <div v-if="isGameReleaseDateOnly(detailGame)" class="flex items-center gap-1.5 text-rose-400">
               <i data-lucide="sparkles" class="w-4 h-4 text-rose-400"></i>
               <span>Data de Zerado: <strong class="text-rose-300">Não informada</strong> • Ano de Lançamento: <strong class="text-rose-300 font-mono">{{ detailGame.completionYear || '-' }}</strong></span>
+            </div>
+            <div v-else-if="isGameYearOnly(detailGame)" class="flex items-center gap-1.5 text-indigo-300">
+              <i data-lucide="calendar" class="w-4 h-4 text-indigo-400"></i>
+              <span>Finalizado em: <strong class="text-white">{{ detailGame.completionYear }}</strong> <span class="text-slate-400 font-mono text-xs">(dia exato não informado)</span></span>
             </div>
             <div v-else-if="detailGame.completionDate" class="flex items-center gap-1.5">
               <i data-lucide="calendar" class="w-4 h-4 text-indigo-400"></i>
@@ -11236,7 +11332,7 @@
                         class="flex items-center justify-between text-[9px] text-slate-400 pt-1 border-t border-white/5"
                       >
                         <span v-if="shareSnapshotType === 'year' && shareShowDates" class="font-mono" :class="isGameReleaseDateOnly(game) ? 'text-rose-400 font-semibold' : ''">
-                          {{ isGameReleaseDateOnly(game) ? (game.completionYear || '-') : formatDate(game.completionDate) }}
+                          {{ isGameReleaseDateOnly(game) ? (game.completionYear || '-') : (isGameYearOnly(game) ? game.completionYear : formatDate(game.completionDate)) }}
                         </span>
                         <span v-else-if="shareSnapshotType === 'nowPlaying' && hasPlaytime(game)" class="font-mono text-cyan-300 font-semibold flex items-center gap-0.5">
                           <i data-lucide="clock" class="w-2.5 h-2.5"></i>
@@ -11596,7 +11692,7 @@
                 </div>
                 <div class="text-right flex-shrink-0">
                   <span v-if="!isGameReleaseDateOnly(g)" class="text-[11px] font-mono text-slate-400 block">
-                    {{ formatDate(g.completionDate) }}
+                    {{ isGameYearOnly(g) ? ('Ano ' + g.completionYear) : formatDate(g.completionDate) }}
                   </span>
                   <span class="text-[11px] font-mono text-rose-400 font-semibold flex items-center justify-end gap-1">
                     <i data-lucide="sparkles" class="w-3 h-3 text-rose-400"></i>
@@ -12863,7 +12959,7 @@
   <script src="js/services/igdbService.js?v=1.5.1"></script>
   <script src="js/services/hltbService.js?v=1.2.6"></script>
   <script src="js/services/supabaseService.js?v=1.3.8"></script>
-  <script src="js/services/storageService.js?v=1.3.8"></script>
-  <script src="js/app.js?v=1.5.3"></script>
+  <script src="js/services/storageService.js?v=1.3.9"></script>
+  <script src="js/app.js?v=1.5.4"></script>
 </body>
 </html>
