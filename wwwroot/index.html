@@ -348,7 +348,42 @@
                   </div>
                 </button>
 
-                <!-- Baixar Capas IGDB -->
+                <!-- Edição Massiva -->
+                <button 
+                  @click="startBatchEditMode(); closeToolsMenu()"
+                  class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 hover:border-slate-700 flex items-center gap-3 transition-colors group cursor-pointer"
+                >
+                  <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:scale-105 transition-transform flex-shrink-0">
+                    <i data-lucide="check-square" class="w-4 h-4"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <strong class="text-white block font-semibold">Edição Massiva</strong>
+                      <span class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[9px] font-bold">LOTE</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400">Operações em lote na coleção de zerados</span>
+                  </div>
+                </button>
+
+                <!-- Edição Massiva -->
+          <button 
+            type="button"
+            @click="startBatchEditMode(); closeToolsMenu()"
+            class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 flex items-center gap-3 transition-colors cursor-pointer active:scale-[0.98]"
+          >
+            <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <strong class="text-white block font-semibold text-xs">Edição Massiva</strong>
+                <span class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[9px] font-bold">LOTE</span>
+              </div>
+              <span class="text-[10px] text-slate-400">Operações em lote na coleção de zerados</span>
+            </div>
+          </button>
+
+          <!-- Baixar Capas IGDB -->
                 <button 
                   @click="openScraperModal(); closeToolsMenu()"
                   class="w-full text-left p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800 border border-slate-800/80 hover:border-slate-700 flex items-center gap-3 transition-colors group"
@@ -2607,6 +2642,100 @@
         
         <!-- Cabeçalho da Biblioteca e Toolbar -->
         <div class="space-y-4">
+          <!-- Banner de Destaque: Modo de Edição Massiva Ativo -->
+          <div 
+            v-if="isBatchEditMode"
+            class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-950/90 via-purple-950/80 to-slate-900/95 border-2 border-rose-500/60 shadow-2xl backdrop-blur-md space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-200"
+          >
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <!-- Título do Modo + Contador de Seleção -->
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-400/50 flex items-center justify-center text-rose-300 flex-shrink-0">
+                  <i data-lucide="check-square" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-heading font-extrabold text-base sm:text-lg text-white">Modo de Edição Massiva</h3>
+                    <span class="px-2 py-0.5 rounded-full bg-rose-500/30 text-rose-200 text-[10px] font-bold uppercase tracking-wider border border-rose-500/50">
+                      Ativo
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-300">
+                    Clique nos jogos da lista para selecioná-los e aplicar operações em lote.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Status da Seleção + Botão Sair -->
+              <div class="flex items-center gap-2 self-end md:self-auto">
+                <span class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-rose-500/40 text-xs font-mono font-bold text-rose-300 flex items-center gap-1.5 shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                  <span>{{ selectedBatchGameIds.length }} selecionado(s)</span>
+                </span>
+                <button 
+                  type="button"
+                  @click="exitBatchEditMode"
+                  class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                  <span>Sair da Edição Massiva</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Linha de Controles: Operação, Seleções Rápidas e Botão Aplicar -->
+            <div class="pt-3 border-t border-rose-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <!-- Seleção da Operação -->
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <label class="text-xs font-semibold text-rose-200 whitespace-nowrap flex items-center gap-1">
+                  <i data-lucide="wrench" class="w-3.5 h-3.5 text-rose-400"></i>
+                  <span>Operação:</span>
+                </label>
+                <select 
+                  v-model="batchOperation"
+                  class="px-3 py-1.5 rounded-xl bg-slate-900 border border-rose-500/40 text-xs font-medium text-white focus:outline-none focus:border-rose-400 flex-1 max-w-md"
+                >
+                  <option value="replace_with_release_date">Remover data zerada e substituir por data de lançamento</option>
+                </select>
+              </div>
+
+              <!-- Ações de Seleção e Execução -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <button 
+                  type="button"
+                  @click="selectBatchAllVisible"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-200 hover:text-white transition-colors cursor-pointer"
+                >
+                  Selecionar Todos
+                </button>
+                <button 
+                  type="button"
+                  @click="selectBatchEligible"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-200 hover:text-white transition-colors cursor-pointer"
+                  title="Selecionar apenas jogos que possuem data exata de conclusão"
+                >
+                  Apenas c/ Data Precisa
+                </button>
+                <button 
+                  type="button"
+                  v-if="selectedBatchGameIds.length > 0"
+                  @click="clearBatchSelection"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-rose-300 hover:text-rose-200 transition-colors cursor-pointer"
+                >
+                  Limpar Seleção
+                </button>
+                <button 
+                  type="button"
+                  :disabled="selectedBatchGameIds.length === 0 || isBatchExecuting"
+                  @click="openBatchConfirmModal"
+                  class="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:hover:bg-rose-600 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition-all cursor-pointer flex items-center gap-1.5 ml-auto sm:ml-0"
+                >
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                  <span>Aplicar aos {{ selectedBatchGameIds.length }} Selecionado(s)</span>
+                </button>
+              </div>
+            </div>
+          </div>
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 class="font-heading font-extrabold text-2xl sm:text-3xl text-white tracking-tight flex items-center gap-3">
@@ -3269,14 +3398,24 @@
             :class="{
               'drag-card-source': draggedGameId === game.id,
               'drag-card-target': dragOverGameId === game.id && draggedGameId !== game.id,
+              'ring-2 ring-rose-500 bg-rose-950/20 shadow-lg shadow-rose-500/20': isBatchEditMode && isBatchSelected(game.id),
               'card-platinum': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
               'border-slate-800 hover:border-slate-700': !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos',
               'card-nota-11': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
             }"
-            @click="openDetail(game)"
+            @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
           >
             <!-- Capa do Jogo com Proporção 3:4 -->
             <div class="cover-container w-full bg-slate-900 relative">
+              <!-- Checkbox de Seleção no Modo Edição Massiva -->
+              <div v-if="isBatchEditMode" class="absolute top-2.5 left-2.5 z-20" @click.stop="toggleBatchSelect(game.id)">
+                <div 
+                  class="w-6 h-6 rounded-lg flex items-center justify-center border transition-all cursor-pointer shadow-lg"
+                  :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white ring-2 ring-rose-400/50 scale-105' : 'bg-slate-900/90 border-slate-600 text-transparent hover:border-rose-400 hover:scale-105'"
+                >
+                  <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+                </div>
+              </div>
               <img 
                 :src="game.coverUrl" 
                 :alt="game.title" 
@@ -3291,7 +3430,7 @@
               <div class="absolute inset-0 bg-gradient-to-t from-[#151824] via-transparent to-black/40 opacity-80 group-hover:opacity-60 transition-opacity"></div>
 
               <!-- Selo Platina (Top-Left) -->
-              <div v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="absolute top-2.5 left-2.5 z-10">
+              <div v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="absolute top-2.5 z-10" :class="isBatchEditMode ? 'left-11' : 'left-2.5'">
                 <span 
                   class="badge-platinum text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1 shadow-md"
                   title="Jogo Platinado / 100% Concluído"
@@ -3483,6 +3622,18 @@
             <table class="w-full text-left text-xs sm:text-sm text-slate-300">
               <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                 <tr>
+                  <th v-if="isBatchEditMode" scope="col" class="py-3 px-2 w-10 text-center">
+                    <div class="flex items-center justify-center">
+                      <div 
+                        @click="toggleSelectAllBatch" 
+                        class="w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                        :class="isAllBatchSelected ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900 border-slate-700 text-transparent hover:border-rose-400'"
+                        title="Selecionar / Desmarcar todos os visíveis"
+                      >
+                        <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                      </div>
+                    </div>
+                  </th>
                   <th scope="col" class="py-3 px-2 sm:px-3 w-12 text-center">#</th>
                   
                   <!-- Jogos Zerados (Título) -->
@@ -3597,11 +3748,20 @@
                   :class="{
                     'drag-row-source': draggedGameId === game.id,
                     'drag-row-target': dragOverGameId === game.id && draggedGameId !== game.id,
-                    'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
-                    'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+                    'bg-rose-950/30 border-l-2 border-l-rose-500': isBatchEditMode && isBatchSelected(game.id),
+                    'bg-amber-500/[0.04] border-l-2 border-l-amber-500': !isBatchEditMode && (game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'),
+                    'bg-amber-500/[0.02]': !isBatchEditMode && game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
                   }"
-                  @click="openDetail(game)"
+                  @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
                 >
+                  <td v-if="isBatchEditMode" class="py-2.5 px-2 text-center" @click.stop="toggleBatchSelect(game.id)">
+                    <div 
+                      class="w-5 h-5 mx-auto rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                      :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900/90 border-slate-700 text-transparent hover:border-rose-400'"
+                    >
+                      <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                    </div>
+                  </td>
                   <!-- Número de índice + Controles de Reordenação Rápida -->
                   <td class="py-2.5 px-2 sm:px-3 text-center" @click.stop>
                     <div class="flex items-center justify-center gap-1">
@@ -3844,13 +4004,22 @@
               :key="'m-all-' + game.id"
               class="zerados-compact-row p-2.5 flex items-center justify-between gap-2.5 select-none cursor-pointer hover:bg-slate-800/40 active:bg-slate-800/60 transition-colors"
               :class="{
-                'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
-                'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+                'bg-rose-950/30 border-l-2 border-l-rose-500': isBatchEditMode && isBatchSelected(game.id),
+                'bg-amber-500/[0.04] border-l-2 border-l-amber-500': !isBatchEditMode && (game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'),
+                'bg-amber-500/[0.02]': !isBatchEditMode && game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
               }"
-              @click="openDetail(game)"
+              @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
             >
               <!-- Esquerda: Miniatura + Info Principal -->
               <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <div v-if="isBatchEditMode" class="flex-shrink-0" @click.stop="toggleBatchSelect(game.id)">
+                  <div 
+                    class="w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                    :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900/90 border-slate-700 text-transparent hover:border-rose-400'"
+                  >
+                    <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                  </div>
+                </div>
                 <!-- Índice # -->
                 <span class="font-mono text-xs font-bold text-slate-500 w-5 text-center flex-shrink-0">#{{ index + 1 }}</span>
 
@@ -3991,14 +4160,24 @@
                 :class="{
                   'drag-card-source': draggedGameId === game.id,
                   'drag-card-target': dragOverGameId === game.id && draggedGameId !== game.id,
+                  'ring-2 ring-rose-500 bg-rose-950/20 shadow-lg shadow-rose-500/20': isBatchEditMode && isBatchSelected(game.id),
                   'card-platinum': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
                   'border-slate-800 hover:border-slate-700': !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos',
                   'card-nota-11': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
                 }"
-                @click="openDetail(game)"
+                @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
               >
                 <!-- Capa com Proporção 3:4 -->
                 <div class="cover-container w-full bg-slate-900 relative">
+                  <!-- Checkbox de Seleção no Modo Edição Massiva -->
+                  <div v-if="isBatchEditMode" class="absolute top-2.5 left-2.5 z-20" @click.stop="toggleBatchSelect(game.id)">
+                    <div 
+                      class="w-6 h-6 rounded-lg flex items-center justify-center border transition-all cursor-pointer shadow-lg"
+                      :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white ring-2 ring-rose-400/50 scale-105' : 'bg-slate-900/90 border-slate-600 text-transparent hover:border-rose-400 hover:scale-105'"
+                    >
+                      <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+                    </div>
+                  </div>
                   <img 
                     :src="game.coverUrl" 
                     :alt="game.title" 
@@ -4011,7 +4190,7 @@
                   <div class="absolute inset-0 bg-gradient-to-t from-[#151824] via-transparent to-black/40 opacity-80 group-hover:opacity-60 transition-opacity"></div>
 
                   <!-- Selo Platina (Top-Left) -->
-                  <div v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="absolute top-2.5 left-2.5 z-10">
+                  <div v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="absolute top-2.5 z-10" :class="isBatchEditMode ? 'left-11' : 'left-2.5'">
                     <span class="badge-platinum text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1 shadow-md">
                       <i data-lucide="award" class="w-3 h-3 text-amber-950"></i>
                       PLATINA
@@ -4191,6 +4370,18 @@
                 <table class="w-full text-left text-xs sm:text-sm text-slate-300">
                   <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                     <tr>
+                      <th v-if="isBatchEditMode" scope="col" class="py-3 px-2 w-10 text-center">
+                        <div class="flex items-center justify-center">
+                          <div 
+                            @click="toggleSelectAllBatch" 
+                            class="w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                            :class="isAllBatchSelected ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900 border-slate-700 text-transparent hover:border-rose-400'"
+                            title="Selecionar / Desmarcar todos os visíveis"
+                          >
+                            <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                          </div>
+                        </div>
+                      </th>
                       <th scope="col" class="py-3 px-2 sm:px-3 w-12 text-center">#</th>
                       
                       <!-- Jogos Zerados (Título) -->
@@ -4305,11 +4496,20 @@
                       :class="{
                         'drag-row-source': draggedGameId === game.id,
                         'drag-row-target': dragOverGameId === game.id && draggedGameId !== game.id,
-                        'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
-                        'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+                        'bg-rose-950/30 border-l-2 border-l-rose-500': isBatchEditMode && isBatchSelected(game.id),
+                        'bg-amber-500/[0.04] border-l-2 border-l-amber-500': !isBatchEditMode && (game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'),
+                        'bg-amber-500/[0.02]': !isBatchEditMode && game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
                       }"
-                      @click="openDetail(game)"
+                      @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
                     >
+                      <td v-if="isBatchEditMode" class="py-2.5 px-2 text-center" @click.stop="toggleBatchSelect(game.id)">
+                        <div 
+                          class="w-5 h-5 mx-auto rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                          :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900/90 border-slate-700 text-transparent hover:border-rose-400'"
+                        >
+                          <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                        </div>
+                      </td>
                       <!-- Número de índice + Controles de Reordenação Rápida -->
                       <td class="py-2.5 px-2 sm:px-3 text-center" @click.stop>
                         <div class="flex items-center justify-center gap-1">
@@ -4552,13 +4752,22 @@
                   :key="'m-year-' + game.id"
                   class="zerados-compact-row p-2.5 flex items-center justify-between gap-2.5 select-none cursor-pointer hover:bg-slate-800/40 active:bg-slate-800/60 transition-colors"
                   :class="{
-                    'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
-                    'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+                    'bg-rose-950/30 border-l-2 border-l-rose-500': isBatchEditMode && isBatchSelected(game.id),
+                    'bg-amber-500/[0.04] border-l-2 border-l-amber-500': !isBatchEditMode && (game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'),
+                    'bg-amber-500/[0.02]': !isBatchEditMode && game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
                   }"
-                  @click="openDetail(game)"
+                  @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
                 >
                   <!-- Esquerda: Miniatura + Info Principal -->
                   <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div v-if="isBatchEditMode" class="flex-shrink-0" @click.stop="toggleBatchSelect(game.id)">
+                      <div 
+                        class="w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                        :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900/90 border-slate-700 text-transparent hover:border-rose-400'"
+                      >
+                        <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                      </div>
+                    </div>
                     <!-- Índice # -->
                     <span class="font-mono text-xs font-bold text-slate-500 w-5 text-center flex-shrink-0">#{{ index + 1 }}</span>
 
@@ -4736,13 +4945,23 @@
                   :class="{
                     'drag-card-source': draggedGameId === game.id,
                     'drag-card-target': dragOverGameId === game.id && draggedGameId !== game.id,
+                    'ring-2 ring-rose-500 bg-rose-950/20 shadow-lg shadow-rose-500/20': isBatchEditMode && isBatchSelected(game.id),
                     'card-platinum': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
                     'border-slate-800 hover:border-slate-700': !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos',
                     'card-nota-11': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
                   }"
-                  @click="openDetail(game)"
+                  @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
                 >
                   <div class="cover-container w-full bg-slate-900 relative">
+                    <!-- Checkbox de Seleção no Modo Edição Massiva -->
+                    <div v-if="isBatchEditMode" class="absolute top-2.5 left-2.5 z-20" @click.stop="toggleBatchSelect(game.id)">
+                      <div 
+                        class="w-6 h-6 rounded-lg flex items-center justify-center border transition-all cursor-pointer shadow-lg"
+                        :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white ring-2 ring-rose-400/50 scale-105' : 'bg-slate-900/90 border-slate-600 text-transparent hover:border-rose-400 hover:scale-105'"
+                      >
+                        <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+                      </div>
+                    </div>
                     <img 
                       :src="game.coverUrl" 
                       :alt="game.title" 
@@ -4753,7 +4972,7 @@
                     />
                     <div class="absolute inset-0 bg-gradient-to-t from-[#151824] via-transparent to-black/40 opacity-80 group-hover:opacity-60 transition-opacity"></div>
 
-                    <div v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="absolute top-2.5 left-2.5 z-10">
+                    <div v-if="game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'" class="absolute top-2.5 z-10" :class="isBatchEditMode ? 'left-11' : 'left-2.5'">
                       <span class="badge-platinum text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1 shadow-md">
                         <i data-lucide="award" class="w-3 h-3 text-amber-950"></i>
                         PLATINA
@@ -4931,6 +5150,18 @@
                   <table class="w-full text-left text-xs sm:text-sm text-slate-300">
                     <thead class="bg-slate-900/95 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800 select-none">
                       <tr>
+                        <th v-if="isBatchEditMode" scope="col" class="py-3 px-2 w-10 text-center">
+                          <div class="flex items-center justify-center">
+                            <div 
+                              @click="toggleSelectAllBatch" 
+                              class="w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                              :class="isAllBatchSelected ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900 border-slate-700 text-transparent hover:border-rose-400'"
+                              title="Selecionar / Desmarcar todos os visíveis"
+                            >
+                              <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                            </div>
+                          </div>
+                        </th>
                         <th scope="col" class="py-3 px-2 sm:px-3 w-12 text-center">#</th>
                         
                         <!-- Jogos Zerados (Título) -->
@@ -5038,11 +5269,20 @@
                         :key="game.id" 
                         class="hover:bg-slate-800/40 transition-colors group cursor-pointer"
                         :class="{
-                          'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
-                          'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+                          'bg-rose-950/30 border-l-2 border-l-rose-500': isBatchEditMode && isBatchSelected(game.id),
+                          'bg-amber-500/[0.04] border-l-2 border-l-amber-500': !isBatchEditMode && (game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'),
+                          'bg-amber-500/[0.02]': !isBatchEditMode && game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
                         }"
-                        @click="openDetail(game)"
+                        @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
                       >
+                        <td v-if="isBatchEditMode" class="py-2.5 px-2 text-center" @click.stop="toggleBatchSelect(game.id)">
+                          <div 
+                            class="w-5 h-5 mx-auto rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                            :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900/90 border-slate-700 text-transparent hover:border-rose-400'"
+                          >
+                            <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                          </div>
+                        </td>
                         <!-- Número de índice + Controles de Reordenação Rápida -->
                         <td class="py-2.5 px-2 sm:px-3 text-center" @click.stop>
                           <div class="flex items-center justify-center gap-1">
@@ -5283,13 +5523,22 @@
                     :key="'m-yg-' + game.id"
                     class="zerados-compact-row p-2.5 flex items-center justify-between gap-2.5 select-none cursor-pointer hover:bg-slate-800/40 active:bg-slate-800/60 transition-colors"
                     :class="{
-                      'bg-amber-500/[0.04] border-l-2 border-l-amber-500': game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos',
-                      'bg-amber-500/[0.02]': game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
+                      'bg-rose-950/30 border-l-2 border-l-rose-500': isBatchEditMode && isBatchSelected(game.id),
+                      'bg-amber-500/[0.04] border-l-2 border-l-amber-500': !isBatchEditMode && (game.isPlatinum || game.completionCondition === 'Platinado/Perfeitos'),
+                      'bg-amber-500/[0.02]': !isBatchEditMode && game.rating === 11 && !game.isPlatinum && game.completionCondition !== 'Platinado/Perfeitos'
                     }"
-                    @click="openDetail(game)"
+                    @click="isBatchEditMode ? toggleBatchSelect(game.id) : openDetail(game)"
                   >
                     <!-- Esquerda: Miniatura + Info Principal -->
                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div v-if="isBatchEditMode" class="flex-shrink-0" @click.stop="toggleBatchSelect(game.id)">
+                        <div 
+                          class="w-5 h-5 rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm"
+                          :class="isBatchSelected(game.id) ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-900/90 border-slate-700 text-transparent hover:border-rose-400'"
+                        >
+                          <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                        </div>
+                      </div>
                       <!-- Índice # -->
                       <span class="font-mono text-xs font-bold text-slate-500 w-5 text-center flex-shrink-0">#{{ index + 1 }}</span>
 
@@ -11252,6 +11501,166 @@
           </button>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         DOCK FLUTUANTE INFERIOR DO MODO EDIÇÃO MASSIVA (isBatchEditMode)
+         ==================================================================== -->
+    <div 
+      v-if="isBatchEditMode && heroTab === 'finished'"
+      class="fixed bottom-4 sm:bottom-6 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 max-w-2xl w-full sm:w-auto bg-[#12141c]/95 border-2 border-rose-500/70 shadow-2xl rounded-2xl p-2.5 sm:px-4 sm:py-3 backdrop-blur-xl flex items-center justify-between sm:justify-center gap-3 text-xs animate-in slide-in-from-bottom duration-200"
+    >
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+        <span class="font-bold text-white hidden sm:inline">Edição Massiva:</span>
+        <span class="font-mono font-bold text-rose-300 bg-rose-950/80 px-2.5 py-0.5 rounded-lg border border-rose-500/40">
+          {{ selectedBatchGameIds.length }} selecionado(s)
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button 
+          type="button"
+          v-if="selectedBatchGameIds.length > 0"
+          @click="clearBatchSelection"
+          class="px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer text-[11px]"
+        >
+          Limpar
+        </button>
+        <button 
+          type="button"
+          :disabled="selectedBatchGameIds.length === 0 || isBatchExecuting"
+          @click="openBatchConfirmModal"
+          class="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:hover:bg-rose-600 text-white font-bold transition-all shadow-md shadow-rose-600/30 flex items-center gap-1.5 cursor-pointer"
+        >
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span>Aplicar ({{ selectedBatchGameIds.length }})</span>
+        </button>
+        <button 
+          type="button"
+          @click="exitBatchEditMode"
+          class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+          title="Sair da Edição Massiva"
+          aria-label="Sair da Edição Massiva"
+        >
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL DE CONFIRMAÇÃO DA EDIÇÃO MASSIVA (isBatchConfirmOpen)
+         ==================================================================== -->
+    <div 
+      v-if="isBatchConfirmOpen" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="batch-confirm-modal-title"
+      @mousedown="handleModalBackdropMouseDown"
+      @click="handleModalBackdropClick($event, () => !isBatchExecuting ? isBatchConfirmOpen = false : null)"
+    >
+      <div class="glass-modal w-full max-w-xl max-h-[90vh] rounded-2xl sm:rounded-3xl flex flex-col overflow-hidden border border-rose-500/50 shadow-2xl animate-in zoom-in-95 duration-150">
+        
+        <!-- Header Fixado -->
+        <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900/60">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-300 flex-shrink-0">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 id="batch-confirm-modal-title" class="font-heading font-extrabold text-lg text-white">Confirmar Edição Massiva</h3>
+              <p class="text-xs text-slate-400">Substituir data de zerado por data de lançamento</p>
+            </div>
+          </div>
+          <button 
+            v-if="!isBatchExecuting"
+            @click="isBatchConfirmOpen = false" 
+            class="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+            aria-label="Fechar modal"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Conteúdo Rolável -->
+        <div class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4 text-xs text-slate-300 scrollbar-thin">
+          <div class="p-3.5 rounded-2xl bg-rose-950/30 border border-rose-500/30 space-y-2">
+            <div class="font-bold text-rose-200 flex items-center gap-1.5 text-xs sm:text-sm">
+              <i data-lucide="info" class="w-4 h-4 text-rose-400 flex-shrink-0"></i>
+              <span>Você selecionou {{ selectedBatchGameIds.length }} jogo(s) zerado(s)</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed text-xs">
+              A data precisa de conclusão será removida e substituída pela <strong>data especial de lançamento</strong> (exibida em rosa escuro). Os jogos serão catalogados pelo seu ano de lançamento oficial.
+            </p>
+          </div>
+
+          <!-- Lista dos Jogos Selecionados -->
+          <div class="space-y-2">
+            <span class="font-bold text-white text-xs uppercase tracking-wider block">Jogos afetados ({{ selectedBatchGamesList.length }}):</span>
+            <div class="max-h-60 overflow-y-auto space-y-1.5 p-1 rounded-xl bg-slate-900/60 border border-slate-800 scrollbar-thin">
+              <div 
+                v-for="g in selectedBatchGamesList" 
+                :key="g.id"
+                class="p-2 rounded-lg bg-slate-950/60 border border-slate-800/80 flex items-center justify-between gap-2"
+              >
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <img :src="g.coverUrl" class="w-7 h-9 rounded object-cover flex-shrink-0 bg-slate-900" />
+                  <div class="min-w-0">
+                    <strong class="text-white truncate block max-w-[200px] sm:max-w-xs">{{ g.title }}</strong>
+                    <span class="text-[10px] text-slate-400">{{ g.platform }}</span>
+                  </div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <span v-if="!isGameReleaseDateOnly(g)" class="text-[11px] font-mono text-slate-400 block">
+                    {{ formatDate(g.completionDate) }}
+                  </span>
+                  <span class="text-[11px] font-mono text-rose-400 font-semibold flex items-center justify-end gap-1">
+                    <i data-lucide="sparkles" class="w-3 h-3 text-rose-400"></i>
+                    <span>{{ g.releaseYear || g.completionYear || 'Buscar IGDB' }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Indicador de progresso se executando -->
+          <div v-if="isBatchExecuting" class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-xs text-rose-300 font-semibold">
+              <span class="truncate">{{ batchProgress.message || 'Processando jogos...' }}</span>
+              <span class="font-mono">{{ batchProgress.current }} / {{ batchProgress.total }}</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div 
+                class="bg-rose-500 h-full transition-all duration-150" 
+                :style="{ width: (batchProgress.total > 0 ? (batchProgress.current / batchProgress.total * 100) : 0) + '%' }"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rodapé do Modal -->
+        <div class="p-4 sm:p-5 border-t border-slate-800 flex items-center justify-end gap-2.5 flex-shrink-0 bg-slate-950/60">
+          <button 
+            type="button"
+            v-if="!isBatchExecuting"
+            @click="isBatchConfirmOpen = false"
+            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="button"
+            :disabled="isBatchExecuting"
+            @click="executeBatchOperation"
+            class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <i v-if="isBatchExecuting" data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+            <i v-else data-lucide="check" class="w-4 h-4"></i>
+            <span>{{ isBatchExecuting ? 'Processando...' : 'Confirmar e Aplicar' }}</span>
+          </button>
+        </div>
       </div>
     </div>
 

@@ -421,6 +421,14 @@ function initApp() {
       });
       const hltbEligibleCount = computed(() => hltbEligibleGames.value.length);
 
+      // Estado do Modo de Edição Massiva
+      const isBatchEditMode = ref(false);
+      const batchOperation = ref('replace_with_release_date');
+      const selectedBatchGameIds = ref([]);
+      const isBatchExecuting = ref(false);
+      const isBatchConfirmOpen = ref(false);
+      const batchProgress = ref({ current: 0, total: 0, message: '' });
+
       // Estado do Gerador de Snapshots (Compartilhamento PNG)
       const currentCalendarMonth = new Date().getMonth() + 1;
       const shareSnapshotType = ref('nowPlaying'); // 'nowPlaying' | 'year' | 'stats'
@@ -1051,7 +1059,7 @@ function initApp() {
       }, { deep: true });
 
       // Atualiza ícones quando a página, visão, filtros ou layout mudarem
-      watch([activePage, currentView, selectedYearTab, onlyReplayFilter, onlyPlatinumFilter, onlyHandheldFilter, onlyEarlyAccessFilter, onlyRecompFilter, onlyDuplicatesFilter, nowPlayingLayout, backlogLayout, nowPlayingViewMode, heroTab, currentLayout], () => {
+      watch([activePage, currentView, selectedYearTab, onlyReplayFilter, onlyPlatinumFilter, onlyHandheldFilter, onlyEarlyAccessFilter, onlyRecompFilter, onlyDuplicatesFilter, nowPlayingLayout, backlogLayout, nowPlayingViewMode, heroTab, currentLayout, isBatchEditMode], () => {
         refreshLucideIcons();
       });
 
@@ -4978,6 +4986,217 @@ Headset / Áudio: `;
       };
 
       // =======================================================================
+      // EDIÇÃO MASSIVA NA BIBLIOTECA DE JOGOS ZERADOS
+      // =======================================================================
+      const startBatchEditMode = () => {
+        isBatchEditMode.value = true;
+        activePage.value = 'library';
+        heroTab.value = 'finished';
+        selectedBatchGameIds.value = [];
+        closeToolsMenu();
+        showToast('Modo de edição massiva ativado. Selecione os jogos desejados na lista.', 'info');
+        nextTick(() => {
+          refreshLucideIcons();
+        });
+      };
+
+      const exitBatchEditMode = () => {
+        isBatchEditMode.value = false;
+        selectedBatchGameIds.value = [];
+        isBatchConfirmOpen.value = false;
+        nextTick(() => {
+          refreshLucideIcons();
+        });
+      };
+
+      const toggleBatchSelect = (gameId) => {
+        if (!gameId) return;
+        const idx = selectedBatchGameIds.value.indexOf(gameId);
+        if (idx >= 0) {
+          selectedBatchGameIds.value.splice(idx, 1);
+        } else {
+          selectedBatchGameIds.value.push(gameId);
+        }
+      };
+
+      const isBatchSelected = (gameId) => {
+        if (!gameId) return false;
+        return selectedBatchGameIds.value.includes(gameId);
+      };
+
+      const getCurrentlyVisibleFinishedGames = () => {
+        if (currentGrouping.value === 'year') {
+          if (yearViewMode.value === 'grouped') {
+            return filteredFinishedGames.value || [];
+          } else {
+            return selectedYearGames.value || [];
+          }
+        }
+        return filteredFinishedGames.value || [];
+      };
+
+      const isAllBatchSelected = computed(() => {
+        const visible = getCurrentlyVisibleFinishedGames();
+        if (!visible || visible.length === 0) return false;
+        return visible.every(g => selectedBatchGameIds.value.includes(g.id));
+      });
+
+      const toggleSelectAllBatch = () => {
+        const visible = getCurrentlyVisibleFinishedGames();
+        if (!visible || visible.length === 0) return;
+        if (isAllBatchSelected.value) {
+          const visibleIds = new Set(visible.map(g => g.id));
+          selectedBatchGameIds.value = selectedBatchGameIds.value.filter(id => !visibleIds.has(id));
+        } else {
+          const newIds = visible.map(g => g.id);
+          selectedBatchGameIds.value = Array.from(new Set([...selectedBatchGameIds.value, ...newIds]));
+        }
+      };
+
+      const selectBatchAllVisible = () => {
+        const visible = getCurrentlyVisibleFinishedGames();
+        if (!visible || visible.length === 0) return;
+        const newIds = visible.map(g => g.id);
+        selectedBatchGameIds.value = Array.from(new Set([...selectedBatchGameIds.value, ...newIds]));
+      };
+
+      const selectBatchEligible = () => {
+        const visible = getCurrentlyVisibleFinishedGames();
+        if (!visible || visible.length === 0) return;
+        const eligible = visible.filter(g => !isGameReleaseDateOnly(g) && g.completionDate).map(g => g.id);
+        selectedBatchGameIds.value = Array.from(new Set([...selectedBatchGameIds.value, ...eligible]));
+      };
+
+      const clearBatchSelection = () => {
+        selectedBatchGameIds.value = [];
+      };
+
+      const selectedBatchGamesList = computed(() => {
+        if (selectedBatchGameIds.value.length === 0) return [];
+        const set = new Set(selectedBatchGameIds.value);
+        return games.value.filter(g => set.has(g.id));
+      });
+
+      const openBatchConfirmModal = () => {
+        if (selectedBatchGameIds.value.length === 0) {
+          showToast('Selecione pelo menos um jogo para editar.', 'warning');
+          return;
+        }
+        isBatchConfirmOpen.value = true;
+        nextTick(() => {
+          refreshLucideIcons();
+        });
+      };
+
+      const executeBatchOperation = async () => {
+        if (selectedBatchGameIds.value.length === 0) return;
+        if (isBatchExecuting.value) return;
+
+        isBatchExecuting.value = true;
+        batchProgress.value = {
+          current: 0,
+          total: selectedBatchGameIds.value.length,
+          message: 'Iniciando operação massiva...'
+        };
+
+        try {
+          let updatedCount = 0;
+          const targetIds = [...selectedBatchGameIds.value];
+
+          for (let i = 0; i < targetIds.length; i++) {
+            const gId = targetIds[i];
+            const game = games.value.find(g => g.id === gId);
+            if (!game || game.status !== 'Zerado') {
+              batchProgress.value.current = i + 1;
+              continue;
+            }
+
+            batchProgress.value.message = `Processando: ${game.title}...`;
+            batchProgress.value.current = i + 1;
+
+            if (batchOperation.value === 'replace_with_release_date') {
+              let targetYear = null;
+
+              // 1. Já possui releaseYear válido?
+              if (game.releaseYear && typeof game.releaseYear === 'number' && game.releaseYear >= 1950 && game.releaseYear <= 2100) {
+                targetYear = game.releaseYear;
+              }
+
+              // 2. Se não possui releaseYear, consulta IGDB
+              if (!targetYear && window.IgdbService) {
+                try {
+                  let igdbResult = null;
+                  if (game.igdbId) {
+                    igdbResult = await window.IgdbService.getGameById(game.igdbId, game.platform);
+                  }
+                  if (!igdbResult || !igdbResult.releaseYear) {
+                    const searchResults = await window.IgdbService.searchGames(game.title, game.platform);
+                    if (searchResults && searchResults.length > 0) {
+                      igdbResult = searchResults[0];
+                    }
+                  }
+                  if (igdbResult && igdbResult.releaseYear) {
+                    targetYear = igdbResult.releaseYear;
+                    game.releaseYear = targetYear;
+                    if (igdbResult.id && !game.igdbId) {
+                      game.igdbId = String(igdbResult.id);
+                    }
+                  }
+                } catch (fetchErr) {
+                  console.warn(`[BatchEdit] Não foi possível consultar IGDB para ${game.title}:`, fetchErr);
+                }
+              }
+
+              // 3. Fallback se não encontrou no IGDB
+              if (!targetYear) {
+                if (game.completionYear) {
+                  targetYear = Number(game.completionYear);
+                } else if (game.completionDate && StorageService) {
+                  targetYear = StorageService.extractCompletionYear(game.completionDate);
+                } else {
+                  targetYear = new Date().getFullYear();
+                }
+              }
+
+              game.completionDate = null;
+              game.completionYear = targetYear;
+              game.isReleaseDateOnly = true;
+              if (!game.releaseYear) {
+                game.releaseYear = targetYear;
+              }
+              game.updatedAt = new Date().toISOString();
+              updatedCount++;
+            }
+          }
+
+          if (StorageService) {
+            StorageService.saveGames(games.value);
+            refreshStorageInfo();
+          }
+
+          if (typeof syncCloudToRemoteIfNeeded === 'function') {
+            try {
+              await syncCloudToRemoteIfNeeded();
+            } catch (cloudErr) {
+              console.warn('[BatchEdit] Falha ao sincronizar nuvem:', cloudErr);
+            }
+          }
+
+          selectedBatchGameIds.value = [];
+          isBatchConfirmOpen.value = false;
+          showToast(`${updatedCount} jogo(s) atualizados com data de lançamento!`, 'success');
+        } catch (err) {
+          console.error('[BatchEdit] Erro na execução em lote:', err);
+          showToast('Erro na edição massiva: ' + (err.message || ''), 'error');
+        } finally {
+          isBatchExecuting.value = false;
+          nextTick(() => {
+            refreshLucideIcons();
+          });
+        }
+      };
+
+      // =======================================================================
       // ORDENAÇÃO INTERATIVA E REORDENAÇÃO MANUAL NA TABELA
       // =======================================================================
       const toggleTableSort = (column) => {
@@ -6589,7 +6808,27 @@ Headset / Áudio: `;
         publicProfileShareUrl,
         publicProfileQueryUrl,
         copyPublicProfileUrl,
-        loadPublicProfile
+        loadPublicProfile,
+
+        // Edição Massiva
+        isBatchEditMode,
+        batchOperation,
+        selectedBatchGameIds,
+        isBatchExecuting,
+        isBatchConfirmOpen,
+        batchProgress,
+        selectedBatchGamesList,
+        isAllBatchSelected,
+        startBatchEditMode,
+        exitBatchEditMode,
+        toggleBatchSelect,
+        isBatchSelected,
+        toggleSelectAllBatch,
+        selectBatchAllVisible,
+        selectBatchEligible,
+        clearBatchSelection,
+        openBatchConfirmModal,
+        executeBatchOperation
       };
     }
   });
