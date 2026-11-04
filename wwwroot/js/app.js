@@ -421,8 +421,10 @@ function initApp() {
       const hltbEligibleCount = computed(() => hltbEligibleGames.value.length);
 
       // Estado do Gerador de Snapshots (Compartilhamento PNG)
+      const currentCalendarMonth = new Date().getMonth() + 1;
       const shareSnapshotType = ref('nowPlaying'); // 'nowPlaying' | 'year' | 'stats'
       const shareSelectedYear = ref(currentCalendarYear);
+      const shareSelectedMonth = ref('ALL'); // 'ALL' | 1..12
       const shareTheme = ref('gold'); // 'gold' | 'steam' | 'emerald' | 'purple'
       const shareShowStats = ref(true);
       const shareShowProfile = ref(true);
@@ -431,6 +433,56 @@ function initApp() {
       const isGeneratingSnapshot = ref(false);
       const snapshotCoverMap = ref({});
       const isPreloadingSnapshotCovers = ref(false);
+
+      const MONTH_NAMES = [
+        { value: 1, name: 'Janeiro', short: 'Jan' },
+        { value: 2, name: 'Fevereiro', short: 'Fev' },
+        { value: 3, name: 'Março', short: 'Mar' },
+        { value: 4, name: 'Abril', short: 'Abr' },
+        { value: 5, name: 'Maio', short: 'Mai' },
+        { value: 6, name: 'Junho', short: 'Jun' },
+        { value: 7, name: 'Julho', short: 'Jul' },
+        { value: 8, name: 'Agosto', short: 'Ago' },
+        { value: 9, name: 'Setembro', short: 'Set' },
+        { value: 10, name: 'Outubro', short: 'Out' },
+        { value: 11, name: 'Novembro', short: 'Nov' },
+        { value: 12, name: 'Dezembro', short: 'Dez' }
+      ];
+
+      const getGameCompletionDateInfo = (game) => {
+        if (!game) return { year: null, month: null };
+        if (game.completionDate && typeof game.completionDate === 'string') {
+          const s = game.completionDate.trim();
+          const mIso = s.match(/^(\d{4})[-/](\d{1,2})/);
+          if (mIso) {
+            return {
+              year: parseInt(mIso[1], 10),
+              month: parseInt(mIso[2], 10)
+            };
+          }
+          const mBr = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+          if (mBr) {
+            return {
+              year: parseInt(mBr[3], 10),
+              month: parseInt(mBr[2], 10)
+            };
+          }
+          if (s.includes('T')) {
+            const parts = s.split('T')[0].split('-');
+            if (parts.length >= 2) {
+              return {
+                year: parseInt(parts[0], 10),
+                month: parseInt(parts[1], 10)
+              };
+            }
+          }
+        }
+        const y = game.completionYear || (StorageService ? StorageService.extractCompletionYear(game.completionDate, game.completionYear) : null);
+        return {
+          year: y ? Number(y) : null,
+          month: null
+        };
+      };
 
       // Perfil do Usuário
       const userProfile = ref(StorageService ? StorageService.loadUserProfile() : (window.DEFAULT_PROFILE || {
@@ -1688,16 +1740,104 @@ function initApp() {
       // =======================================================================
       // COMPUTED PROPERTIES: SNAPSHOTS PARA COMPARTILHAMENTO EM IMAGEM (.PNG)
       // =======================================================================
+      const shareAvailableYears = computed(() => {
+        const set = new Set(availableYears.value);
+        set.add(currentCalendarYear);
+        return Array.from(set).sort((a, b) => b - a);
+      });
+
+      const getYearGameCount = (year) => {
+        if (year === 'ALL') return finishedGames.value.length;
+        const finished = finishedGames.value || [];
+        return finished.filter(g => {
+          const info = getGameCompletionDateInfo(g);
+          return Number(info.year) === Number(year);
+        }).length;
+      };
+
+      const shareAvailableMonths = computed(() => {
+        const finished = finishedGames.value || [];
+        const year = shareSelectedYear.value;
+        const monthCounts = {};
+        for (let m = 1; m <= 12; m++) monthCounts[m] = 0;
+
+        finished.forEach(g => {
+          const info = getGameCompletionDateInfo(g);
+          if (year === 'ALL' || Number(info.year) === Number(year)) {
+            if (info.month && monthCounts[info.month] !== undefined) {
+              monthCounts[info.month]++;
+            }
+          }
+        });
+
+        return MONTH_NAMES.map(m => ({
+          ...m,
+          count: monthCounts[m.value] || 0
+        }));
+      });
+
+      const isShareCurrentMonthActive = computed(() => {
+        return shareSnapshotType.value === 'year' &&
+               Number(shareSelectedYear.value) === currentCalendarYear &&
+               Number(shareSelectedMonth.value) === currentCalendarMonth;
+      });
+
+      const isSharePreviousMonthActive = computed(() => {
+        const prevMonth = currentCalendarMonth === 1 ? 12 : currentCalendarMonth - 1;
+        const prevYear = currentCalendarMonth === 1 ? currentCalendarYear - 1 : currentCalendarYear;
+        return shareSnapshotType.value === 'year' &&
+               Number(shareSelectedYear.value) === prevYear &&
+               Number(shareSelectedMonth.value) === prevMonth;
+      });
+
+      const setShareCurrentMonth = () => {
+        shareSnapshotType.value = 'year';
+        shareSelectedYear.value = currentCalendarYear;
+        shareSelectedMonth.value = currentCalendarMonth;
+        nextTick(() => refreshLucideIcons());
+      };
+
+      const setSharePreviousMonth = () => {
+        shareSnapshotType.value = 'year';
+        if (currentCalendarMonth === 1) {
+          shareSelectedYear.value = currentCalendarYear - 1;
+          shareSelectedMonth.value = 12;
+        } else {
+          shareSelectedYear.value = currentCalendarYear;
+          shareSelectedMonth.value = currentCalendarMonth - 1;
+        }
+        nextTick(() => refreshLucideIcons());
+      };
+
+      const setShareFullYear = () => {
+        shareSnapshotType.value = 'year';
+        shareSelectedMonth.value = 'ALL';
+        nextTick(() => refreshLucideIcons());
+      };
+
       const shareGamesList = computed(() => {
         if (shareSnapshotType.value === 'nowPlaying') {
           return nowPlayingGames.value;
         }
-        if (shareSelectedYear.value === 'ALL') {
-          return finishedGames.value;
-        }
-        return finishedGames.value.filter(g => {
-          const y = g.completionYear || (g.completionDate && StorageService ? StorageService.extractCompletionYear(g.completionDate) : null);
-          return Number(y) === Number(shareSelectedYear.value);
+        const finished = finishedGames.value || [];
+        return finished.filter(g => {
+          const info = getGameCompletionDateInfo(g);
+
+          // Filtro por ano
+          if (shareSelectedYear.value !== 'ALL') {
+            if (Number(info.year) !== Number(shareSelectedYear.value)) {
+              return false;
+            }
+          }
+
+          // Filtro por mês (quando não for 'ALL')
+          if (shareSelectedMonth.value && shareSelectedMonth.value !== 'ALL') {
+            if (Number(info.month) !== Number(shareSelectedMonth.value)) {
+              return false;
+            }
+          }
+
+          return true;
         });
       });
 
@@ -4332,13 +4472,14 @@ Headset / Áudio: `;
         return userProfile.value?.avatarUrl || '';
       };
 
-      const openShareModal = (type = 'nowPlaying', year = null) => {
+      const openShareModal = (type = 'nowPlaying', year = null, month = 'ALL') => {
         shareSnapshotType.value = type;
         if (year) {
           shareSelectedYear.value = year;
         } else if (type === 'year') {
           shareSelectedYear.value = selectedYearTab.value || currentCalendarYear;
         }
+        shareSelectedMonth.value = month || 'ALL';
         isShareModalOpen.value = true;
         isToolsMenuOpen.value = false;
         nextTick(() => {
@@ -4351,12 +4492,19 @@ Headset / Áudio: `;
         isShareModalOpen.value = false;
       };
 
-      // Observadores para re-carregar capas quando o usuário mudar abas ou anos no snapshot
-      watch([shareSnapshotType, shareSelectedYear, () => shareGamesList.value.length], () => {
+      // Observadores para re-carregar capas quando o usuário mudar abas ou anos/meses no snapshot
+      watch([shareSnapshotType, shareSelectedYear, shareSelectedMonth, () => shareGamesList.value.length], () => {
         if (isShareModalOpen.value) {
           nextTick(() => {
             preloadSnapshotImages();
+            refreshLucideIcons();
           });
+        }
+      });
+
+      watch(shareSelectedYear, (newYear) => {
+        if (newYear === 'ALL') {
+          shareSelectedMonth.value = 'ALL';
         }
       });
 
@@ -4369,6 +4517,11 @@ Headset / Áudio: `;
         }
         if (shareSelectedYear.value === 'ALL') {
           return 'JOGOS ZERADOS - BIBLIOTECA COMPLETA';
+        }
+        if (shareSelectedMonth.value && shareSelectedMonth.value !== 'ALL') {
+          const mObj = MONTH_NAMES.find(m => m.value === Number(shareSelectedMonth.value));
+          const mName = mObj ? mObj.name.toUpperCase() : `MÊS ${shareSelectedMonth.value}`;
+          return `JOGOS ZERADOS EM ${mName} DE ${shareSelectedYear.value}`;
         }
         return `JOGOS ZERADOS EM ${shareSelectedYear.value}`;
       };
@@ -4416,6 +4569,9 @@ Headset / Áudio: `;
             typeLabel = 'jogando_agora';
           } else if (shareSnapshotType.value === 'year') {
             typeLabel = `zerados_${shareSelectedYear.value}`;
+            if (shareSelectedMonth.value && shareSelectedMonth.value !== 'ALL') {
+              typeLabel = `zerados_${shareSelectedYear.value}_mes_${String(shareSelectedMonth.value).padStart(2, '0')}`;
+            }
           }
           const filename = `nota11_${typeLabel}_${Date.now()}.png`;
 
@@ -6035,6 +6191,16 @@ Headset / Áudio: `;
         // Compartilhamento & Snapshots (.PNG)
         shareSnapshotType,
         shareSelectedYear,
+        shareSelectedMonth,
+        shareAvailableYears,
+        shareAvailableMonths,
+        getYearGameCount,
+        setShareCurrentMonth,
+        setSharePreviousMonth,
+        setShareFullYear,
+        isShareCurrentMonthActive,
+        isSharePreviousMonthActive,
+        MONTH_NAMES,
         shareTheme,
         shareShowStats,
         shareShowProfile,

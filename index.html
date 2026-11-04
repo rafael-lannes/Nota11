@@ -10323,7 +10323,7 @@
                 class="px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer"
               >
                 <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
-                <span>Zerados por Ano ({{ finishedGames.length }})</span>
+                <span>Zerados por Período ({{ finishedGames.length }})</span>
               </button>
               <button 
                 type="button"
@@ -10336,16 +10336,66 @@
               </button>
             </div>
 
-            <!-- Seletor de Ano (se shareSnapshotType === 'year') -->
+            <!-- Seletor de Período (Ano e Mês) (se shareSnapshotType === 'year') -->
             <div v-if="shareSnapshotType === 'year'" class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs text-slate-400 font-medium">Ano Selecionado:</span>
-              <select 
-                v-model="shareSelectedYear" 
-                class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-xs font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none cursor-pointer"
-              >
-                <option v-for="y in availableYears" :key="y" :value="y">{{ y }} ({{ yearlyStatsList.find(i => i.year === y)?.totalGames || 0 }} jogos)</option>
-                <option value="ALL">Todos os Anos (Completo)</option>
-              </select>
+              <!-- Seletor de Ano -->
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs text-slate-400 font-medium">Ano:</span>
+                <select 
+                  v-model="shareSelectedYear" 
+                  class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-xs font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none cursor-pointer"
+                >
+                  <option v-for="y in shareAvailableYears" :key="y" :value="y">{{ y }} ({{ getYearGameCount(y) }} {{ getYearGameCount(y) === 1 ? 'jogo' : 'jogos' }})</option>
+                  <option value="ALL">Todos os Anos (Completo)</option>
+                </select>
+              </div>
+
+              <!-- Seletor de Mês (quando um ano específico estiver selecionado) -->
+              <div v-if="shareSelectedYear !== 'ALL'" class="flex items-center gap-1.5">
+                <span class="text-xs text-slate-400 font-medium">Mês:</span>
+                <select 
+                  v-model="shareSelectedMonth" 
+                  class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-xs font-semibold focus:ring-2 focus:ring-purple-500 focus:outline-none cursor-pointer"
+                >
+                  <option value="ALL">Todos os Meses (Ano Completo)</option>
+                  <option v-for="m in shareAvailableMonths" :key="m.value" :value="m.value">
+                    {{ m.name }} ({{ m.count }} {{ m.count === 1 ? 'jogo' : 'jogos' }})
+                  </option>
+                </select>
+              </div>
+
+              <!-- Atalhos Rápidos: Mês Atual / Mês Anterior / Ano Inteiro -->
+              <div class="flex items-center gap-1 bg-slate-950/70 p-0.5 rounded-xl border border-slate-800 text-[11px]">
+                <button 
+                  type="button"
+                  @click="setShareCurrentMonth" 
+                  class="px-2.5 py-1 rounded-lg transition-all cursor-pointer font-medium flex items-center gap-1"
+                  :class="isShareCurrentMonthActive ? 'bg-purple-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'"
+                  title="Filtrar pelos jogos zerados neste mês atual"
+                >
+                  <i data-lucide="calendar" class="w-3 h-3"></i>
+                  <span>Mês Atual</span>
+                </button>
+                <button 
+                  type="button"
+                  @click="setSharePreviousMonth" 
+                  class="px-2.5 py-1 rounded-lg transition-all cursor-pointer font-medium flex items-center gap-1"
+                  :class="isSharePreviousMonthActive ? 'bg-purple-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'"
+                  title="Filtrar pelos jogos zerados no mês anterior"
+                >
+                  <i data-lucide="chevron-left" class="w-3 h-3"></i>
+                  <span>Mês Anterior</span>
+                </button>
+                <button 
+                  type="button"
+                  @click="setShareFullYear" 
+                  class="px-2.5 py-1 rounded-lg transition-all cursor-pointer font-medium"
+                  :class="shareSelectedMonth === 'ALL' && !isShareCurrentMonthActive && !isSharePreviousMonthActive ? 'bg-purple-600/20 text-purple-300 font-bold border border-purple-500/40' : 'text-slate-400 hover:text-white hover:bg-slate-800'"
+                  title="Exibir todos os jogos zerados no ano selecionado"
+                >
+                  <span>Ano Inteiro</span>
+                </button>
+              </div>
             </div>
           </div>
 
