@@ -904,6 +904,8 @@ function initApp() {
               } else if (modalParam === 'setup') {
                 openSetupModal();
               }
+            } else if (pageParam === 'stats' || pageParam === 'estatisticas') {
+              setActivePage('stats');
             }
 
             // Conecta listener de alterações locais para auto-sync com Supabase
