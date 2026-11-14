@@ -6396,76 +6396,60 @@
             </div>
 
             <!-- Card 2: Condições de Conclusão -->
-            <div class="p-5 sm:p-6 rounded-3xl bg-[#12141c] border border-slate-800 shadow-xl space-y-4">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-heading font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
-                  <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
-                  <span>Condições de Conclusão</span>
-                </h3>
-                <span class="text-xs text-slate-400 font-mono">{{ stats.totalFinished }} zerados</span>
-              </div>
-
-              <!-- Barra Geral Consolidada das 4 Condições -->
-              <div class="space-y-1.5 pb-1">
-                <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 flex gap-0.5 p-0.5">
-                  <div 
-                    v-for="cItem in conditionDistribution" 
-                    :key="'stack_' + cItem.name"
-                    class="h-full rounded-full transition-all duration-500"
-                    :class="{
-                      'bg-gradient-to-r from-amber-500 to-yellow-400': cItem.color === 'amber',
-                      'bg-gradient-to-r from-emerald-500 to-teal-400': cItem.color === 'emerald',
-                      'bg-gradient-to-r from-blue-500 to-cyan-400': cItem.color === 'blue',
-                      'bg-gradient-to-r from-indigo-500 to-purple-400': cItem.color === 'purple'
-                    }"
-                    :style="{ 
-                      width: stats.totalFinished > 0 && cItem.count > 0 ? `${(cItem.count / stats.totalFinished) * 100}%` : (stats.totalFinished === 0 ? '25%' : '0%'),
-                      opacity: cItem.count > 0 || stats.totalFinished === 0 ? '1' : '0'
-                    }"
-                    :title="`${cItem.name}: ${cItem.count} jogos (${cItem.percentage}%)`"
-                  ></div>
+            <div class="p-5 sm:p-6 rounded-3xl bg-[#12141c] border border-slate-800 shadow-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div>
+                    <h3 class="font-heading font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+                      <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
+                      <span>Condições de Conclusão</span>
+                    </h3>
+                    <p class="text-xs text-slate-400">Distribuição dos critérios de zeramento.</p>
+                  </div>
+                  <span class="text-xs text-slate-400 font-mono">{{ stats.totalFinished }} zerados</span>
                 </div>
               </div>
 
               <!-- Lista das 4 Condições com Barras Individuais -->
-              <div class="space-y-3.5">
+              <div class="mt-4 flex-1 flex flex-col justify-between gap-3">
                 <div 
                   v-for="cItem in conditionDistribution" 
                   :key="cItem.name"
-                  class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-2 hover:border-slate-700 transition-colors"
+                  class="flex-1 p-3.5 sm:p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col justify-center gap-2.5 hover:border-slate-700 transition-colors"
                 >
                   <div class="flex items-center justify-between text-xs sm:text-sm">
-                    <div class="flex items-center gap-2">
-                      <i 
-                        :data-lucide="cItem.icon" 
-                        class="w-4 h-4" 
+                    <div class="flex items-center gap-2.5">
+                      <div 
+                        class="p-1.5 rounded-lg flex items-center justify-center"
                         :class="{
-                          'text-amber-400': cItem.color === 'amber',
-                          'text-emerald-400': cItem.color === 'emerald',
-                          'text-blue-400': cItem.color === 'blue',
-                          'text-purple-400': cItem.color === 'purple'
+                          'bg-amber-500/15 text-amber-400': cItem.color === 'amber',
+                          'bg-emerald-500/15 text-emerald-400': cItem.color === 'emerald',
+                          'bg-blue-500/15 text-blue-400': cItem.color === 'blue',
+                          'bg-purple-500/15 text-purple-400': cItem.color === 'purple'
                         }"
-                      ></i>
-                      <strong class="text-white font-semibold">{{ cItem.name }}</strong>
+                      >
+                        <i :data-lucide="cItem.icon" class="w-4 h-4"></i>
+                      </div>
+                      <strong class="text-white font-semibold text-xs sm:text-sm">{{ cItem.name }}</strong>
                     </div>
-                    <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-slate-800 text-slate-200">
-                      {{ cItem.count }} {{ cItem.count === 1 ? 'jogo' : 'jogos' }} ({{ cItem.percentage }}%)
-                    </span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] sm:text-xs font-bold font-mono px-2 py-0.5 rounded-lg bg-slate-800 text-slate-200 border border-slate-700/60">
+                        {{ cItem.count }} {{ cItem.count === 1 ? 'jogo' : 'jogos' }}
+                      </span>
+                      <span class="text-xs sm:text-sm font-extrabold font-mono text-white min-w-[38px] text-right">
+                        {{ cItem.percentage }}%
+                      </span>
+                    </div>
                   </div>
 
                   <!-- Barra de Progresso Horizontal -->
-                  <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800/80 relative flex items-center p-0.5">
+                  <div class="w-full bg-slate-950 h-2.5 sm:h-3 rounded-full overflow-hidden border border-slate-800/80 relative flex items-center p-0.5">
                     <div 
                       class="h-full rounded-full transition-all duration-500"
-                      :class="{
-                        'bg-gradient-to-r from-amber-500 to-yellow-400 shadow-sm': cItem.color === 'amber',
-                        'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-sm': cItem.color === 'emerald',
-                        'bg-gradient-to-r from-blue-500 to-cyan-400 shadow-sm': cItem.color === 'blue',
-                        'bg-gradient-to-r from-indigo-500 to-purple-400 shadow-sm': cItem.color === 'purple'
-                      }"
+                      :class="'condition-bar-' + cItem.color"
                       :style="{ 
-                        width: cItem.count > 0 ? `${Math.max(6, cItem.percentage)}%` : '8px',
-                        opacity: cItem.count > 0 ? '1' : '0.35'
+                        width: cItem.count > 0 ? `${Math.max(4, cItem.percentage)}%` : '0%',
+                        opacity: cItem.count > 0 ? '1' : '0'
                       }"
                     ></div>
                   </div>
@@ -11127,7 +11111,7 @@
                             <span class="font-bold text-white font-mono">{{ c.count }}</span>
                           </div>
                           <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full" :class="c.color === 'amber' ? 'bg-amber-400' : c.color === 'emerald' ? 'bg-emerald-400' : c.color === 'purple' ? 'bg-purple-400' : 'bg-cyan-400'" :style="{ width: c.count > 0 ? Math.max(5, c.percentage) + '%' : '0%' }"></div>
+                            <div class="h-full rounded-full" :class="'condition-bar-' + c.color" :style="{ width: c.count > 0 ? Math.max(5, c.percentage) + '%' : '0%' }"></div>
                           </div>
                         </div>
                       </div>
