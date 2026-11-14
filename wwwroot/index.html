@@ -5892,241 +5892,6 @@
 
           </div>
 
-          <!-- ================================================================
-               SEÇÃO DE ANALYTICS DO BACKLOG & ESTIMATIVA HLTB
-               ================================================================ -->
-          <div class="p-5 sm:p-6 rounded-3xl bg-[#12141c] border border-amber-500/30 shadow-xl space-y-5 relative overflow-hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-              <div class="space-y-1">
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-bold uppercase tracking-wider">
-                  <i data-lucide="timer" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span>Planejamento & HowLongToBeat</span>
-                </div>
-                <h3 class="font-heading font-extrabold text-lg sm:text-xl text-white flex items-center gap-2">
-                  <span>Estimativa para Zerar o Backlog</span>
-                </h3>
-                <p class="text-xs text-slate-400 max-w-2xl">
-                  Tempo estimado para zerar os jogos da sua fila com base nos dados do HowLongToBeat e previsão com base no seu ritmo de jogo.
-                </p>
-              </div>
-
-              <div v-if="!isPublicViewMode" class="flex items-center gap-2 flex-wrap">
-                <button 
-                  v-if="backlogGames.length > 0"
-                  type="button" 
-                  @click="syncAllBacklogHltb"
-                  :disabled="isBacklogHltbSyncing"
-                  class="px-3.5 py-2 rounded-xl bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
-                  title="Consultar e atualizar estimativas HowLongToBeat de todos os jogos do backlog"
-                >
-                  <span v-if="isBacklogHltbSyncing" key="modal-hltb-spin" class="inline-flex items-center">
-                    <svg class="w-3.5 h-3.5 animate-spin text-amber-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                  </span>
-                  <span v-else key="modal-hltb-icon" class="inline-flex items-center">
-                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                  </span>
-                  <span>{{ isBacklogHltbSyncing ? 'Buscando HLTB...' : 'Atualizar Estimativas HLTB' }}</span>
-                </button>
-
-                <button 
-                  type="button" 
-                  @click="openAddGame('Backlog')"
-                  class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
-                >
-                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                  <span>+ Adicionar ao Backlog</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- 4 KPIs do Backlog -->
-            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <!-- KPI 1: Horas Totais Necessárias -->
-              <div class="p-4 rounded-2xl bg-slate-900/80 border border-amber-500/20 space-y-1.5">
-                <div class="flex items-center justify-between text-slate-400 text-xs">
-                  <span class="font-medium">Tempo Total Necessário</span>
-                  <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
-                </div>
-                <div class="space-y-0.5">
-                  <strong class="text-2xl sm:text-3xl font-black text-amber-300 block tracking-tight">
-                    ~{{ backlogStats.totalHours }}h
-                  </strong>
-                  <span class="text-[11px] text-slate-400 font-mono block">
-                    {{ backlogStats.totalPlaytimeFormatted }} (~{{ backlogStats.totalDays }} dias contínuos)
-                  </span>
-                </div>
-              </div>
-
-              <!-- KPI 2: Jogos no Backlog -->
-              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1.5">
-                <div class="flex items-center justify-between text-slate-400 text-xs">
-                  <span class="font-medium">Jogos na Fila</span>
-                  <i data-lucide="bookmark" class="w-4 h-4 text-indigo-400"></i>
-                </div>
-                <div class="space-y-0.5">
-                  <strong class="text-2xl sm:text-3xl font-black text-white block tracking-tight">
-                    {{ backlogStats.totalGames }}
-                  </strong>
-                  <span class="text-[11px] text-slate-400 block">
-                    {{ backlogStats.estimatedCount }} com HLTB • {{ backlogStats.unestimatedCount }} pendentes
-                  </span>
-                </div>
-              </div>
-
-              <!-- KPI 3: Média por Jogo -->
-              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1.5">
-                <div class="flex items-center justify-between text-slate-400 text-xs">
-                  <span class="font-medium">Média por Jogo</span>
-                  <i data-lucide="hourglass" class="w-4 h-4 text-cyan-400"></i>
-                </div>
-                <div class="space-y-0.5">
-                  <strong class="text-2xl sm:text-3xl font-black text-cyan-300 block tracking-tight">
-                    ~{{ backlogStats.avgHours }}h
-                  </strong>
-                  <span class="text-[11px] text-slate-400 block">
-                    Duração média estimada por título
-                  </span>
-                </div>
-              </div>
-
-              <!-- KPI 4: Previsão de Ritmo para Zerar -->
-              <div class="p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/20 space-y-1.5">
-                <div class="flex items-center justify-between text-slate-400 text-xs">
-                  <span class="font-medium">Previsão no Seu Ritmo</span>
-                  <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
-                </div>
-                <div class="space-y-0.5">
-                  <strong class="text-2xl sm:text-3xl font-black text-emerald-300 block tracking-tight">
-                    <span v-if="backlogStats && backlogStats.estimatedMonthsToClear">~{{ backlogStats.estimatedMonthsToClear }} {{ (backlogStats.estimatedMonthsToClear === '1.0' || backlogStats.estimatedMonthsToClear === '1') ? 'mês' : 'meses' }}</span>
-                    <span v-else class="text-sm font-semibold text-slate-400">Em cálculo</span>
-                  </strong>
-                  <span class="text-[11px] text-slate-400 block">
-                    <span v-if="backlogStats && backlogStats.avgHoursPerMonth">No ritmo médio de ~{{ backlogStats.avgHoursPerMonth }}h/mês</span>
-                    <span v-else>Definido conforme zerar jogos</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Lista de Jogos do Backlog com Barras de Duração & Ação Rápida de Jogar Agora -->
-            <div v-if="backlogGames.length > 0" class="space-y-2 pt-2">
-              <div class="flex items-center justify-between text-xs text-slate-400 font-semibold px-1">
-                <span>Jogos da Fila (Prioridade & Duração Estimada)</span>
-                <span>{{ backlogGames.length }} {{ backlogGames.length === 1 ? 'jogo' : 'jogos' }}</span>
-              </div>
-
-              <div class="divide-y divide-slate-800/80 rounded-2xl bg-slate-950/60 border border-slate-800 overflow-hidden">
-                <div 
-                  v-for="(bGame, bIdx) in backlogGames" 
-                  :key="bGame.id"
-                  class="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-900/50 transition-colors group cursor-pointer"
-                  @click="openDetail(bGame)"
-                >
-                  <!-- Info Esquerda: Posição, Capa, Título, Plataforma, Prioridade -->
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <span class="w-6 font-mono text-xs font-bold text-slate-500 text-center flex-shrink-0">
-                      #{{ bIdx + 1 }}
-                    </span>
-
-                    <div class="w-9 h-12 rounded-lg overflow-hidden bg-slate-900 border border-slate-800 flex-shrink-0 shadow-sm">
-                      <img :src="bGame.coverUrl" :alt="bGame.title" class="w-full h-full object-cover" loading="lazy" @error="handleImageError($event, bGame)" />
-                    </div>
-
-                    <div class="min-w-0 flex-1 space-y-1">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <strong class="text-white font-semibold text-sm group-hover:text-amber-300 transition-colors truncate">
-                          {{ bGame.title }}
-                        </strong>
-                        
-                        <!-- Badge Prioridade -->
-                        <span 
-                          v-if="bGame.priority"
-                          class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
-                          :class="{
-                            'bg-rose-950/80 text-rose-300 border border-rose-500/40': bGame.priority === 'Alta',
-                            'bg-amber-950/80 text-amber-300 border border-amber-500/40': bGame.priority === 'Média',
-                            'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40': bGame.priority === 'Baixa'
-                          }"
-                        >
-                          {{ bGame.priority }}
-                        </span>
-
-                        <!-- Badge Plataforma -->
-                        <span 
-                          v-if="bGame.platform"
-                          class="text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase inline-flex items-center gap-1"
-                          :class="[getPlatformBadgeColor(bGame.platform), getPlatformCustomIcon(bGame.platform) ? 'badge-icon-only' : '']"
-                          :title="bGame.platform"
-                        >
-                          <template v-if="getPlatformCustomIcon(bGame.platform)">
-                            <img :src="getPlatformCustomIcon(bGame.platform)" :alt="bGame.platform" class="platform-badge-icon" loading="lazy" />
-                          </template>
-                          <template v-else>
-                            <i :data-lucide="getPlatformIcon(bGame.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
-                            <span>{{ bGame.platform }}</span>
-                          </template>
-                        </span>
-                      </div>
-
-                      <!-- Barra de Duração Proporcional -->
-                      <div class="flex items-center gap-2 text-[11px] text-slate-400">
-                        <div class="w-32 sm:w-48 bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
-                          <div 
-                            class="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full"
-                            :style="{ width: `${Math.min(100, Math.max(5, (((bGame.playtimeHours || parsePlaytimeToHours(bGame.playtime) || 0)) / Math.max(1, (backlogStats && backlogStats.totalHours) || 1)) * 100 * 3))}%` }"
-                          ></div>
-                        </div>
-                        <span class="font-mono text-amber-300 font-semibold text-xs">
-                          {{ formatPlaytime(bGame) !== '00:00:00' ? formatPlaytime(bGame) : 'Sem tempo HLTB' }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Ação Direita: Botão "▶️ Jogar Agora" -->
-                  <div v-if="!isPublicViewMode" class="flex items-center gap-2 self-end sm:self-center flex-shrink-0" @click.stop>
-                    <button 
-                      type="button" 
-                      @click="fetchHltbForBacklogGame(bGame)" 
-                      class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-800 text-xs transition-all"
-                      title="Consultar tempo no HowLongToBeat para este jogo"
-                    >
-                      <i data-lucide="timer" class="w-3.5 h-3.5"></i>
-                    </button>
-
-                    <button 
-                      type="button" 
-                      @click="startPlayingBacklogGame(bGame)" 
-                      class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
-                      title="Mudar status para 'Jogando Agora' e abrir na biblioteca"
-                    >
-                      <i data-lucide="play-circle" class="w-4 h-4"></i>
-                      <span>Jogar Agora</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Estado Vazio do Backlog na Seção de Stats -->
-            <div v-else class="p-6 rounded-2xl bg-slate-900/50 border border-dashed border-slate-800 text-center space-y-2">
-              <i data-lucide="bookmark-plus" class="w-8 h-8 text-amber-400/60 mx-auto"></i>
-              <h4 class="text-white font-semibold text-sm">Nenhum jogo no seu backlog no momento</h4>
-              <p class="text-xs text-slate-400 max-w-md mx-auto">
-                Adicione jogos ao seu backlog para calcular automaticamente a quantidade total de horas necessárias para zerá-los via HowLongToBeat!
-              </p>
-              <button 
-                v-if="!isPublicViewMode"
-                type="button" 
-                @click="openAddGame('Backlog')" 
-                class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md transition-all active:scale-95 inline-flex items-center gap-1.5 mt-1 cursor-pointer"
-              >
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                <span>+ Adicionar ao Backlog</span>
-              </button>
-            </div>
-          </div>
-
           <!-- SEÇÃO 2: EVOLUÇÃO & ATIVIDADE POR ANO (GRÁFICO INTERATIVO DE BARRAS) -->
           <div class="p-5 sm:p-6 rounded-3xl bg-[#12141c] border border-slate-800 shadow-xl space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
@@ -6540,6 +6305,241 @@
               <i data-lucide="clock" class="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-60"></i>
               <p class="text-sm text-slate-400 font-medium">Nenhum tempo de jogo registrado ainda.</p>
               <p class="text-xs text-slate-500">Adicione o tempo de jogo nos seus registros para ver os jogos mais jogados.</p>
+            </div>
+          </div>
+
+          <!-- ================================================================
+               SEÇÃO 6: ANALYTICS DO BACKLOG & ESTIMATIVA HLTB
+               ================================================================ -->
+          <div class="p-5 sm:p-6 rounded-3xl bg-[#12141c] border border-amber-500/30 shadow-xl space-y-5 relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div class="space-y-1">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-bold uppercase tracking-wider">
+                  <i data-lucide="timer" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span>Planejamento & HowLongToBeat</span>
+                </div>
+                <h3 class="font-heading font-extrabold text-lg sm:text-xl text-white flex items-center gap-2">
+                  <span>Estimativa para Zerar o Backlog</span>
+                </h3>
+                <p class="text-xs text-slate-400 max-w-2xl">
+                  Tempo estimado para zerar os jogos da sua fila com base nos dados do HowLongToBeat e previsão com base no seu ritmo de jogo.
+                </p>
+              </div>
+
+              <div v-if="!isPublicViewMode" class="flex items-center gap-2 flex-wrap">
+                <button 
+                  v-if="backlogGames.length > 0"
+                  type="button" 
+                  @click="syncAllBacklogHltb"
+                  :disabled="isBacklogHltbSyncing"
+                  class="px-3.5 py-2 rounded-xl bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                  title="Consultar e atualizar estimativas HowLongToBeat de todos os jogos do backlog"
+                >
+                  <span v-if="isBacklogHltbSyncing" key="modal-hltb-spin" class="inline-flex items-center">
+                    <svg class="w-3.5 h-3.5 animate-spin text-amber-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                  </span>
+                  <span v-else key="modal-hltb-icon" class="inline-flex items-center">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                  </span>
+                  <span>{{ isBacklogHltbSyncing ? 'Buscando HLTB...' : 'Atualizar Estimativas HLTB' }}</span>
+                </button>
+
+                <button 
+                  type="button" 
+                  @click="openAddGame('Backlog')"
+                  class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                  <span>+ Adicionar ao Backlog</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 KPIs do Backlog -->
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <!-- KPI 1: Horas Totais Necessárias -->
+              <div class="p-4 rounded-2xl bg-slate-900/80 border border-amber-500/20 space-y-1.5">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                  <span class="font-medium">Tempo Total Necessário</span>
+                  <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+                </div>
+                <div class="space-y-0.5">
+                  <strong class="text-2xl sm:text-3xl font-black text-amber-300 block tracking-tight">
+                    ~{{ backlogStats.totalHours }}h
+                  </strong>
+                  <span class="text-[11px] text-slate-400 font-mono block">
+                    {{ backlogStats.totalPlaytimeFormatted }} (~{{ backlogStats.totalDays }} dias contínuos)
+                  </span>
+                </div>
+              </div>
+
+              <!-- KPI 2: Jogos no Backlog -->
+              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                  <span class="font-medium">Jogos na Fila</span>
+                  <i data-lucide="bookmark" class="w-4 h-4 text-indigo-400"></i>
+                </div>
+                <div class="space-y-0.5">
+                  <strong class="text-2xl sm:text-3xl font-black text-white block tracking-tight">
+                    {{ backlogStats.totalGames }}
+                  </strong>
+                  <span class="text-[11px] text-slate-400 block">
+                    {{ backlogStats.estimatedCount }} com HLTB • {{ backlogStats.unestimatedCount }} pendentes
+                  </span>
+                </div>
+              </div>
+
+              <!-- KPI 3: Média por Jogo -->
+              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                  <span class="font-medium">Média por Jogo</span>
+                  <i data-lucide="hourglass" class="w-4 h-4 text-cyan-400"></i>
+                </div>
+                <div class="space-y-0.5">
+                  <strong class="text-2xl sm:text-3xl font-black text-cyan-300 block tracking-tight">
+                    ~{{ backlogStats.avgHours }}h
+                  </strong>
+                  <span class="text-[11px] text-slate-400 block">
+                    Duração média estimada por título
+                  </span>
+                </div>
+              </div>
+
+              <!-- KPI 4: Previsão de Ritmo para Zerar -->
+              <div class="p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/20 space-y-1.5">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                  <span class="font-medium">Previsão no Seu Ritmo</span>
+                  <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div class="space-y-0.5">
+                  <strong class="text-2xl sm:text-3xl font-black text-emerald-300 block tracking-tight">
+                    <span v-if="backlogStats && backlogStats.estimatedMonthsToClear">~{{ backlogStats.estimatedMonthsToClear }} {{ (backlogStats.estimatedMonthsToClear === '1.0' || backlogStats.estimatedMonthsToClear === '1') ? 'mês' : 'meses' }}</span>
+                    <span v-else class="text-sm font-semibold text-slate-400">Em cálculo</span>
+                  </strong>
+                  <span class="text-[11px] text-slate-400 block">
+                    <span v-if="backlogStats && backlogStats.avgHoursPerMonth">No ritmo médio de ~{{ backlogStats.avgHoursPerMonth }}h/mês</span>
+                    <span v-else>Definido conforme zerar jogos</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de Jogos do Backlog com Barras de Duração & Ação Rápida de Jogar Agora -->
+            <div v-if="backlogGames.length > 0" class="space-y-2 pt-2">
+              <div class="flex items-center justify-between text-xs text-slate-400 font-semibold px-1">
+                <span>Jogos da Fila (Prioridade & Duração Estimada)</span>
+                <span>{{ backlogGames.length }} {{ backlogGames.length === 1 ? 'jogo' : 'jogos' }}</span>
+              </div>
+
+              <div class="divide-y divide-slate-800/80 rounded-2xl bg-slate-950/60 border border-slate-800 overflow-hidden">
+                <div 
+                  v-for="(bGame, bIdx) in backlogGames" 
+                  :key="bGame.id"
+                  class="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-900/50 transition-colors group cursor-pointer"
+                  @click="openDetail(bGame)"
+                >
+                  <!-- Info Esquerda: Posição, Capa, Título, Plataforma, Prioridade -->
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <span class="w-6 font-mono text-xs font-bold text-slate-500 text-center flex-shrink-0">
+                      #{{ bIdx + 1 }}
+                    </span>
+
+                    <div class="w-9 h-12 rounded-lg overflow-hidden bg-slate-900 border border-slate-800 flex-shrink-0 shadow-sm">
+                      <img :src="bGame.coverUrl" :alt="bGame.title" class="w-full h-full object-cover" loading="lazy" @error="handleImageError($event, bGame)" />
+                    </div>
+
+                    <div class="min-w-0 flex-1 space-y-1">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <strong class="text-white font-semibold text-sm group-hover:text-amber-300 transition-colors truncate">
+                          {{ bGame.title }}
+                        </strong>
+                        
+                        <!-- Badge Prioridade -->
+                        <span 
+                          v-if="bGame.priority"
+                          class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
+                          :class="{
+                            'bg-rose-950/80 text-rose-300 border border-rose-500/40': bGame.priority === 'Alta',
+                            'bg-amber-950/80 text-amber-300 border border-amber-500/40': bGame.priority === 'Média',
+                            'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40': bGame.priority === 'Baixa'
+                          }"
+                        >
+                          {{ bGame.priority }}
+                        </span>
+
+                        <!-- Badge Plataforma -->
+                        <span 
+                          v-if="bGame.platform"
+                          class="text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase inline-flex items-center gap-1"
+                          :class="[getPlatformBadgeColor(bGame.platform), getPlatformCustomIcon(bGame.platform) ? 'badge-icon-only' : '']"
+                          :title="bGame.platform"
+                        >
+                          <template v-if="getPlatformCustomIcon(bGame.platform)">
+                            <img :src="getPlatformCustomIcon(bGame.platform)" :alt="bGame.platform" class="platform-badge-icon" loading="lazy" />
+                          </template>
+                          <template v-else>
+                            <i :data-lucide="getPlatformIcon(bGame.platform)" class="w-2.5 h-2.5 flex-shrink-0"></i>
+                            <span>{{ bGame.platform }}</span>
+                          </template>
+                        </span>
+                      </div>
+
+                      <!-- Barra de Duração Proporcional -->
+                      <div class="flex items-center gap-2 text-[11px] text-slate-400">
+                        <div class="w-32 sm:w-48 bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                          <div 
+                            class="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full"
+                            :style="{ width: `${Math.min(100, Math.max(5, (((bGame.playtimeHours || parsePlaytimeToHours(bGame.playtime) || 0)) / Math.max(1, (backlogStats && backlogStats.totalHours) || 1)) * 100 * 3))}%` }"
+                          ></div>
+                        </div>
+                        <span class="font-mono text-amber-300 font-semibold text-xs">
+                          {{ formatPlaytime(bGame) !== '00:00:00' ? formatPlaytime(bGame) : 'Sem tempo HLTB' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Ação Direita: Botão "▶️ Jogar Agora" -->
+                  <div v-if="!isPublicViewMode" class="flex items-center gap-2 self-end sm:self-center flex-shrink-0" @click.stop>
+                    <button 
+                      type="button" 
+                      @click="fetchHltbForBacklogGame(bGame)" 
+                      class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-800 text-xs transition-all"
+                      title="Consultar tempo no HowLongToBeat para este jogo"
+                    >
+                      <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+                    </button>
+
+                    <button 
+                      type="button" 
+                      @click="startPlayingBacklogGame(bGame)" 
+                      class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+                      title="Mudar status para 'Jogando Agora' e abrir na biblioteca"
+                    >
+                      <i data-lucide="play-circle" class="w-4 h-4"></i>
+                      <span>Jogar Agora</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado Vazio do Backlog na Seção de Stats -->
+            <div v-else class="p-6 rounded-2xl bg-slate-900/50 border border-dashed border-slate-800 text-center space-y-2">
+              <i data-lucide="bookmark-plus" class="w-8 h-8 text-amber-400/60 mx-auto"></i>
+              <h4 class="text-white font-semibold text-sm">Nenhum jogo no seu backlog no momento</h4>
+              <p class="text-xs text-slate-400 max-w-md mx-auto">
+                Adicione jogos ao seu backlog para calcular automaticamente a quantidade total de horas necessárias para zerá-los via HowLongToBeat!
+              </p>
+              <button 
+                v-if="!isPublicViewMode"
+                type="button" 
+                @click="openAddGame('Backlog')" 
+                class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md transition-all active:scale-95 inline-flex items-center gap-1.5 mt-1 cursor-pointer"
+              >
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>+ Adicionar ao Backlog</span>
+              </button>
             </div>
           </div>
 
