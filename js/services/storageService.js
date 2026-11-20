@@ -342,6 +342,13 @@ class StorageService {
   static isApplyingRemote = false;
 
   /**
+   * Define se está em processo de aplicação de dados remotos
+   */
+  static setApplyingRemote(val) {
+    this.isApplyingRemote = Boolean(val);
+  }
+
+  /**
    * Marca que a versão local foi modificada pelo usuário neste dispositivo
    */
   static markLocalUpdated(customTimestamp = null) {
@@ -362,20 +369,19 @@ class StorageService {
       const stored = localStorage.getItem(STORAGE_KEYS.LOCAL_UPDATED_AT);
       if (stored) return stored;
 
-      // Fallback para versões anteriores ou primeiro carregamento
+      // Fallback para versões anteriores ou primeiro carregamento:
+      // Se houver registro de última sincronização com Supabase, ele é a referência confiável
       const lastSync = localStorage.getItem('nota11_supabase_last_sync');
+      if (lastSync) {
+        localStorage.setItem(STORAGE_KEYS.LOCAL_UPDATED_AT, lastSync);
+        return lastSync;
+      }
+
+      // Se nunca sincronizou antes, busca a data mais recente dos jogos locais
+      const games = this.loadGames();
       let maxTime = 0;
       let maxIso = null;
 
-      if (lastSync) {
-        const t = new Date(lastSync).getTime();
-        if (!isNaN(t) && t > maxTime) {
-          maxTime = t;
-          maxIso = lastSync;
-        }
-      }
-
-      const games = this.loadGames();
       if (Array.isArray(games) && games.length > 0) {
         games.forEach(g => {
           const raw = g.updatedAt || g.createdAt;
@@ -418,6 +424,7 @@ class StorageService {
       localStorage.setItem(STORAGE_KEYS.HAS_PENDING_CHANGES, 'false');
       if (timestamp) {
         localStorage.setItem(STORAGE_KEYS.LOCAL_UPDATED_AT, timestamp);
+        localStorage.setItem('nota11_supabase_last_sync', timestamp);
       }
     } catch (e) {}
   }
@@ -554,6 +561,23 @@ class StorageService {
       return true;
     } catch (e) {
       console.error('Erro ao salvar jogos:', e);
+      // Proteção para mobile: se a cota do localStorage estourar (comum em Safari/Chrome mobile com capas pesadas em base64)
+      if (e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014)) {
+        console.warn('[StorageService] QuotaExceededError detectado. Otimizando capas em base64 para liberar espaço...');
+        try {
+          const sanitized = (games || []).map(g => {
+            if (g && g.coverUrl && typeof g.coverUrl === 'string' && g.coverUrl.startsWith('data:image/') && g.coverUrl.length > 200000) {
+              return { ...g, coverUrl: '' };
+            }
+            return g;
+          });
+          localStorage.setItem(STORAGE_KEYS.GAMES, JSON.stringify(sanitized));
+          this.markLocalUpdated();
+          return true;
+        } catch (innerErr) {
+          console.error('[StorageService] Falha persistente ao salvar mesmo após limpar capas pesadas:', innerErr);
+        }
+      }
       return false;
     }
   }

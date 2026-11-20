@@ -213,6 +213,8 @@ function initApp() {
       const cloudUser = ref(null);
       const isCloudLoading = ref(false);
       const isCloudSyncing = ref(false);
+      let isAppInitializing = true;
+      let isApplyingCloudSync = false;
       const lastCloudSync = ref(window.SupabaseService ? window.SupabaseService.getLastSyncTime() : null);
       const cloudAutoSyncEnabled = ref(localStorage.getItem('nota11_cloud_autosync') !== 'false');
       const cloudErrorMessage = ref('');
@@ -923,9 +925,9 @@ function initApp() {
             // Listener de retorno à aba/foco para checagem e sincronização automática
             let _lastFocusSyncCheck = 0;
             const checkSyncOnFocus = () => {
-              if (!cloudUser.value || !cloudAutoSyncEnabled.value || isCloudSyncing.value) return;
+              if (!cloudUser.value || !cloudAutoSyncEnabled.value || isCloudSyncing.value || isAppInitializing) return;
               const now = Date.now();
-              if (now - _lastFocusSyncCheck < 10000) return;
+              if (now - _lastFocusSyncCheck < 5000) return;
               _lastFocusSyncCheck = now;
               checkAndSyncCloud({ isManual: false, silent: true });
             };
@@ -1024,10 +1026,15 @@ function initApp() {
           refreshLucideIcons();
           setTimeout(refreshLucideIcons, 100);
         });
+
+        setTimeout(() => {
+          isAppInitializing = false;
+        }, 500);
       });
 
       // Salva automaticamente sempre que a lista de jogos mudar e recalcula armazenamento
       watch(games, (newGames) => {
+        if (isAppInitializing || isApplyingCloudSync) return;
         if (!isPublicViewMode.value && StorageService) {
           StorageService.saveGames(newGames);
         }
@@ -1036,6 +1043,7 @@ function initApp() {
 
       // Recalcula armazenamento se o perfil mudar
       watch(userProfile, () => {
+        if (isAppInitializing || isApplyingCloudSync) return;
         if (!isPublicViewMode.value) {
           refreshStorageInfo();
         }
@@ -6088,6 +6096,7 @@ Headset / Áudio: `;
         }
 
         isCloudSyncing.value = true;
+        isApplyingCloudSync = true;
         try {
           const cloudData = customCloudData || await window.SupabaseService.loadUserData(cloudUser.value.id);
           if (cloudData) {
@@ -6120,6 +6129,9 @@ Headset / Áudio: `;
           }
           return { success: false, error: err.message };
         } finally {
+          setTimeout(() => {
+            isApplyingCloudSync = false;
+          }, 400);
           isCloudSyncing.value = false;
           nextTick(() => refreshLucideIcons());
         }
@@ -6140,12 +6152,24 @@ Headset / Áudio: `;
           // 2. Obtém timestamp e status de modificações locais
           const localUpdatedAtStr = StorageService ? StorageService.getLocalUpdatedAt() : localStorage.getItem('nota11_local_updated_at');
           const localHasPending = StorageService ? StorageService.hasPendingChanges() : false;
+          const lastSyncStr = localStorage.getItem('nota11_supabase_last_sync');
 
           const localTime = localUpdatedAtStr ? new Date(localUpdatedAtStr).getTime() : 0;
           const cloudTime = (cloudData && cloudData.updatedAt) ? new Date(cloudData.updatedAt).getTime() : 0;
+          const lastSyncTime = lastSyncStr ? new Date(lastSyncStr).getTime() : 0;
 
           const localCount = games.value ? games.value.length : 0;
           const cloudCount = (cloudData && Array.isArray(cloudData.games)) ? cloudData.games.length : 0;
+
+          console.log('[CloudSync] Checagem de sincronização:', {
+            cloudUpdatedAt: cloudData?.updatedAt,
+            cloudCount,
+            localUpdatedAt: localUpdatedAtStr,
+            localCount,
+            lastSync: lastSyncStr,
+            localHasPending,
+            isManual
+          });
 
           // Cenário 1: Nuvem vazia e Navegador local tem jogos -> Faz upload inicial para a nuvem
           if ((!cloudData || cloudCount === 0) && localCount > 0) {
@@ -6159,26 +6183,35 @@ Headset / Áudio: `;
             isCloudSyncing.value = false;
             await syncFromCloud(false, cloudData);
             if (!silent) {
-              showToast('Sua biblioteca foi restaurada da nuvem!', 'success');
+              showToast(`Sua biblioteca foi restaurada da nuvem (${cloudCount} jogos)!`, 'success');
             }
             return;
           }
 
-          // Cenário 3: Versão na nuvem é MAIS RECENTE que a versão no navegador
-          // Margem de 1000ms para evitar falsos positivos por arredondamento
-          if (cloudData && cloudTime > (localTime + 1000)) {
-            console.log(`[CloudSync] Versão na nuvem (${cloudData.updatedAt}) é mais recente que local (${localUpdatedAtStr}). Baixando dados mais novos...`);
-            isCloudSyncing.value = false;
-            await syncFromCloud(false, cloudData);
-            if (!silent) {
-              showToast('Sua biblioteca foi sincronizada com a versão mais recente da nuvem!', 'success');
+          // Cenário 3: Versão na nuvem possui atualizações (enviadas por outro dispositivo, ex: PC)
+          const cloudHasUpdates = Boolean(cloudData && cloudCount > 0 && (
+            (lastSyncTime > 0 && cloudTime > (lastSyncTime + 1000)) ||
+            (cloudTime > (localTime + 1000)) ||
+            (lastSyncTime === 0)
+          ));
+
+          if (cloudHasUpdates) {
+            // Se o dispositivo local NÃO tem edições pendentes do usuário,
+            // ou se o timestamp da nuvem for mais recente ou igual ao local:
+            if (!localHasPending || cloudTime >= localTime) {
+              console.log(`[CloudSync] Nuvem (${cloudData.updatedAt}) possui atualizações mais recentes. Baixando dados para este dispositivo...`);
+              isCloudSyncing.value = false;
+              await syncFromCloud(false, cloudData);
+              if (!silent) {
+                showToast(`Sua biblioteca foi sincronizada com a versão mais recente da nuvem (${cloudCount} jogos)!`, 'success');
+              }
+              return;
             }
-            return;
           }
 
-          // Cenário 4: Versão local é MAIS RECENTE ou possui alterações locais pendentes
-          if (localHasPending || (localTime > (cloudTime + 1000))) {
-            console.log(`[CloudSync] Versão local (${localUpdatedAtStr}) é mais recente ou tem alterações pendentes. Enviando para a nuvem...`);
+          // Cenário 4: Versão local é MAIS RECENTE e possui alterações pendentes feitas pelo usuário
+          if (localHasPending && (localTime > (cloudTime + 1000) || cloudCount === 0)) {
+            console.log(`[CloudSync] Versão local (${localUpdatedAtStr}) possui alterações pendentes. Enviando para a nuvem...`);
             isCloudSyncing.value = false;
             await syncToCloud(isManual);
             return;
@@ -6230,10 +6263,11 @@ Headset / Áudio: `;
               showToast('Link de recuperação verificado! Defina sua nova senha.', 'info');
               nextTick(() => refreshLucideIcons());
             } else if (event === 'SIGNED_IN') {
+              if (isCloudLoading.value) return; // Evita corrida com o fluxo de loginCloudUser
               cloudUser.value = session ? session.user : null;
               lastCloudSync.value = window.SupabaseService.getLastSyncTime();
-              if (cloudUser.value) {
-                await checkAndSyncCloud({ isManual: false, silent: false });
+              if (cloudUser.value && !isCloudSyncing.value) {
+                await checkAndSyncCloud({ isManual: false, silent: true });
               }
               refreshLucideIcons();
             } else if (event === 'SIGNED_OUT') {
@@ -6269,11 +6303,42 @@ Headset / Áudio: `;
           cloudAuthForm.value.password = '';
           cloudAuthForm.value.confirmPassword = '';
 
-          // Realiza verificação e sincronização inteligente com a versão mais recente
-          await checkAndSyncCloud({ isManual: true, silent: false });
+          // 1. Carrega imediatamente os dados da nuvem do usuário
+          const cloudData = await window.SupabaseService.loadUserData(data.user.id);
+          const localCount = games.value ? games.value.length : 0;
+          const cloudCount = (cloudData && Array.isArray(cloudData.games)) ? cloudData.games.length : 0;
+
+          if (cloudData && cloudCount > 0) {
+            // Nuvem tem dados -> aplica diretamente na biblioteca local
+            isApplyingCloudSync = true;
+            try {
+              if (StorageService) {
+                StorageService.applyCloudData(cloudData);
+                loadActiveProfileData();
+              } else {
+                if (Array.isArray(cloudData.games)) games.value = cloudData.games;
+                if (cloudData.profile) userProfile.value = cloudData.profile;
+                if (cloudData.settings) settings.value = { ...settings.value, ...cloudData.settings };
+                if (Array.isArray(cloudData.playingCategories)) playingCategories.value = cloudData.playingCategories;
+              }
+              refreshStorageInfo();
+              const syncTime = cloudData.updatedAt || new Date().toISOString();
+              lastCloudSync.value = syncTime;
+              showToast(`Bem-vindo, ${email}! Sua biblioteca foi sincronizada da nuvem (${cloudCount} jogos).`, 'success');
+            } finally {
+              setTimeout(() => {
+                isApplyingCloudSync = false;
+              }, 400);
+            }
+          } else if (localCount > 0 && (!cloudData || cloudCount === 0)) {
+            // Nuvem vazia e dispositivo local possui jogos -> primeiro backup
+            await syncToCloud(false);
+            showToast(`Bem-vindo, ${email}! Sua biblioteca local foi enviada para a nuvem.`, 'success');
+          } else {
+            showToast(`Bem-vindo, ${email}! Conectado ao Supabase.`, 'success');
+          }
 
           cloudModalTab.value = 'account';
-          showToast(`Bem-vindo, ${email}! Conectado ao Supabase.`, 'success');
         } catch (err) {
           cloudErrorMessage.value = err.message || 'Erro ao realizar login.';
         } finally {

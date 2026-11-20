@@ -167,17 +167,24 @@
     }
 
     /**
-     * Obtém o usuário atualmente logado
+     * Obtém o usuário atualmente logado com fallback resiliente para getSession
      */
     static async getCurrentUser() {
       const client = this.getClient();
       if (!client) return null;
       try {
         const { data, error } = await client.auth.getUser();
-        if (error) return null;
-        return data ? data.user : null;
+        if (!error && data && data.user) return data.user;
+        // Fallback resiliente para getSession (útil em mobile/rede intermitente)
+        const { data: sData } = await client.auth.getSession();
+        return sData && sData.session ? sData.session.user : null;
       } catch (err) {
-        return null;
+        try {
+          const { data: sData } = await client.auth.getSession();
+          return sData && sData.session ? sData.session.user : null;
+        } catch (e) {
+          return null;
+        }
       }
     }
 
